@@ -1,3 +1,4 @@
+# coding=utf-8
 """misvoti URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -13,10 +14,25 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import include,url
+from django.conf.urls import url
 from django.contrib import admin
+from planeador import views
 
 urlpatterns = [
-    url(r'^',include('planeador.urls')),
-    url(r'^accounts/', include('accounts.urls')),
+
+    ## Página principal que veran los usuarios no registrados
+    url(r'^$',views.index,name="home"),
+
+    ## Home para los usuarios registrados que inicien sesión
+    url(r'^home/', views.home, name='myhome'),
+
+    # Pagina para ver los planes
+    url(r'^planes/$', views.ver_lista_planes, name='planes'),
+
+    # Pagina para ver un plan en especifico
+    url(r'^planes/(?P<nombre_plan>.*)/$', views.ver_plan, name='ver_plan'),
+    # Pagina para ver los planes
+    url(r'^nuevo_plan/$', views.crear_plan, name='crear_plan'),
+
+    url(r'^admin/', admin.site.urls),
 ]

@@ -1,0 +1,52 @@
+{% extends 'misvoti/base.html' %}
+{% block content %}
+    <!-- Page Heading -->
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">
+                Crear Nuevo Plan
+            </h1>
+            <ol class="breadcrumb">
+                <li>
+                    <i class="fa fa-dashboard"></i>  <a href="{% url 'home' %}">Dashboard</a>
+                </li>
+                <li>
+                    <i class="fa fa-table"></i>  <a href="{% url 'planes' %}">Planes</a>
+                </li>
+                <li class="active">
+                    <i class="fa fa-table"></i> Crear
+                </li>
+            </ol>
+        </div>
+    </div>
+    <!-- /.row -->
+
+    <div class="row">
+        <div class="col-lg-6">
+            <form role="form" enctype="multipart/form-data" method="post">
+                {% csrf_token %}
+                <div class="form-group has-feedback">
+                    <label class="control-label" for="{{ form.nombre_plan.id_for_label }}">Nombre</label>
+                    <input type="text" class="form-control" value="{{ form.nombre_plan.value }}" id="{{ form.nombre_plan.id_for_label }}" name="{{ form.nombre_plan.html_name }}" aria-describedby="inputGroup1Status" placeholder="Nombre Plan">
+                    <span class="glyphicon glyphicon-ok form-control-feedback invisible" aria-hidden="true"></span>
+                    <span id="inputGroup1Status" class="sr-only">(success)</span>
+                </div>
+
+                <div class="bg-info" style="padding: 10px">
+                    <p>¡Utilizar datos de mi expediente!</p>
+                    <div class="form-group">
+                        <label class="control-label" for="{{ form.archivo_html_expediente.id_for_label }}">Archivo HTML</label>
+                        <input type="file" class="form-control"  name="{{ form.archivo_html_expediente.html_name }}" id="{{ form.archivo_html_expediente.id_for_label }}"  style="padding-bottom: 40px !important;">
+                    </div>
+                </div>
+
+                <div class="bg-info" style="padding: 10px;margin-top: 10px">
+                    <p>¡Utilizar datos de mi pensum!</p>
+                </div>
+                <button type="submit" class="btn btn-default" style="margin-top: 10px">Crear Plan</button>
+            </form>
+        </div>
+    </div>
+    <!-- /.row -->
+
+{% endblock %}

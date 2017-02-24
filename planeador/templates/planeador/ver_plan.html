@@ -1,0 +1,68 @@
+{% extends 'misvoti/base.html' %}
+{% block content %}
+    <!-- Page Heading -->
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">
+                Modificar Notas
+            </h1>
+            <ol class="breadcrumb">
+                <li>
+                    <i class="fa fa-dashboard"></i>  <a href="{% url 'home' %}">Dashboard</a>
+                </li>
+                <li class="active">
+                    <i class="fa fa-table"></i> {{ plan.nombre }}
+                </li>
+            </ol>
+        </div>
+    </div>
+    <!-- /.row -->
+
+    <div class="row">
+        <div class="col-lg-6">
+            <h2>Datos del Plan {{ plan.nombre }}</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    {%  for trimestre in trimestres %}
+                        <thead>
+                            <tr>
+                                <th colspan="4">{{trimestre.periodo}} {{trimestre.anyo}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th width align="center">Código</th>
+                                <!--<th width align="center">Nombre</th>-->
+                                <th width align="center">Creditos</th>
+                                <th width align="center">Nota</th>
+                                <!--<th width align="center">Esta retirada?</th>-->
+                                <th width align="center">Esta sin efecto?</th>
+                            </tr>
+                            {% for materia in trimestre.materias %}
+                                <tr>
+                                    <td>{{ materia.materia_base_fk.codigo }}</td>
+{#                                    <!--<td>{{ materia.nombre }}</td>-->#}
+                                    <td>{{ materia.materia_base_fk.creditos }}</td>
+                                    {% if materia.esta_retirada %}
+                                        <td>R</td>
+                                    {% else %}
+                                        <td>{{ materia.nota_final }}</td>
+                                    {% endif %}
+                                    <td> Dunno</td>
+                                </tr>
+                            {% endfor %}
+                        <tr>
+                            <td colspan="4" align="center">Indice Periodo: 0 | Indice Acumulado:0</td>
+                        </tr>
+                        </tbody>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <h2>Indice: 3.4</h2>
+        </div>
+    </div>
+    <!-- /.row -->
+
+{% endblock %}
