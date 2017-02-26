@@ -38,5 +38,8 @@ urlpatterns = [
     url(r'^obtener_datos_plan/$', views.obtener_datos_plan, name='obtener_datos_plan_ajax'),
     url(r'^actualizar_plan/$', views.actualizar_plan, name='actualizar_plan'),
 
+    url(r'^__test/$', views.__test, name='__test'),
+
+    url(r'^planes_base',views.ver_planes_base,name='planes_base'),
     url(r'^admin/', admin.site.urls),
 ]

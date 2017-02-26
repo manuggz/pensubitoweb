@@ -14,7 +14,8 @@ from django.shortcuts import render, get_object_or_404
 # Create your views here.
 from planeador.decorators import si_no_autenticado_redirec_home
 from planeador.forms import CrearNuevoPlanForm
-from planeador.models import PlanEstudio, TrimestrePlaneado, TrimestreBase, MateriaPlaneada, MateriaBase
+from planeador.models import PlanEstudio, TrimestrePlaneado, TrimestreBase, MateriaPlaneada, MateriaBase, \
+    PlanEstudioBase, CarreraUsb
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 
 tiempos_tardo_en_respuesta = []
@@ -31,6 +32,15 @@ def home(request):
     context = {"myhome_activo": "active"}
     return render(request, 'misvoti/index.html', context)
 
+def __test(request):
+    f_raw_plan = open("../../../plan_computacion_2013_pensum_raw")
+
+    salida = ""
+    for linea in f_raw_plan.readlines():
+        salida += "<p>" + linea + "</p>"
+    f_raw_plan.close()
+
+    return HttpResponse(salida)
 
 def crear_plan(request):
     context = {"planes_activo": "active"}
@@ -39,18 +49,36 @@ def crear_plan(request):
 
         form = CrearNuevoPlanForm(request.POST, request.FILES)
         context["esta_creado_plan"] = False
-        context["errors"] = {"nombre_plan":[]}
         if form.is_valid():
 
             nombre_nuevo_plan = form.cleaned_data["nombre_plan"]
             context["nombre_plan"] = nombre_nuevo_plan
+            context["errors"] = {"nombre_plan": [],"carrera_plan":[],'plan_utilizar':[]}
             if PlanEstudio.objects.filter(nombre=nombre_nuevo_plan).exists():
                 context["errors"]["nombre_plan"].append("¡Ya existe un plan con ese nombre!")
             else:
 
+                try:
+                    carrera_plan_bd = CarreraUsb.objects.get(codigo=form.cleaned_data["carrera_plan"])
+                except ObjectDoesNotExist:
+                    context["errors"]["carrera_plan"].append("¡La carrera seleccionada no existe!")
+                    return JsonResponse(context)
+
+                try:
+
+                    print form.cleaned_data["plan_utilizar"]
+                    plan_base = PlanEstudioBase.objects.get(
+                        carrera_fk = carrera_plan_bd,
+                        tipo = form.cleaned_data["plan_utilizar"]
+                    )
+                except ObjectDoesNotExist:
+                    context["errors"]["plan_utilizar"].append("¡El plan de estudio seleccionado no existe!")
+                    return JsonResponse(context)
+
                 nuevo_plan = PlanEstudio(
                     nombre=nombre_nuevo_plan,
                     usuario_creador_fk=request.user,
+                    plan_estudio_base_fk=plan_base
                 )
                 nuevo_plan.save()
 
@@ -91,6 +119,25 @@ def ver_plan(request, nombre_plan):
 
     return render(request, 'planeador/ver_plan.html', context)
 
+
+def ver_planes_base(request):
+
+    respuesta = {"planes":[]}
+
+    if request.method == "GET":
+        print request.GET["carrera"]
+
+        try:
+            carrera_buscada = CarreraUsb.objects.get(codigo=request.GET["carrera"])
+        except ObjectDoesNotExist:
+            return JsonResponse(respuesta)
+
+        get_nombre_plan = PlanEstudioBase.get_nombre_tipo_plan
+        respuesta["planes"] = [ {"codigo":plan_base_bd.pk,
+                                 "nombre": get_nombre_plan(plan_base_bd)}
+                                for plan_base_bd in PlanEstudioBase.objects.filter(carrera_fk=carrera_buscada)]
+
+    return JsonResponse(respuesta)
 
 def eliminar_plan_ajax(request):
     context = {}

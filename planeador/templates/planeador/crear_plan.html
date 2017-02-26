@@ -3,14 +3,14 @@
     <script>
 
         var btn_crear_plan = null;
-        var div_alert_errors_pn = null;
+        var componentes_form = null;
 
         // pre-submit callback
         function preAjaxSubmit(formData, jqForm, options) {
-            $("form input").each(function () {
+            componentes_form.each(function () {
                 $(this).attr("disabled","disabled");
             });
-            console.log(formData);
+
             // formData is an array; here we use $.param to convert it to a string to display it
             // but the form plugin does this for you automatically when it submits the data
             var queryString = $.param(formData);
@@ -48,24 +48,36 @@
                     btn_crear_plan.text("Crear Plan");
                     btn_crear_plan.removeAttr("disabled");
                     html_errors = "";
-                    html_errors += "<ul>";
-                    for(i in responseJson.errors.nombre_plan){
-                        html_errors += "<li>" + responseJson.errors.nombre_plan[i] + "</li>";
+                    for (var name in responseJson.errors) {
+                        html_errors = "<ul>";
+                        tiene_errores = false
+                        for(var error in responseJson.errors[name]){
+                            html_errors += "<li>" + responseJson.errors[name][error] + "</li>";
+                            tiene_errores = true
+                        }
+                        html_errors += "</ul>";
+                        if(tiene_errores) {
+                            console.log(name);
+                            console.log(html_errors);
+                            console.log(div_errores[name]);
+                            if (!jQuery.contains(document, div_errores[name])) {
+                                div_errores[name].addClass("in");
+                                $("#div-alert-container-" + name).append(div_errores[name]);
+                            }
+                            $("#div-container-errors-" + name).html(html_errors);
+                        }else{
+                            div_errores[name].alert('close');
+                        }
                     }
-                    html_errors += "</ul>";
-                    if (!jQuery.contains(document, div_alert_errors_pn)) {
-                        div_alert_errors_pn.addClass("in");
-                        $("#div-alert-container").append(div_alert_errors_pn);
-                    }
-                    $("#errors_input_plan_name").html(html_errors);
-                    $("form input").each(function () {
+
+                    componentes_form.each(function () {
                         $(this).removeAttr("disabled");
                     });
                 }
             }else{
                 btn_crear_plan.text("Crear Plan");
                 btn_crear_plan.removeAttr("disabled");
-                $("form input").each(function () {
+                componentes_form.each(function () {
                     $(this).removeAttr("disabled");
                 });
             }
@@ -77,8 +89,13 @@
         $(document).ready(function(){
 
             btn_crear_plan = $("button.btn-primary");
-            div_alert_errors_pn = $("#alert_errors_input_name");
-            div_alert_errors_pn.alert('close');
+
+            div_errores = {};
+            {% for field in form%}
+                div_errores.{{ field.html_name }} = $("#div-alert-errors-" + "{{ field.html_name }}");
+                div_errores.{{ field.html_name }}.alert('close');
+            {% endfor %}
+            componentes_form = $("form .form-component");
 
             $("form").submit(function (e) {
                 btn_crear_plan.text("Creando Plan...");
@@ -102,8 +119,21 @@
                 e.preventDefault();
                 $("form").ajaxSubmit(options);
             });
+            $("#id_select_{{ form.carrera_plan.html_name }}").change(function () {
+                $.get("{% url 'planes_base' %}",{
+                            carrera:$(this).val()
+                        },
+                        function(data, status) {
+                            if (status == "success") {
+                                alert(data);
+                                console.log(data);
+                            } else {
+                                alert("Ocurrió un error actualizando el plan");
+                            }
+                        });
+                    });
+            });
 
-        });
     </script>
 {% endblock %}
 {% block content %}
@@ -131,16 +161,88 @@
                 {% csrf_token %}
                 <div class="form-group">
                     <label class="control-label" for="{{ form.nombre_plan.id_for_label }}">Nombre</label>
-                    <input type="text" class="form-control" id="{{ form.nombre_plan.id_for_label }}" name="{{ form.nombre_plan.html_name }}" aria-describedby="inputGroup1Status" placeholder="Nombre Plan">
+                    <input type="text" class="form-control form-component" id="{{ form.nombre_plan.id_for_label }}" name="{{ form.nombre_plan.html_name }}" aria-describedby="inputGroup1Status" placeholder="Nombre del plan">
                     <span id="inputGroup1Status" class="sr-only">(success)</span>
                 </div>
-                <div id="div-alert-container">
-                    <div class="alert alert-danger alert-dismissible fade in" role="alert" id="alert_errors_input_name">
+                <div id="div-alert-container-{{ form.nombre_plan.html_name }}">
+                    <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.nombre_plan.html_name }}">
                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                              <span aria-hidden="true">×</span>
                          </button>
-                        <div id="errors_input_plan_name"></div>
+                        <div id="div-container-errors-{{ form.nombre_plan.html_name }}"></div>
                     </div>
+                </div>
+
+                <div class="panel panel-primary">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">¿De cual plan se tomaran las materias?</h3>
+                  </div>
+                  <div class="panel-body">
+                    <div class="form-group">
+                        <label class="control-label" for="id_select_{{ form.carrera_plan.html_name }}">Carrera</label>
+                        <select class="form-control form-component"name="{{ form.carrera_plan.html_name }}" id="id_select_{{ form.carrera_plan.html_name }}" >
+                            {% for x,y in form.fields.carrera_plan.choices %}
+                                <option value="{{ x }}" {% if form.fields.carrera_plan.value == x %} selected="selected" {% endif %}>{{ x }} - {{ y }}</option>
+                            {% endfor %}
+                        </select>
+                        <div id="div-alert-container-{{ form.carrera_plan.html_name }}">
+                            <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.carrera_plan.html_name }}">
+                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                     <span aria-hidden="true">×</span>
+                                 </button>
+                                <div id="div-container-errors-{{ form.carrera_plan.html_name }}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="id_select_{{ form.plan_utilizar.html_name }}">Plan de estudio</label>
+                        <select class="form-control form-component form-component"  name="{{ form.plan_utilizar.html_name }}" id="id_select_{{ form.plan_utilizar.html_name }}">
+                            {% for x,y in form.fields.plan_utilizar.choices %}
+                                <option value="{{ x }}" {% if form.fields.plan_utilizar.value == x %} selected="selected" {% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                        <div id="div-alert-container-{{ form.plan_utilizar.html_name}}">
+                            <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.plan_utilizar.html_name}}">
+                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                     <span aria-hidden="true">×</span>
+                                 </button>
+                                <div id="div-container-errors-{{ form.plan_utilizar.html_name}}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox">
+                          <label>
+                            <input type="checkbox" class="form-component" value="" name="{{ form.construir_usando_pb.html_name }}">
+                            ¡Crea todos los trimestres de acuerdo al plan!
+                          </label>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="panel panel-info">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">¿Desde cuando planeas comenzar(o comenzaste) tus estudios?</h3>
+                  </div>
+                  <div class="panel-body">
+                    <div class="form-group">
+                        <label class="control-label" for="id_select_{{ form.periodo_inicio.html_name }}">Periodo</label>
+                        <select class="form-control form-component"  name="{{ form.periodo_inicio.html_name }}" id="id_select_{{ form.periodo_inicio.html_name }}">
+                            {% for x,y in form.fields.periodo_inicio.choices %}
+                                <option value="{{ x }}" {% if form.fields.periodo_inicio.value == x %} selected="selected" {% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="id_select_{{ form.anyo_inicio.html_name }}">Año</label>
+                        <select class="form-control form-component"  name="{{ form.anyo_inicio.html_name }}" id="id_select_{{ form.anyo_inicio.html_name }}">
+                            {% for x,y in form.fields.anyo_inicio.choices %}
+                                <option value="{{ x }}" {% if form.fields.anyo_inicio.value == x %} selected="selected" {% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="panel panel-info">
@@ -150,15 +252,21 @@
                   <div class="panel-body">
                     <div class="form-group">
                         <label class="control-label" for="{{ form.archivo_html_expediente.id_for_label }}">Archivo HTML</label>
-                        <input type="file" class="form-control"  name="{{ form.archivo_html_expediente.html_name }}" id="{{ form.archivo_html_expediente.id_for_label }}"  style="padding-bottom: 40px !important;">
+                        <input type="file" class="form-control form-component"  name="{{ form.archivo_html_expediente.html_name }}" id="{{ form.archivo_html_expediente.id_for_label }}"  style="padding-bottom: 40px !important;">
+                    </div>
+                    <div id="div-alert-container-{{ form.archivo_html_expediente.html_name }}">
+                        <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.archivo_html_expediente.html_name }}">
+                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                 <span aria-hidden="true">×</span>
+                             </button>
+                            <div id="div-container-errors-{{ form.archivo_html_expediente.html_name }}"></div>
+                        </div>
                     </div>
                   </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="margin-top: 10px">Crear Plan</button>
             </form>
-            <div id="output2">
-            </div>
         </div>
     </div>
     <!-- /.row -->

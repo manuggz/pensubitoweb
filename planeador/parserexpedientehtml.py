@@ -154,3 +154,4 @@ def crear_modelos_desde_resultado_parser(resultado_parser, plan_modelo_ref):
                 trimestre_cursada_fk=trimestre_actualmd,
             )
             materiaplan_nueva.save()
+
