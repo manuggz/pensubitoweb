@@ -1,4 +1,371 @@
 {% extends 'misvoti/base.html' %}
+
+{#Bloque ejecutado antes de terminar /HEAD#}
+{% block inicio_pagina_scripts %}
+    <script>
+
+        // Enlaza el DOM de la tabla en la que se mostrará el plan
+        var datos_tabla_html      = null;
+        // Enlaza el DOM del boton que se presiona para actualizar los datos del plan del servidor
+        var btn_guardar_cambios   = null;
+        // Contiene el json que manda el servidor que contiene el plan
+        // Se utiliza así mismo para controlar los datos del plan del cliente
+        // Si se agrega/elimina-modifica algo del plan se debe reflejar aquí
+        // ya que este es el que se envía al servidor para que se actualize los datos que el
+        // servidor contiene
+        var json_datos_trims = null;
+        // Variable usada para asignarles codigos a los trimestres distintos de los manejados por el servidor
+        // Esto sirve por si se quiere modificar/eliminar un trimestre en particular para diferenciarlo
+        // -- Contiene el código que se le asignará al siguiente trimestre a registrar
+        var next_cod_trime = 0;
+
+        // Redondea un numero ejem: 123.123453 a 4 cífras significativas a lo más. ejem: 123.1235
+        function redondear(numero){
+            return Math.round((numero + 0.00001)*10000)/10000;
+        }
+
+        // Busca la posicion de la materia con el código codigo_materia que pertenece
+        // al trimestre con el código codigo_trimestre
+        // regresa la posición i,j
+        // i - posición del trimestre en el array de trimestres del JSON json_datos_trims
+        // j - posición de la materia en el array de materias del trimestre i
+        function posicion_ij_materia(codigo_trimestre, codigo_materia) {
+            for(var i in json_datos_trims.trimestres){
+                if(json_datos_trims.trimestres[i].codigo == codigo_trimestre){
+                    for(var j in json_datos_trims.trimestres[i].materias){
+                        if(json_datos_trims.trimestres[i].materias[j].codigo == codigo_materia) {
+                            return [i,j]
+                        }
+                    }
+                }
+            }
+        }
+
+
+        // Actualiza los indices(indice periodo e Indice acumulado) que se le muestra al usuario
+        // Básicamente recorre el JSON(json_datos_trims) donde se guardan los datos de los trimestres
+        // A medida que lo va recorriendo va calculando y actualizando los datos que se le muestran al usuario
+        function actualizar_indices(){
+            // Nota: Recordar que el índice se calcula
+            // sumatoria(nota(i)*creditomateria(i)) / sumatoria(creditosdemateria(i))
+            // Si el estudiante pasa(nota >= 3) una materia previamente reprobada se anula la nota inmediata anterior
+
+            // Contendrá la suma parcial nota(i)*creditomateria(i)
+            var sum_nota_creds_acum   = 0;
+
+            // Total de creditos inscritos por el usuario
+            // contiene creditos retirados,aprobados,reprobados
+            var creds_inscri = 0;
+            // Total de creditos retirados
+            // Creditos inscritos que el estudiante retiró
+            var creds_ret = 0;
+            // Total de creditos aprobados
+            // Creditos que el estudiante inscribió y aprobó con una nota mayor o igual a 3
+            var creds_apro = 0;
+            // Total de creditos reprobados
+            // Creditos que el estudiante inscribió y reprobó con una nota menor o igual a 2
+            var creds_repro = 0;
+
+            // Total de creditos que le cuentan en el cálculo del índice
+            // Cuentan los creditos inscritos que no fueron retirados
+            // y de las materias que no fueron anuladas debido a la regla que dice
+            // que si apruebas una materia reprobada se anula la nota previamente anterior
+            var creds_cont = 0;
+
+            // Recorremos todos los trimestres
+            // i tomará valores desde 0 hasta total(trimestres cursados)
+            for(i in json_datos_trims.trimestres) {
+                // Suma de nota(i)*creditosmateria(i) del trimestre actual del bucle
+                // Se usa para calcular el indice del periodo/trimestre actual
+                var sum_nota_creds_trimact = 0;
+                // Total de los creditos que cuentan para el trimestre actual
+                var cred_cont_trimact = 0;
+
+                // Recorremos todas las materias inscritas para el trimestre i
+                for (j in json_datos_trims.trimestres[i].materias) {
+
+                    // Aumentamos los creditos inscritos
+                    creds_inscri += json_datos_trims.trimestres[i].materias[j].creditos;
+
+                    // Si la materia no está retirada
+                    if (!json_datos_trims.trimestres[i].materias[j].esta_retirada) {
+
+                        // Si la materia está reprobada
+                        if (json_datos_trims.trimestres[i].materias[j].nota_final <= 2) {
+                            // Aumentamos los creditos reprobados
+                            creds_repro += json_datos_trims.trimestres[i].materias[j].creditos;
+                        } else {
+
+                            // Chequeamos si la materia ha sido reprobada anteriormente //
+
+                            var nota_reprobada_anterior = -1; // -1 indica que no existe tal materia
+                            // Recorremos todos los trimestres anteriores
+                            for (l = 0; l < i; l++) {
+                                // Recorremos las materias para el trimestre l
+                                for (m in json_datos_trims.trimestres[l].materias) {
+                                    // Si es la misma materia (comparamos el código)
+                                    if (json_datos_trims.trimestres[l].materias[m].codigo == json_datos_trims.trimestres[i].materias[j].codigo) {
+
+                                        // Si la materia está reprobada y no está retirada
+                                        // Significa que debemos anular esta nota
+                                        if (json_datos_trims.trimestres[l].materias[m].nota_final <= 2 && !json_datos_trims.trimestres[l].materias[m].esta_retirada) {
+                                            nota_reprobada_anterior = json_datos_trims.trimestres[l].materias[m].nota_final;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Si se ha encontrado una nota que hay que anular
+                            if (nota_reprobada_anterior != -1) {
+                                // Descontamos lo que hemos sumado anteriormente
+                                creds_cont -= json_datos_trims.trimestres[i].materias[j].creditos;
+                                sum_nota_creds_acum -= nota_reprobada_anterior * json_datos_trims.trimestres[i].materias[j].creditos;
+                            }
+
+                            // Aumentamos los creditos aprobados
+                            creds_apro += json_datos_trims.trimestres[i].materias[j].creditos;
+                        }
+
+                        // Aumentamos la suma nota i x credito materia i
+                        sum_nota_creds_trimact += json_datos_trims.trimestres[i].materias[j].nota_final * json_datos_trims.trimestres[i].materias[j].creditos;
+                        // Aumentamos la suma de creditos para este trimestre
+                        cred_cont_trimact += json_datos_trims.trimestres[i].materias[j].creditos;
+
+                    } else {
+                        // Aumentamos los creditos retirados
+                        creds_ret += json_datos_trims.trimestres[i].materias[j].creditos;
+                    }
+                }
+
+                // Aumentamos la suma nota i * credito i para el acumulado
+                sum_nota_creds_acum += sum_nota_creds_trimact;
+                // Aumentamos la suma de creditos que cuentan totales
+                creds_cont += cred_cont_trimact;
+
+                // Actualizamos lo que se le muestra al usuario
+                // Notar que se ha usado la notación #td-indice-<codigo trimestre> para referenciar el td que muestra
+                // los datos para el trimestre <código trimestre>
+                datos_tabla_html.find("#td-indice-" + json_datos_trims.trimestres[i].codigo).html(
+                    "I.P.: "  + redondear(sum_nota_creds_trimact   / cred_cont_trimact) +
+                    " |I.A.:" + redondear(sum_nota_creds_acum / creds_cont )
+                )
+            }
+
+        }
+
+        // Agrega los eventos a los elementos del DOM adecuados
+        // Agrega el listener para cuando se cambia la nota de algúna materia del plan
+        // Agrega el listener para cuando se clickea el boton de guardar cambios
+        function agregar_eventos_cambios_datos() {
+
+            // Listener para cuando se cambia la nota
+            datos_tabla_html.find("select.select-materia-cambiar-nota").change(function () {
+
+                // Se ha hecho tal que en los tr del tbody de la tabla
+                // se guarden datos usables para el código
+                // por lo que lo primero es encontrar el más cernano tr del elemento
+                var tr_con_datos =  $( this ).closest( "tr" );
+                // Obtenemos los datos de la materia y trimestre a la cual pertenece
+                var codigo_trimestre_cambiado = tr_con_datos.data("trimestre-codigo");
+                var codigo_materia_cambiada   = tr_con_datos.data("materia-codigo");
+
+                var posicion_materia = posicion_ij_materia(codigo_trimestre_cambiado,codigo_materia_cambiada);
+
+
+                if($(this).val() != "R"){
+                    json_datos_trims.trimestres[posicion_materia[0]].materias[posicion_materia[1]].nota_final = parseInt($(this).val());
+                }
+
+                json_datos_trims.trimestres[posicion_materia[0]].materias[posicion_materia[1]].esta_retirada = $(this).val() == "R";
+
+                // Actualizamos los indices que se le muestran al usuario
+                actualizar_indices();
+
+                // Activamos el boton de guardar
+                btn_guardar_cambios.text("Guardar Cambios*");
+                btn_guardar_cambios.removeAttr("disabled");
+            });
+
+            // Listener para cuando se clickea el boton de guardar
+            // El cual hace que se mande al servidor el estado del plan que maneja el cliente
+            // Actualizandolo
+            btn_guardar_cambios.click(function () {
+
+                // Desactivamos los select que permiten al usuario cambiar la nota de las materias
+                // Para cada select en la tabla
+                datos_tabla_html.find("select").each(function (index,element) {
+                    // Lo colocamos en desactivado
+                    $(this).attr("disabled","disabled");
+                });
+
+                // Desactivamos el boton de guardar
+                btn_guardar_cambios.text("Guardando Cambios...");
+                btn_guardar_cambios.attr("disabled","disabled");
+
+                // Mandamos los datos al servidor
+                // Notar que mandamos un json de la forma
+                // { "datos":json que el servidor nos manda}
+                // Se manda de esta forma por varios errores que daba django
+                $.post({% url 'actualizar_plan' %},{
+                            datos:JSON.stringify(json_datos_trims)
+                        },
+                        function(data, status){
+                            if (status == "success"){
+                                // Si tod bien!
+                                // Activamos los select que habíamos desactivados
+                                datos_tabla_html.find("select").each(function (index,element) {
+                                    $(this).removeAttr("disabled");
+                                });
+                                // Actualizamos el texto del boton guardar
+                                btn_guardar_cambios.text("¡Cambios Guardados!");
+                            }else{
+                                alert("Ocurrió un error actualizando el plan");
+                            }
+                    }
+                );
+
+            })
+        }
+
+        function crear_tabla_trimestres(){
+            var trimestre_codigo = "";
+            var html_tabla = "";
+            for(i in json_datos_trims.trimestres){
+
+                trimestre_codigo = "tri" + next_cod_trime++;
+                json_datos_trims.trimestres[i].codigo = trimestre_codigo;
+
+                // HEAD de la tabla
+                html_tabla += "<thead>";
+                    html_tabla += "<tr " + "data-trimestre-codigo='" + json_datos_trims.trimestres[i].codigo + "' >";
+                        html_tabla += "<th colspan='3'>";
+                            if(json_datos_trims.trimestres[i].periodo == "SD"){
+                                html_tabla += "Septiembre - Diciembre";
+                            }else if(json_datos_trims.trimestres[i].periodo == "EM"){
+                                html_tabla += "Enero - Marzo";
+                            }else if(json_datos_trims.trimestres[i].periodo == "AJ"){
+                                html_tabla += "Abril - Julio";
+                            }else if(json_datos_trims.trimestres[i].periodo == "JA"){
+                                html_tabla += "Julio - Agosto";
+                            }
+                            html_tabla += " " + json_datos_trims.trimestres[i].anyo;
+                        html_tabla += "</th>";
+                        html_tabla += "<th align='left' colspan='2'>";
+                            html_tabla += '<button type="button" data-toggle="modal" data-tipo-boton="eliminar_trimestre" data-tipo-boton="eliminar-trimestre" data-target="#modal-eliminar-trim-mat" class="btn btn-danger" aria-label="Left Align">';
+                            html_tabla += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>';
+                            html_tabla += '</button> ';
+                        html_tabla += "</th>"; // Falta identificador de i/materia
+                    html_tabla += "</tr>"; // Falta identificador de i/materia
+                html_tabla += "</thead>"; // Falta identificador de i/materia
+
+                // Body
+
+                html_tabla += "<tbody>";
+                    html_tabla += "<tr>";
+                        html_tabla += "<th align='center'>Código</th>";
+                        html_tabla += "<th align='center' class = 'hidden-xs'>Nombre</th>";
+                        html_tabla += "<th align='center'>Creditos</th>";
+                        html_tabla += "<th align='center'>Nota</th>";
+                        html_tabla += "<th align='right'>¿Eliminar?</th>";
+                    html_tabla += "</tr>";
+
+                for( j in json_datos_trims.trimestres[i].materias){
+                    html_tabla += "<tr data-trimestre-codigo='" + json_datos_trims.trimestres[i].codigo+ "' data-materia-codigo = '" + json_datos_trims.trimestres[i].materias[j].codigo+ "'>";
+                        html_tabla += "<td>";
+                            html_tabla += json_datos_trims.trimestres[i].materias[j].codigo;
+                        html_tabla += "</td>";
+                        html_tabla += "<td  class = 'hidden-xs'>";
+                            html_tabla += json_datos_trims.trimestres[i].materias[j].nombre;
+                        html_tabla += "</td>";
+                        html_tabla += "<td align='center'>";
+                            html_tabla += json_datos_trims.trimestres[i].materias[j].creditos;
+                        html_tabla += "</td>";
+                        html_tabla += "<td>";
+                            html_tabla += "<select class='form-control select-materia-cambiar-nota' style='width:50px;'>";
+                                for (k = 1; k <= 5; k++) {
+                                    html_tabla += "<option ";
+                                    if(json_datos_trims.trimestres[i].materias[j].nota_final == k){
+                                        html_tabla+="selected";
+                                    }
+                                    html_tabla += ">" + k + "</option>";
+                                }
+                                    html_tabla += "<option ";
+                                    if(json_datos_trims.trimestres[i].materias[j].esta_retirada){
+                                        html_tabla+="selected";
+                                    }
+                                    html_tabla += ">R</option>";
+                            html_tabla += "</select>";
+                        html_tabla += "</td>";
+                        html_tabla += "<td align='right'>";
+                        html_tabla += '<button type="button" data-toggle="modal" data-tipo-boton="eliminar-materia" data-target="#modal-eliminar-trim-mat" class="btn btn-warning" aria-label="Left Align">';
+                        html_tabla += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>';
+                        html_tabla += '</button> ';
+                        html_tabla += "</td>";
+                    html_tabla += "</tr>";
+                }
+                    html_tabla += "<tr>";
+                        html_tabla += "<td colspan='5' align='center'>";
+
+                        // Calculamos el indice del periodo
+                        //console.log(" acumulado: " + suma_nota_x_creditos_acumulado + "/" + creditos_que_cuentan + "= " + redondear(suma_nota_x_creditos_acumulado / creditos_que_cuentan ));
+                        html_tabla += '<button type="button" class="btn btn-primary" aria-label="Left Align">';
+                        html_tabla += '<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>';
+                        html_tabla += '</button> ';
+                        html_tabla += "</td>";
+                        html_tabla += "</td>";
+                    html_tabla += "</tr>";
+
+                    html_tabla += "<tr>";
+                        html_tabla += "<td colspan='5' align='center' id='td-indice-"  + json_datos_trims.trimestres[i].codigo + "' >";
+
+                        // Calculamos el indice del periodo
+                        //console.log(" acumulado: " + suma_nota_x_creditos_acumulado + "/" + creditos_que_cuentan + "= " + redondear(suma_nota_x_creditos_acumulado / creditos_que_cuentan ));
+                        html_tabla += "I.P.: NC| I.A.:NC";
+                        html_tabla += "</td>";
+                    html_tabla += "</tr>";
+                html_tabla += "</tbody>";
+
+            }
+
+            html_tabla += '<tbody><tr><td colspan="5" align="center"><button  type="button" class="btn btn-primary"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> ¡Agregar un trimestre!</button></td></tr></tbody>';
+            datos_tabla_html.html(html_tabla);
+
+        }
+
+        // Una vez que se ha cargado el documento
+        // Se debe hacer la petición al servidor de los datos del plan
+        // El cual regresará un json con dichos datos
+        // una vez obtenidos se debe crear la vista del usuario
+        $(document).ready(function(){
+
+            datos_tabla_html    = $("#tabla-trimestres");
+            btn_guardar_cambios = $("#btn-guardar-cambios");
+
+            datos_tabla_html.html("<tr><td>Cargando datos del plan...</td></tr>");
+
+            $.get({% url 'obtener_datos_plan_ajax' %},{
+                nombre_plan: "{{ plan.nombre }}",
+                },function(data, status){
+                    if (status == "success"){
+
+                        datos_tabla_html.html("<tr><td>Creando vista...</td></tr>");
+
+                        json_datos_trims = data;
+
+                        crear_tabla_trimestres();
+                        actualizar_indices();
+                        agregar_eventos_cambios_datos();
+
+                    }else{
+                        alert("Ocurrió un error cargando los datos del plan");
+                    }
+                }
+            );
+
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
     <!-- Page Heading -->
     <div class="row">
@@ -8,7 +375,7 @@
             </h1>
             <ol class="breadcrumb">
                 <li>
-                    <i class="fa fa-dashboard"></i>  <a href="{% url 'home' %}">Dashboard</a>
+                    <i class="fa fa-table"></i>  <a href="{% url 'planes' %}">Planes</a>
                 </li>
                 <li class="active">
                     <i class="fa fa-table"></i> {{ plan.nombre }}
@@ -21,48 +388,121 @@
     <div class="row">
         <div class="col-lg-6">
             <h2>Datos del Plan {{ plan.nombre }}</h2>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    {%  for trimestre in trimestres %}
-                        <thead>
-                            <tr>
-                                <th colspan="4">{{trimestre.periodo}} {{trimestre.anyo}}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th width align="center">Código</th>
-                                <!--<th width align="center">Nombre</th>-->
-                                <th width align="center">Creditos</th>
-                                <th width align="center">Nota</th>
-                                <!--<th width align="center">Esta retirada?</th>-->
-                                <th width align="center">Esta sin efecto?</th>
-                            </tr>
-                            {% for materia in trimestre.materias %}
-                                <tr>
-                                    <td>{{ materia.materia_base_fk.codigo }}</td>
-{#                                    <!--<td>{{ materia.nombre }}</td>-->#}
-                                    <td>{{ materia.materia_base_fk.creditos }}</td>
-                                    {% if materia.esta_retirada %}
-                                        <td>R</td>
-                                    {% else %}
-                                        <td>{{ materia.nota_final }}</td>
-                                    {% endif %}
-                                    <td> Dunno</td>
-                                </tr>
-                            {% endfor %}
-                        <tr>
-                            <td colspan="4" align="center">Indice Periodo: 0 | Indice Acumulado:0</td>
-                        </tr>
-                        </tbody>
-                    {% endfor %}
+
+            <div class="btn-group" role="group" aria-label="...">
+              <button type="button" class="btn btn-primary">Cambiar Nombre</button>
+              <button type="button" class="btn btn-primary" disabled="disabled" id = "btn-guardar-cambios">Guardar Cambios</button>
+
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Más Opciones
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="#">Eliminar</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <div style="margin-top:30px;">
+                <table class = "table  table-hover" id="tabla-trimestres" >
+                    <!--Aquí se va a poner los datos del plan dinamicamente-->
                 </table>
             </div>
         </div>
-        <div class="col-lg-6">
-            <h2>Indice: 3.4</h2>
-        </div>
     </div>
     <!-- /.row -->
+
+    <!-- Modal de eliminar trimestre/materia -->
+    <div class="modal fade" tabindex="-1"  id="modal-eliminar-trim-mat" role="dialog" aria-labelledby="mySmallModalLabel">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel"></h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btn-eliminar-plan">Eliminar</button>
+            </div>
+        </div>
+      </div>
+    </div>
+
+{% endblock %}
+
+{% block final_pagina_scripts %}
+    <script>
+
+
+        $('#modal-eliminar-trim-mat').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var tr_con_datos =  button.closest( "tr" );
+            var codigo_trimestre_materia_eliminar = tr_con_datos.data("trimestre-codigo");
+            var tipo_boton = button.data('tipo-boton'); // Extract info from data-* attributes
+
+            var modal = $(this);
+
+            if(tipo_boton == "eliminar-materia"){
+                var codigo_materia_eliminar   = tr_con_datos.data("materia-codigo");
+
+                var posicion = posicion_ij_materia(codigo_trimestre_materia_eliminar,codigo_materia_eliminar);
+
+                modal.find('.modal-title').text('¿Eliminar ' + json_datos_trims.trimestres[posicion[0]].materias[posicion[1]].codigo + ' ?');
+                modal.find('.modal-body').text('Nombre: ' + json_datos_trims.trimestres[posicion[0]].materias[posicion[1]].nombre);
+                modal.find('#btn-eliminar-plan').click(function (event) {
+                    $(this).off("click");
+
+                    $('#modal-eliminar-trim-mat').modal("hide");
+                    tr_con_datos.hide('slow', function(){ tr_con_datos.remove(); });
+                    json_datos_trims.trimestres[posicion[0]].materias.splice(posicion,1);
+                    actualizar_indices();
+                    btn_guardar_cambios.text("Guardar Cambios*");
+                    btn_guardar_cambios.removeAttr("disabled");
+
+              });
+            }else if(tipo_boton == "eliminar_trimestre"){
+                var i_trimestre;
+                for(var i in json_datos_trims.trimestres){
+                    if(json_datos_trims.trimestres[i].codigo == codigo_trimestre_materia_eliminar){
+                        i_trimestre = i;
+                        break;
+                    }
+                }
+                modal.find('.modal-title').text('¿Eliminar ' + json_datos_trims.trimestres[i_trimestre].periodo + " " + json_datos_trims.trimestres[i_trimestre].anyo + ' ?');
+                var periodo = json_datos_trims.trimestres[i_trimestre].periodo;
+                var html_body_modal = "<p>Periodo:";
+                if(periodo == "SD"){
+                    html_body_modal += "Septiembre - Diciembre";
+                }else if(periodo == "EM"){
+                    html_body_modal += "Enero - Marzo";
+                }else if(periodo == "AJ"){
+                    html_body_modal += "Abril - Julio";
+                }else if(periodo == "JA"){
+                    html_body_modal += "Julio - Agosto";
+                }
+                html_body_modal += "</p><p>Año: " + json_datos_trims.trimestres[i_trimestre].anyo + "</p>";
+                modal.find('.modal-body').html(html_body_modal);
+                modal.find('#btn-eliminar-plan').click(function (event) {
+                    $(this).off("click");
+
+                    $('#modal-eliminar-trim-mat').modal("hide");
+                    var thead = tr_con_datos.closest("thead");
+                    var tbody = thead.next();
+                    thead.hide('slow', function(){ thead.remove(); });
+                    tbody.hide('slow', function(){ tbody.remove(); });
+                    json_datos_trims.trimestres.splice(i_trimestre,1);
+                    actualizar_indices();
+                    btn_guardar_cambios.text("Guardar Cambios*");
+                    btn_guardar_cambios.removeAttr("disabled");
+
+              });
+
+
+            }
+        })
+    </script>
 
 {% endblock %}

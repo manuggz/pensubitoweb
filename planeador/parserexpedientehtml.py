@@ -67,9 +67,9 @@ class MyHTMLParser(HTMLParser):
     def handle_endtag(self, tag):
 
         if tag == "table" and self.nombre_trimestre:
+            self.trimestres.append(self.trimestre_actual)
             self.nombre_trimestre = ""
             self.trimestre_actual = TrimestreDatosModelo()
-            self.trimestres.append(self.trimestre_actual)
         elif tag == "tr" and self.esta_parseada_observacion:
 
             self.esta_parseada_observacion = False
@@ -129,7 +129,6 @@ def parser_html(archivo_subido):
 
 def crear_modelos_desde_resultado_parser(resultado_parser, plan_modelo_ref):
     for trimestre in resultado_parser:
-
         trimestre_basemd, is_created = TrimestreBase.objects.get_or_create(
             periodo=trimestre.periodo,
             anyo=trimestre.anyo

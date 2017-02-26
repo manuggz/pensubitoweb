@@ -1,4 +1,111 @@
 {% extends 'misvoti/base.html' %}
+{% block inicio_pagina_scripts %}
+    <script>
+
+        var btn_crear_plan = null;
+        var div_alert_errors_pn = null;
+
+        // pre-submit callback
+        function preAjaxSubmit(formData, jqForm, options) {
+            $("form input").each(function () {
+                $(this).attr("disabled","disabled");
+            });
+            console.log(formData);
+            // formData is an array; here we use $.param to convert it to a string to display it
+            // but the form plugin does this for you automatically when it submits the data
+            var queryString = $.param(formData);
+
+            // jqForm is a jQuery object encapsulating the form element.  To access the
+            // DOM element for the form do this:
+            // var formElement = jqForm[0];
+
+            //alert('About to submit: \n\n' + queryString);
+
+            // here we could return false to prevent the form from being submitted;
+            // returning anything other than false will allow the form submit to continue
+            return true;
+        }
+
+        // post-submit callback
+        function postAjaxSubmit(responseJson, statusText, xhr, $form)  {
+            // for normal html responses, the first argument to the success callback
+            // is the XMLHttpRequest object's responseText property
+
+            // if the ajaxSubmit method was passed an Options Object with the dataType
+            // property set to 'xml' then the first argument to the success callback
+            // is the XMLHttpRequest object's responseXML property
+
+            // if the ajaxSubmit method was passed an Options Object with the dataType
+            // property set to 'json' then the first argument to the success callback
+            // is the json data object returned by the server
+
+            if(statusText == "success"){
+                if(responseJson.esta_creado_plan) {
+                    btn_crear_plan.text("¡El plan ha sido creado!");
+                    btn_crear_plan.attr("disabled", "disabled");
+                    setTimeout("redirigir_plan_creado('" + responseJson.nombre_plan + "')", 1000);
+                }else{
+                    btn_crear_plan.text("Crear Plan");
+                    btn_crear_plan.removeAttr("disabled");
+                    html_errors = "";
+                    html_errors += "<ul>";
+                    for(i in responseJson.errors.nombre_plan){
+                        html_errors += "<li>" + responseJson.errors.nombre_plan[i] + "</li>";
+                    }
+                    html_errors += "</ul>";
+                    if (!jQuery.contains(document, div_alert_errors_pn)) {
+                        div_alert_errors_pn.addClass("in");
+                        $("#div-alert-container").append(div_alert_errors_pn);
+                    }
+                    $("#errors_input_plan_name").html(html_errors);
+                    $("form input").each(function () {
+                        $(this).removeAttr("disabled");
+                    });
+                }
+            }else{
+                btn_crear_plan.text("Crear Plan");
+                btn_crear_plan.removeAttr("disabled");
+                $("form input").each(function () {
+                    $(this).removeAttr("disabled");
+                });
+            }
+        }
+
+        function redirigir_plan_creado(nombre_plan) {
+            window.location.replace({% url 'planes'%} + nombre_plan);
+        }
+        $(document).ready(function(){
+
+            btn_crear_plan = $("button.btn-primary");
+            div_alert_errors_pn = $("#alert_errors_input_name");
+            div_alert_errors_pn.alert('close');
+
+            $("form").submit(function (e) {
+                btn_crear_plan.text("Creando Plan...");
+                btn_crear_plan.attr("disabled","disabled");
+                var options = {
+                    //target:        '#output2',   // target element(s) to be updated with server response
+                    beforeSubmit:  preAjaxSubmit,  // pre-submit callback
+                    success:       postAjaxSubmit,  // post-submit callback
+
+                    // other available options:
+                    //url:       url         // override for form's 'action' attribute
+                    //type:      type        // 'get' or 'post', override for form's 'method' attribute
+                    dataType:  'json',        // 'xml', 'script', or 'json' (expected server response type)
+                    //clearForm: true        // clear all form fields after successful submit
+                    //resetForm: true        // reset the form after successful submit
+
+                    // $.ajax options can be used here too, for example:
+                    //timeout:   3000
+                };
+
+                e.preventDefault();
+                $("form").ajaxSubmit(options);
+            });
+
+        });
+    </script>
+{% endblock %}
 {% block content %}
     <!-- Page Heading -->
     <div class="row">
@@ -7,9 +114,6 @@
                 Crear Nuevo Plan
             </h1>
             <ol class="breadcrumb">
-                <li>
-                    <i class="fa fa-dashboard"></i>  <a href="{% url 'home' %}">Dashboard</a>
-                </li>
                 <li>
                     <i class="fa fa-table"></i>  <a href="{% url 'planes' %}">Planes</a>
                 </li>
@@ -25,26 +129,36 @@
         <div class="col-lg-6">
             <form role="form" enctype="multipart/form-data" method="post">
                 {% csrf_token %}
-                <div class="form-group has-feedback">
+                <div class="form-group">
                     <label class="control-label" for="{{ form.nombre_plan.id_for_label }}">Nombre</label>
-                    <input type="text" class="form-control" value="{{ form.nombre_plan.value }}" id="{{ form.nombre_plan.id_for_label }}" name="{{ form.nombre_plan.html_name }}" aria-describedby="inputGroup1Status" placeholder="Nombre Plan">
-                    <span class="glyphicon glyphicon-ok form-control-feedback invisible" aria-hidden="true"></span>
+                    <input type="text" class="form-control" id="{{ form.nombre_plan.id_for_label }}" name="{{ form.nombre_plan.html_name }}" aria-describedby="inputGroup1Status" placeholder="Nombre Plan">
                     <span id="inputGroup1Status" class="sr-only">(success)</span>
                 </div>
+                <div id="div-alert-container">
+                    <div class="alert alert-danger alert-dismissible fade in" role="alert" id="alert_errors_input_name">
+                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                             <span aria-hidden="true">×</span>
+                         </button>
+                        <div id="errors_input_plan_name"></div>
+                    </div>
+                </div>
 
-                <div class="bg-info" style="padding: 10px">
-                    <p>¡Utilizar datos de mi expediente!</p>
+                <div class="panel panel-info">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">¡Utilizar datos de mi expediente!</h3>
+                  </div>
+                  <div class="panel-body">
                     <div class="form-group">
                         <label class="control-label" for="{{ form.archivo_html_expediente.id_for_label }}">Archivo HTML</label>
                         <input type="file" class="form-control"  name="{{ form.archivo_html_expediente.html_name }}" id="{{ form.archivo_html_expediente.id_for_label }}"  style="padding-bottom: 40px !important;">
                     </div>
+                  </div>
                 </div>
 
-                <div class="bg-info" style="padding: 10px;margin-top: 10px">
-                    <p>¡Utilizar datos de mi pensum!</p>
-                </div>
-                <button type="submit" class="btn btn-default" style="margin-top: 10px">Crear Plan</button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px">Crear Plan</button>
             </form>
+            <div id="output2">
+            </div>
         </div>
     </div>
     <!-- /.row -->

@@ -5,7 +5,13 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-## Modelo para manejar el usuario del sistema
+
+class TrimestreManager(models.Manager):
+    def con_trimestres_ordenados(self, *args, **kwargs):
+        qs = self.get_queryset().filter(*args, **kwargs)
+        return sorted(qs)
+
+    ## Modelo para manejar el usuario del sistema
 class MiVotiUser(AbstractUser):
     pass
 
@@ -16,8 +22,16 @@ class PlanEstudio(models.Model):
     usuario_creador_fk = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 
+    def __str__(self):
+        return "PlanEstudio(" + self.nombre + "," + str(self.usuario_creador_fk) + ")"
+
+
+    def __unicode__(self):
+        return "PlanEstudio(" + self.nombre + "," + str(self.usuario_creador_fk) + ")"
+
+
 ## Trimestre de un plan de estudio
-## Este modelo basicamente dice un trimestre abstracto al cual pueden referenciar
+## Este modelo basicamente dice un i abstracto al cual pueden referenciar
 # multiples planes de distintos usuarios
 class TrimestreBase(models.Model):
 
@@ -40,13 +54,107 @@ class TrimestreBase(models.Model):
     )
     anyo = models.CharField(max_length=5)
 
-## Representa un trimestre con los datos reales de curso de un usuario particular
-# Por ejemplo: fotos del trimestre, notas particulares,...
+
+    def __lt__(self, other):
+        return self.__cmp__(other) < 0
+
+
+    def __gt__(self, other):
+        return self.__cmp__(other) > 0
+
+
+    def __eq__(self, other):
+        return self.__cmp__(other) == 0
+
+
+    def __le__(self, other):
+        return self.__cmp__(other) <= 0
+
+
+    def __ge__(self, other):
+        return self.__cmp__(other) >= 0
+
+
+    def __ne__(self, other):
+        return self.__cmp__(other) != 0
+
+
+    def __cmp__(self, other):
+        if self.periodo == other.periodo and self.anyo == other.anyo:
+            return 0
+
+        if self.anyo < other.anyo:
+            return -1
+        elif self.anyo > other.anyo:
+            return 1
+        else:
+            if self.periodo == other.periodo:
+                return 0
+            else:
+                if self.periodo == TrimestreBase.ENERO_MARZO:
+                    return -1
+                elif self.periodo == TrimestreBase.ABRIL_JULIO:
+                    if other.periodo == TrimestreBase.ENERO_MARZO:
+                        return 1
+                    else:
+                        return -1
+                elif self.periodo == TrimestreBase.JULIO_AGOSTO:
+                    if other.periodo == TrimestreBase.SEPTIEMBRE_DICIEMBRE:
+                        return -1
+                    else:
+                        return 1
+                elif self.periodo == TrimestreBase.SEPTIEMBRE_DICIEMBRE:
+                        return 1
+
+
+    def __str__(self):
+        return "TrimestreBase(" + self.periodo + "," + self.anyo + ")"
+
+    def __unicode__(self):
+        return "TrimestreBase(" + self.periodo + "," + self.anyo + ")"
+
+
+## Representa un i con los datos reales de curso de un usuario particular
+# Por ejemplo: fotos del i, notas particulares,...
 class TrimestrePlaneado(models.Model):
     trimestre_base_fk = models.ForeignKey(TrimestreBase, on_delete=models.CASCADE)
     planestudio_pert_fk = models.ForeignKey(PlanEstudio, on_delete=models.CASCADE)
+    objects = TrimestreManager()
 
-## Representa una materia de la misma forma que TrimestreBase representa un trimestre
+    def __lt__(self, other):
+        return self.__cmp__(other) < 0
+
+
+    def __gt__(self, other):
+        return self.__cmp__(other) > 0
+
+
+    def __eq__(self, other):
+        return self.__cmp__(other) == 0
+
+
+    def __le__(self, other):
+        return self.__cmp__(other) <= 0
+
+
+    def __ge__(self, other):
+        return self.__cmp__(other) >= 0
+
+
+    def __ne__(self, other):
+        return self.__cmp__(other) != 0
+
+
+    def __cmp__(self, other):
+        return self.trimestre_base_fk.__cmp__(other.trimestre_base_fk)
+
+    def __str__(self):
+        return "TrimestrePlaneado(" + str(self.trimestre_base_fk) + "," + str(self.planestudio_pert_fk) + ")"
+    def __unicode__(self):
+        return "TrimestrePlaneado(" + str(self.trimestre_base_fk) + "," + str(self.planestudio_pert_fk) + ")"
+
+
+## Representa una materia de la misma forma que TrimestreBase representa un i
 # Este modelo puede ser referenciado por multiples planes de distintos usuarios
 # Por lo que puede usarse para guardar datos generales para todos los usuarios/planes
 class MateriaBase(models.Model):

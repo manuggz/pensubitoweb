@@ -34,5 +34,9 @@ urlpatterns = [
     # Pagina para ver los planes
     url(r'^nuevo_plan/$', views.crear_plan, name='crear_plan'),
 
+    url(r'^eliminar_plan/$', views.eliminar_plan_ajax, name='eliminar_plan_ajax'),
+    url(r'^obtener_datos_plan/$', views.obtener_datos_plan, name='obtener_datos_plan_ajax'),
+    url(r'^actualizar_plan/$', views.actualizar_plan, name='actualizar_plan'),
+
     url(r'^admin/', admin.site.urls),
 ]

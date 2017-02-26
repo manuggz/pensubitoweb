@@ -1,0 +1,107 @@
+{% extends 'misvoti/base.html' %}
+{% block content %}
+    <!-- Page Heading -->
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">
+                Lista de Planes
+            </h1>
+            <ol class="breadcrumb">
+                <li class="active">
+                    <i class="fa fa-table"></i> Planes
+                </li>
+            </ol>
+        </div>
+    </div>
+    <!-- /.row -->
+
+    <div class="row">
+        <div class="col-lg-6">
+            <h2>Planes Creados</h2>
+            <a href="{% url 'crear_plan' %}">Crear Nuevo Plan</a>
+            <div class="table-responsive" style="overflow: visible !important;">
+                <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th width align="center">Nombre</th>
+                                <th width align="center">Indice</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%  for plan in planes %}
+                                <tr id="tr_{{ plan.nombre }}" data-nombreplan = "{{ plan.nombre }}">
+                                    <td> <a href="{% url 'ver_plan' plan.nombre %}" >{{ plan.nombre}}</a></td>
+                                    <td align="right">NC</td>
+                                    <td align="right">
+                                        <div class="dropdown" id="div_{{ plan.nombre }}">
+                                          <a href="#" data-target="#"  id="drop_a_{{ plan.nombre }}" data-nombreplan = "{{ plan.nombre }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"  role="button" >
+                                            <span class="caret"></span>
+                                          </a>
+                                          <ul class="dropdown-menu" aria-labelledby="drop_a_{{ plan.nombre }}">
+                                            <li><a href="#" data-toggle="modal" data-target="#modal-eliminar-plan"  data-nombreplan = "{{ plan.nombre }}">Eliminar</a></li>
+                                          </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- /.row -->
+
+    <!-- Modal de eliminar plan -->
+    <div class="modal fade" tabindex="-1"  id="modal-eliminar-plan" role="dialog" aria-labelledby="mySmallModalLabel">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel"></h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btn-eliminar-plan">Eliminar</button>
+            </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+
+{% block final_pagina_scripts %}
+    <script>
+
+        $("a[data-toggle='dropdown']").click(function(){
+            $("#tr_" + $(this).attr("data-nombreplan")).addClass("active");
+        });
+        $("tr").mouseleave(function(){
+            $(this).removeClass("active");
+        });
+        $('#modal-eliminar-plan').on('show.bs.modal', function (event) {
+            var a = $(event.relatedTarget); // Button that triggered the modal
+            var nombre_plan = a.data('nombreplan'); // Extract info from data-* attributes
+            var tr_plan = $("#tr_" + nombre_plan);
+
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this);
+            modal.find('.modal-title').text('¿Eliminar plan ' + nombre_plan + ' ?');
+            modal.find('#btn-eliminar-plan').click(function (event) {
+            $(this).off("click");
+
+            $.post({% url 'eliminar_plan_ajax' %},{
+                nombre_plan: nombre_plan,
+                },function(data, status){
+                    if (status == "success"){
+                        $('#modal-eliminar-plan').modal("hide");
+                        tr_plan.hide('slow', function(){ tr_plan.remove(); });
+                    }else{
+                        alert("Ocurrió un error eliminando el plan");
+                    }
+                }
+            );
+
+          });
+        })
+    </script>
+{% endblock %}
