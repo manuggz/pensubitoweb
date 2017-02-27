@@ -115,37 +115,31 @@ class TrimestreBase(models.Model):
         return self.__cmp__(other) != 0
 
     def __cmp__(self, other):
-        if self.periodo == other.periodo and self.anyo == other.anyo:
-            return 0
+        if other is not TrimestrePlaneado: return
 
-        if self.anyo < other.anyo:
-            return -1
-        elif self.anyo > other.anyo:
-            return 1
+        if self.periodo == other.periodo:
+            return 0
         else:
-            if self.periodo == other.periodo:
-                return 0
-            else:
-                if self.periodo == TrimestreBase.ENERO_MARZO:
-                    return -1
-                elif self.periodo == TrimestreBase.ABRIL_JULIO:
-                    if other.periodo == TrimestreBase.ENERO_MARZO:
-                        return 1
-                    else:
-                        return -1
-                elif self.periodo == TrimestreBase.JULIO_AGOSTO:
-                    if other.periodo == TrimestreBase.SEPTIEMBRE_DICIEMBRE:
-                        return -1
-                    else:
-                        return 1
-                elif self.periodo == TrimestreBase.SEPTIEMBRE_DICIEMBRE:
+            if self.periodo == TrimestreBase.ENERO_MARZO:
+                return -1
+            elif self.periodo == TrimestreBase.ABRIL_JULIO:
+                if other.periodo == TrimestreBase.ENERO_MARZO:
                     return 1
+                else:
+                    return -1
+            elif self.periodo == TrimestreBase.JULIO_AGOSTO:
+                if other.periodo == TrimestreBase.SEPTIEMBRE_DICIEMBRE:
+                    return -1
+                else:
+                    return 1
+            elif self.periodo == TrimestreBase.SEPTIEMBRE_DICIEMBRE:
+                return 1
 
     def __str__(self):
-        return "TrimestreBase(" + self.periodo + "," + self.anyo + ")"
+        return "TrimestreBase(" + self.periodo + ")"
 
     def __unicode__(self):
-        return "TrimestreBase(" + self.periodo + "," + self.anyo + ")"
+        return "TrimestreBase(" + self.periodo + ")"
 
 
 ## Representa un i con los datos reales de curso de un usuario particular
@@ -175,7 +169,13 @@ class TrimestrePlaneado(models.Model):
         return self.__cmp__(other) != 0
 
     def __cmp__(self, other):
-        return self.trimestre_base_fk.__cmp__(other.trimestre_base_fk)
+
+        if self.anyo < other.anyo:
+            return -1
+        elif self.anyo > other.anyo:
+            return 1
+        else:
+            return self.trimestre_base_fk.__cmp__(other.trimestre_base_fk)
 
     def __str__(self):
         return "TrimestrePlaneado(" + str(self.trimestre_base_fk) + "," + str(self.planestudio_pert_fk) + ")"

@@ -66,7 +66,7 @@ def crear_plan(request):
 
                 try:
 
-                    print form.cleaned_data["plan_utilizar"]
+                    #print form.cleaned_data["plan_utilizar"]
                     plan_base = PlanEstudioBase.objects.get(
                         carrera_fk = carrera_plan_bd,
                         tipo = form.cleaned_data["plan_utilizar"]
@@ -82,12 +82,27 @@ def crear_plan(request):
                 )
                 nuevo_plan.save()
 
+                periodo_inicio_usu = form.cleaned_data['periodo_inicio']
+                anyo_inicio_usu = form.cleaned_data['anyo_inicio']
+
+                print "'"+periodo_inicio_usu+"'","'"+anyo_inicio_usu+"'"
                 if form.cleaned_data["archivo_html_expediente"]:
                     # Parseamos el html
                     crear_modelos_desde_resultado_parser(
                         parser_html(request.FILES['archivo_html_expediente']),
                         nuevo_plan,
                     )
+                else:
+                    trimestre_base_bd, is_created = TrimestreBase.objects.get_or_create(
+                        periodo=periodo_inicio_usu,
+                    )
+
+                    trimestre_inicial_bd = TrimestrePlaneado(
+                        trimestre_base_fk=trimestre_base_bd,
+                        planestudio_pert_fk=nuevo_plan,
+                        anyo=anyo_inicio_usu
+                    )
+                    trimestre_inicial_bd.save()
 
                 context["esta_creado_plan"] = True
         else:
@@ -106,16 +121,8 @@ def ver_plan(request, nombre_plan):
     plan_estudio_modelo_ref = get_object_or_404(PlanEstudio, usuario_creador_fk=request.user, nombre=nombre_plan)
 
     context["plan"] = plan_estudio_modelo_ref
-
-    trimestres = TrimestrePlaneado.objects.con_trimestres_ordenados(planestudio_pert_fk=plan_estudio_modelo_ref)
-
-    context["years"] = range(1996, 2050, 1)
-    context["trimestres"] = []
-
-    for trimestre in trimestres:
-        trimestre_ctx = {"periodo": trimestre.trimestre_base_fk.periodo, "anyo": trimestre.trimestre_base_fk.anyo}
-        trimestre_ctx["materias"] = MateriaPlaneada.objects.filter(trimestre_cursada_fk=trimestre.pk)
-        context["trimestres"].append(trimestre_ctx)
+    context['periodos'] = [(p[0], p[1]) for p in TrimestreBase.PERIODOS_USB]
+    context["anyos"] = [(anyo,anyo) for anyo in xrange(1993,2030)]
 
     return render(request, 'planeador/ver_plan.html', context)
 
@@ -168,7 +175,7 @@ def obtener_datos_plan(request):
         context["trimestres"] = []
 
         for trimestre in trimestres:
-            trimestre_ctx = {"periodo": trimestre.trimestre_base_fk.periodo, "anyo": trimestre.trimestre_base_fk.anyo}
+            trimestre_ctx = {"periodo": trimestre.trimestre_base_fk.periodo, "anyo": trimestre.anyo}
             trimestre_ctx["materias"] = []
 
             for materia in MateriaPlaneada.objects.filter(trimestre_cursada_fk=trimestre.pk):
