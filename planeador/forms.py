@@ -2,7 +2,7 @@
 import datetime
 from django.forms import forms, CharField, Select, CheckboxInput, ChoiceField
 
-from planeador.models import CarreraUsb, PlanEstudioBase, TrimestreBase
+from planeador.models import CarreraUsb, PlanEstudioBase, TrimestrePlaneado
 
 
 class CrearNuevoPlanForm(forms.Form):
@@ -26,7 +26,7 @@ class CrearNuevoPlanForm(forms.Form):
         get_nombre_tp = PlanEstudioBase.get_nombre_tipo_plan
         self.fields['plan_utilizar'].choices = [(pu.tipo, get_nombre_tp(pu)) for pu in PlanEstudioBase.objects.filter(carrera_fk=carreras_bd.first())]
 
-        self.fields['periodo_inicio'].choices = [(p[0],p[1]) for p in    TrimestreBase.PERIODOS_USB[:-1]]
+        self.fields['periodo_inicio'].choices = [(p[0],p[1]) for p in    TrimestrePlaneado.PERIODOS_USB[:-1]]
         self.fields['anyo_inicio'].choices    = [(anyo,anyo) for anyo in xrange(1993,2030)]
         self.fields['anyo_inicio'].value    = datetime.datetime.now().year
         #self.fields['carrera_plan'].value = self.fields['carrera_plan'].choices[0][0]

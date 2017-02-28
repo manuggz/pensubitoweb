@@ -17,7 +17,6 @@ class TrimestreManager(models.Manager):
 class MiVotiUser(AbstractUser):
     pass
 
-
 class CarreraUsb(models.Model):
     nombre = models.CharField(max_length=100)
     codigo = models.CharField(max_length=10, primary_key=True)
@@ -77,7 +76,11 @@ class PlanEstudio(models.Model):
 ## Trimestre de un plan de estudio
 ## Este modelo basicamente dice un i abstracto al cual pueden referenciar
 # multiples planes de distintos usuarios
-class TrimestreBase(models.Model):
+
+
+## Representa un i con los datos reales de curso de un usuario particular
+# Por ejemplo: fotos del i, notas particulares,...
+class TrimestrePlaneado(models.Model):
     SEPTIEMBRE_DICIEMBRE = 'SD'
     ENERO_MARZO = 'EM'
     ABRIL_JULIO = 'AJ'
@@ -95,57 +98,6 @@ class TrimestreBase(models.Model):
         choices=PERIODOS_USB,
         default=SEPTIEMBRE_DICIEMBRE,
     )
-
-    def __lt__(self, other):
-        return self.__cmp__(other) < 0
-
-    def __gt__(self, other):
-        return self.__cmp__(other) > 0
-
-    def __eq__(self, other):
-        return self.__cmp__(other) == 0
-
-    def __le__(self, other):
-        return self.__cmp__(other) <= 0
-
-    def __ge__(self, other):
-        return self.__cmp__(other) >= 0
-
-    def __ne__(self, other):
-        return self.__cmp__(other) != 0
-
-    def __cmp__(self, other):
-        if other is not TrimestrePlaneado: return
-
-        if self.periodo == other.periodo:
-            return 0
-        else:
-            if self.periodo == TrimestreBase.ENERO_MARZO:
-                return -1
-            elif self.periodo == TrimestreBase.ABRIL_JULIO:
-                if other.periodo == TrimestreBase.ENERO_MARZO:
-                    return 1
-                else:
-                    return -1
-            elif self.periodo == TrimestreBase.JULIO_AGOSTO:
-                if other.periodo == TrimestreBase.SEPTIEMBRE_DICIEMBRE:
-                    return -1
-                else:
-                    return 1
-            elif self.periodo == TrimestreBase.SEPTIEMBRE_DICIEMBRE:
-                return 1
-
-    def __str__(self):
-        return "TrimestreBase(" + self.periodo + ")"
-
-    def __unicode__(self):
-        return "TrimestreBase(" + self.periodo + ")"
-
-
-## Representa un i con los datos reales de curso de un usuario particular
-# Por ejemplo: fotos del i, notas particulares,...
-class TrimestrePlaneado(models.Model):
-    trimestre_base_fk = models.ForeignKey(TrimestreBase, on_delete=models.CASCADE)
     planestudio_pert_fk = models.ForeignKey(PlanEstudio, on_delete=models.CASCADE)
     anyo = models.CharField(max_length=5)
     objects = TrimestreManager()
@@ -169,49 +121,66 @@ class TrimestrePlaneado(models.Model):
         return self.__cmp__(other) != 0
 
     def __cmp__(self, other):
-
-        if self.anyo < other.anyo:
+        if not isinstance(other, TrimestrePlaneado): return
+        if int(self.anyo) < int(other.anyo):
             return -1
-        elif self.anyo > other.anyo:
+        elif int(self.anyo) > int(other.anyo):
             return 1
         else:
-            return self.trimestre_base_fk.__cmp__(other.trimestre_base_fk)
+            if self.periodo == other.periodo:
+                return 0
+            else:
+                if self.periodo == TrimestrePlaneado.ENERO_MARZO:
+                    return -1
+                elif self.periodo == TrimestrePlaneado.ABRIL_JULIO:
+                    if other.periodo == TrimestrePlaneado.ENERO_MARZO:
+                        return 1
+                    else:
+                        return -1
+                elif self.periodo == TrimestrePlaneado.JULIO_AGOSTO:
+                    if other.periodo == TrimestrePlaneado.SEPTIEMBRE_DICIEMBRE:
+                        return -1
+                    else:
+                        return 1
+                elif self.periodo == TrimestrePlaneado.SEPTIEMBRE_DICIEMBRE:
+                    return 1
 
     def __str__(self):
-        return "TrimestrePlaneado(" + str(self.trimestre_base_fk) + "," + str(self.planestudio_pert_fk) + ")"
+        return self.periodo + "," + str(self.planestudio_pert_fk) + ")"
 
     def __unicode__(self):
-        return "TrimestrePlaneado(" + str(self.trimestre_base_fk) + "," + str(self.planestudio_pert_fk) + ")"
+        return self.periodo + "," + str(self.planestudio_pert_fk) + ")"
 
 
-class DepartamentoUSB(models.Model):
-    nombre = models.CharField(max_length=200)
-    codigo = models.CharField(max_length=5, primary_key=True)
-
-    def __str__(self):
-        return "Departamento(" + self.nombre + "," + self.codigo + ")"
-
-    def __unicode__(self):
-        return "Departamento(" + self.nombre + "," + self.codigo + ")"
+# class DepartamentoUSB(models.Model):
+#     nombre = models.CharField(max_length=200)
+#     codigo = models.CharField(max_length=5, primary_key=True)
+#
+#     def __str__(self):
+#         return "Departamento(" + self.nombre + "," + self.codigo + ")"
+#
+#     def __unicode__(self):
+#         return "Departamento(" + self.nombre + "," + self.codigo + ")"
 
 
 ## Representa una materia de la misma forma que TrimestreBase representa un i
 # Este modelo puede ser referenciado por multiples planes de distintos usuarios
 # Por lo que puede usarse para guardar datos generales para todos los usuarios/planes
 class MateriaBase(models.Model):
-    POSIBLES_NOTAS = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'))
     POSIBLES_CREDITOS = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'))
-    nombre = models.CharField(max_length=200)
-    codigo = models.CharField(max_length=10, primary_key=True)
+    nombre = models.CharField(max_length=200,null=True)
+    codigo = models.CharField(max_length=10,primary_key=True)
     creditos = models.CharField(
         max_length=1,
         choices=POSIBLES_CREDITOS,
         default='1',
     )
-    departamento_fk = models.ForeignKey(DepartamentoUSB)
+
+    # departamento_fk = models.ForeignKey(DepartamentoUSB,null=True)
 
     def __str__(self):
         return self.nombre + " - " + self.codigo
+
 
     def __unicode__(self):
         return self.nombre + " - " + self.codigo
@@ -219,34 +188,19 @@ class MateriaBase(models.Model):
 
 # Representa una materia con los datos particulares de cuando un usuario la va a cursar o la cursó
 class MateriaPlaneada(models.Model):
-    materia_base_fk = models.ForeignKey(MateriaBase, on_delete=models.CASCADE)
+    POSIBLES_NOTAS = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'))
     trimestre_cursada_fk = models.ForeignKey(TrimestrePlaneado, on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=200,null=True)
+    codigo = models.CharField(max_length=10,primary_key=True)
+    creditos = models.CharField(
+        max_length=1,
+        choices=MateriaBase.POSIBLES_CREDITOS,
+        default='1',
+    )
     nota_final = models.CharField(
         max_length=1,
-        choices=MateriaBase.POSIBLES_NOTAS,
+        choices=POSIBLES_NOTAS,
         default='1',
     )
     esta_retirada = models.BooleanField(default=False)
 
-## Define una materia que se cursara en un trimestre segun un plan
-class MateriaPlanBase(models.Model):
-    materia_base_cursar_fk = models.ForeignKey(MateriaBase)
-    plan_base_fk = models.ForeignKey(PlanEstudioBase)
-    trimestre_cursar = models.ForeignKey(TrimestreBase)
-
-
-### Define un prerequisito en un pensum
-### Materia A debe ser aprobada antes de inscribir materia B
-class Prerequisito(models.Model):
-    materia_a_fk = models.ForeignKey(MateriaBase, related_name="pre_mat_a")
-    materia_b_fk = models.ForeignKey(MateriaBase, related_name="pre_mat_b")
-    plan_estudio_base_pert_fk = models.ForeignKey(PlanEstudioBase)
-
-
-## Define un correquisito
-## Ambas materias deben inscribirse al mismo tiempo
-## Si una de ellas se ha aprobado se puede inscribir la otra sin prelación
-class Correquisito(models.Model):
-    materia_a_fk = models.ForeignKey(MateriaBase, related_name="corr_mat_a")
-    materia_b_fk = models.ForeignKey(MateriaBase, related_name="corr_mat_b")
-    plan_estudio_base_pert_fk = models.ForeignKey(PlanEstudioBase)

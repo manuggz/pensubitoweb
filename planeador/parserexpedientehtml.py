@@ -1,5 +1,5 @@
 from HTMLParser import HTMLParser
-from planeador.models import TrimestreBase, MateriaBase, TrimestrePlaneado, MateriaPlaneada, MiVotiUser
+from planeador.models import MateriaBase, TrimestrePlaneado, MateriaPlaneada, MiVotiUser
 
 ##
 # Se ocupa de parsear el expediente
@@ -84,13 +84,13 @@ class MyHTMLParser(HTMLParser):
             self.nombre_trimestre = data
 
             if "ENERO" in data:
-                per_actual = TrimestreBase.ENERO_MARZO
+                per_actual = TrimestrePlaneado.ENERO_MARZO
             elif "ABRIL" in data:
-                per_actual = TrimestreBase.ABRIL_JULIO
+                per_actual = TrimestrePlaneado.ABRIL_JULIO
             elif "SEPTIEMBRE" in data:
-                per_actual = TrimestreBase.SEPTIEMBRE_DICIEMBRE
+                per_actual = TrimestrePlaneado.SEPTIEMBRE_DICIEMBRE
             else:
-                per_actual = TrimestreBase.JULIO_AGOSTO
+                per_actual = TrimestrePlaneado.JULIO_AGOSTO
 
             self.es_nombre_trimestre = False
 
@@ -129,7 +129,7 @@ def parser_html(archivo_subido):
 
 def crear_modelos_desde_resultado_parser(resultado_parser, plan_modelo_ref):
     for trimestre in resultado_parser:
-        trimestre_basemd, is_created = TrimestreBase.objects.get_or_create(
+        trimestre_basemd, is_created = TrimestrePlaneado.objects.get_or_create(
             periodo=trimestre.periodo,
             anyo=trimestre.anyo
         )

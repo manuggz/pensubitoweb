@@ -14,8 +14,8 @@ from django.shortcuts import render, get_object_or_404
 # Create your views here.
 from planeador.decorators import si_no_autenticado_redirec_home
 from planeador.forms import CrearNuevoPlanForm
-from planeador.models import PlanEstudio, TrimestrePlaneado, TrimestreBase, MateriaPlaneada, MateriaBase, \
-    PlanEstudioBase, CarreraUsb
+from planeador.models import PlanEstudio, TrimestrePlaneado, MateriaPlaneada, \
+    PlanEstudioBase, CarreraUsb, MateriaBase
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 
 tiempos_tardo_en_respuesta = []
@@ -93,12 +93,8 @@ def crear_plan(request):
                         nuevo_plan,
                     )
                 else:
-                    trimestre_base_bd, is_created = TrimestreBase.objects.get_or_create(
-                        periodo=periodo_inicio_usu,
-                    )
-
                     trimestre_inicial_bd = TrimestrePlaneado(
-                        trimestre_base_fk=trimestre_base_bd,
+                        periodo=periodo_inicio_usu,
                         planestudio_pert_fk=nuevo_plan,
                         anyo=anyo_inicio_usu
                     )
@@ -121,7 +117,7 @@ def ver_plan(request, nombre_plan):
     plan_estudio_modelo_ref = get_object_or_404(PlanEstudio, usuario_creador_fk=request.user, nombre=nombre_plan)
 
     context["plan"] = plan_estudio_modelo_ref
-    context['periodos'] = [(p[0], p[1]) for p in TrimestreBase.PERIODOS_USB]
+    context['periodos'] = [(p[0], p[1]) for p in TrimestrePlaneado.PERIODOS_USB]
     context["anyos"] = [(anyo,anyo) for anyo in xrange(1993,2030)]
 
     return render(request, 'planeador/ver_plan.html', context)
@@ -175,25 +171,75 @@ def obtener_datos_plan(request):
         context["trimestres"] = []
 
         for trimestre in trimestres:
-            trimestre_ctx = {"periodo": trimestre.trimestre_base_fk.periodo, "anyo": trimestre.anyo}
+            trimestre_ctx = {"periodo": trimestre.periodo, "anyo": trimestre.anyo}
             trimestre_ctx["materias"] = []
 
             for materia in MateriaPlaneada.objects.filter(trimestre_cursada_fk=trimestre.pk):
                 materia_ctx = {
-                    "nombre": materia.materia_base_fk.nombre,
-                    "codigo": materia.materia_base_fk.codigo,
-                    "creditos": int(materia.materia_base_fk.creditos),
+                    "nombre": materia.nombre,
+                    "codigo": materia.codigo,
+                    "creditos": int(materia.creditos),
                     "nota_final": int(materia.nota_final),
                     "esta_retirada": materia.esta_retirada,
                 }
                 trimestre_ctx["materias"].append(materia_ctx)
 
             context["trimestres"].append(trimestre_ctx)
+        print context
 
         return JsonResponse(context)
 
     return HttpResponseNotFound()
 
+def materias_vista(request):
+    context = {}
+
+    if request.method == "GET":
+        codigo_materia = request.GET.get("codigo","")
+        max_length = int(request.GET.get("max_length",-1))
+        res_exacto = bool(request.GET.get("es_codigo_exacto",False))
+
+        codigos_agregados = []
+        context["materias"] = []
+        n_agregados = 0
+
+        if not res_exacto:
+            lista_materias_base_bd =MateriaBase.objects.filter(codigo__contains=codigo_materia)
+        else:
+            lista_materias_base_bd =MateriaBase.objects.filter(codigo=codigo_materia)
+
+        for materia in lista_materias_base_bd:
+            materia_ctx = {
+                "nombre": materia.nombre,
+                "codigo": materia.codigo,
+                "creditos": int(materia.creditos),
+            }
+            context["materias"].append(materia_ctx)
+            codigos_agregados.append(materia.codigo)
+
+            n_agregados += 1
+            if max_length!= -1 and n_agregados >= max_length :
+                return JsonResponse(context)
+
+        if not res_exacto:
+            lista_materias_planeadas_bd =MateriaPlaneada.objects.filter(codigo__contains=codigo_materia)
+        else:
+            lista_materias_planeadas_bd =MateriaPlaneada.objects.filter(codigo=codigo_materia)
+
+        for materia in lista_materias_planeadas_bd:
+            if materia.codigo not in codigos_agregados :
+                materia_ctx = {
+                    "nombre": materia.nombre,
+                    "codigo": materia.codigo,
+                    "creditos": int(materia.creditos),
+                }
+                context["materias"].append(materia_ctx)
+
+                n_agregados += 1
+                if max_length != -1 and n_agregados >= max_length:
+                    return JsonResponse(context)
+
+    return JsonResponse(context)
 
 def actualizar_plan(request):
     global tiempos_tardo_en_respuesta
@@ -204,9 +250,8 @@ def actualizar_plan(request):
     if request.method == "POST":
         context["actualizado"] = True
 
-        plan_estudio_modelo_ref = None
-
         datos_post = json.loads(request.POST["datos"])
+
         try:
             plan_estudio_modelo_ref = PlanEstudio.objects.get(nombre=datos_post["nombre_plan"])
 
@@ -216,6 +261,7 @@ def actualizar_plan(request):
 
         trimestres_bd = TrimestrePlaneado.objects.filter(planestudio_pert_fk=plan_estudio_modelo_ref)
         trimestres_bd.delete()
+
         #
         # i = 0
         # while i < len(trimestres_bd):
@@ -290,31 +336,29 @@ def actualizar_plan(request):
 
         for trimestre in datos_post["trimestres"]:
             #print "trim:" + str(trimestre)
-            trimestre_basemd, is_created = TrimestreBase.objects.get_or_create(
-                periodo=trimestre["periodo"],
-                anyo=trimestre["anyo"]
-            )
-
             trimestre_actualmd = TrimestrePlaneado(
-                trimestre_base_fk=trimestre_basemd,
+                periodo=trimestre["periodo"],
                 planestudio_pert_fk=plan_estudio_modelo_ref,
+                anyo=trimestre["anyo"],
             )
             trimestre_actualmd.save()
 
             for materia in trimestre["materias"]:
-                #print "mat:" + str(materia)
+                try:
+                    materia_base = MateriaBase.objects.get(codigo=materia["codigo"])
+                    materia["nombre"] = materia_base.nombre
+                    materia["codigo"] = materia_base.codigo
+                    materia["creditos"] = materia_base.creditos
+                except ObjectDoesNotExist:
+                    pass
 
-                materiabase_md, is_created = MateriaBase.objects.get_or_create(
+                materiaplan_nueva = MateriaPlaneada(
+                    trimestre_cursada_fk=trimestre_actualmd,
+                    nota_final=materia["nota_final"],
+                    esta_retirada=materia["esta_retirada"],
                     nombre=materia["nombre"],
                     codigo=materia["codigo"],
                     creditos=materia["creditos"],
-                )
-
-                materiaplan_nueva = MateriaPlaneada(
-                    materia_base_fk=materiabase_md,
-                    nota_final=materia["nota_final"],
-                    esta_retirada=materia["esta_retirada"],
-                    trimestre_cursada_fk=trimestre_actualmd,
                 )
 
                 materiaplan_nueva.save()

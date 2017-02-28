@@ -5,7 +5,7 @@
     <script>
 
         // Enlaza el DOM de la tabla en la que se mostrará el plan
-        var datos_tabla_html      = null;
+        var div_datos_trimestres_html      = null;
         // Enlaza el DOM del boton que se presiona para actualizar los datos del plan del servidor
         var btn_guardar_cambios   = null;
         // Contiene el json que manda el servidor que contiene el plan
@@ -76,7 +76,7 @@
 
             // Recorremos todos los trimestres
             // i tomará valores desde 0 hasta total(trimestres cursados)
-            for(i in json_datos_trims.trimestres) {
+            for(var i in json_datos_trims.trimestres) {
                 // Suma de nota(i)*creditosmateria(i) del trimestre actual del bucle
                 // Se usa para calcular el indice del periodo/trimestre actual
                 var sum_nota_creds_trimact = 0;
@@ -84,7 +84,7 @@
                 var cred_cont_trimact = 0;
 
                 // Recorremos todas las materias inscritas para el trimestre i
-                for (j in json_datos_trims.trimestres[i].materias) {
+                for (var j in json_datos_trims.trimestres[i].materias) {
 
                     // Aumentamos los creditos inscritos
                     creds_inscri += json_datos_trims.trimestres[i].materias[j].creditos;
@@ -102,9 +102,9 @@
 
                             var nota_reprobada_anterior = -1; // -1 indica que no existe tal materia
                             // Recorremos todos los trimestres anteriores
-                            for (l = 0; l < i; l++) {
+                            for (var l = 0; l < i; l++) {
                                 // Recorremos las materias para el trimestre l
-                                for (m in json_datos_trims.trimestres[l].materias) {
+                                for (var m in json_datos_trims.trimestres[l].materias) {
                                     // Si es la misma materia (comparamos el código)
                                     if (json_datos_trims.trimestres[l].materias[m].codigo == json_datos_trims.trimestres[i].materias[j].codigo) {
 
@@ -147,7 +147,7 @@
                 // Actualizamos lo que se le muestra al usuario
                 // Notar que se ha usado la notación #td-indice-<codigo trimestre> para referenciar el td que muestra
                 // los datos para el trimestre <código trimestre>
-                datos_tabla_html.find("#td-indice-" + json_datos_trims.trimestres[i].codigo).html(
+                div_datos_trimestres_html.find("#td-indice-" + json_datos_trims.trimestres[i].codigo).html(
                     "I.P.: "  + redondear(sum_nota_creds_trimact   / cred_cont_trimact) +
                     " |I.A.:" + redondear(sum_nota_creds_acum / creds_cont )
                 )
@@ -155,38 +155,40 @@
 
         }
 
+        // Listener para cuando se cambia la nota
+        function onchange_sel_nota(sel_obj){
+            // Se ha hecho tal que en los tr del tbody de la tabla
+            // se guarden datos usables para el código
+            // por lo que lo primero es encontrar el más cernano tr del elemento
+            var select = $(sel_obj);
+            var tr_con_datos = select.closest( "tr" );
+            var table_con_datos = tr_con_datos.closest( "table" );
+
+            // Obtenemos los datos de la materia y trimestre a la cual pertenece
+            var codigo_trimestre_cambiado = table_con_datos.data("trimestre-codigo");
+            var codigo_materia_cambiada   = tr_con_datos.data("materia-codigo");
+
+            var posicion_materia = posicion_ij_materia(codigo_trimestre_cambiado,codigo_materia_cambiada);
+
+
+            if(select.val() != "R"){
+                json_datos_trims.trimestres[posicion_materia[0]].materias[posicion_materia[1]].nota_final = parseInt(select.val());
+            }
+
+            json_datos_trims.trimestres[posicion_materia[0]].materias[posicion_materia[1]].esta_retirada = select.val() == "R";
+
+            // Actualizamos los indices que se le muestran al usuario
+            actualizar_indices();
+
+            // Activamos el boton de guardar
+            btn_guardar_cambios.text("Guardar Cambios*");
+            btn_guardar_cambios.removeAttr("disabled");
+        }
+
         // Agrega los eventos a los elementos del DOM adecuados
         // Agrega el listener para cuando se cambia la nota de algúna materia del plan
         // Agrega el listener para cuando se clickea el boton de guardar cambios
         function agregar_eventos_cambios_datos() {
-
-            // Listener para cuando se cambia la nota
-            datos_tabla_html.find("select.select-materia-cambiar-nota").change(function () {
-
-                // Se ha hecho tal que en los tr del tbody de la tabla
-                // se guarden datos usables para el código
-                // por lo que lo primero es encontrar el más cernano tr del elemento
-                var tr_con_datos =  $( this ).closest( "tr" );
-                // Obtenemos los datos de la materia y trimestre a la cual pertenece
-                var codigo_trimestre_cambiado = tr_con_datos.data("trimestre-codigo");
-                var codigo_materia_cambiada   = tr_con_datos.data("materia-codigo");
-
-                var posicion_materia = posicion_ij_materia(codigo_trimestre_cambiado,codigo_materia_cambiada);
-
-
-                if($(this).val() != "R"){
-                    json_datos_trims.trimestres[posicion_materia[0]].materias[posicion_materia[1]].nota_final = parseInt($(this).val());
-                }
-
-                json_datos_trims.trimestres[posicion_materia[0]].materias[posicion_materia[1]].esta_retirada = $(this).val() == "R";
-
-                // Actualizamos los indices que se le muestran al usuario
-                actualizar_indices();
-
-                // Activamos el boton de guardar
-                btn_guardar_cambios.text("Guardar Cambios*");
-                btn_guardar_cambios.removeAttr("disabled");
-            });
 
             // Listener para cuando se clickea el boton de guardar
             // El cual hace que se mande al servidor el estado del plan que maneja el cliente
@@ -195,7 +197,7 @@
 
                 // Desactivamos los select que permiten al usuario cambiar la nota de las materias
                 // Para cada select en la tabla
-                datos_tabla_html.find("select").each(function (index,element) {
+                div_datos_trimestres_html.find("select").each(function (index, element) {
                     // Lo colocamos en desactivado
                     $(this).attr("disabled","disabled");
                 });
@@ -213,130 +215,257 @@
                         },
                         function(data, status){
                             if (status == "success"){
-                                // Si tod bien!
+
                                 // Activamos los select que habíamos desactivados
-                                datos_tabla_html.find("select").each(function (index,element) {
+                                div_datos_trimestres_html.find("select").each(function (index, element) {
                                     $(this).removeAttr("disabled");
                                 });
-                                // Actualizamos el texto del boton guardar
-                                btn_guardar_cambios.text("¡Cambios Guardados!");
+
+                                if(data.actualizado){
+                                    // Actualizamos el texto del boton guardar
+                                    btn_guardar_cambios.text("¡Cambios Guardados!");
+                                }else{
+                                    alert("Ocurrió un error actualizando el plan");
+                                    // Actualizamos el texto del boton guardar
+                                    btn_guardar_cambios.text("Guardar Cambios*");
+                                    btn_guardar_cambios.removeAttr("disabled");
+                                }
                             }else{
                                 alert("Ocurrió un error actualizando el plan");
                             }
                     }
                 );
 
-            })
-        }
+            });
 
-        function crear_tabla_trimestre(indice){
-            // HEAD de la tabla
-            html_tabla = ""
-            html_tabla += "<thead>";
-                html_tabla += "<tr " + "data-trimestre-codigo='" + json_datos_trims.trimestres[indice].codigo + "' >";
-                    html_tabla += "<th colspan='3'>";
-                        if(json_datos_trims.trimestres[indice].periodo == "SD"){
-                            html_tabla += "Septiembre - Diciembre";
-                        }else if(json_datos_trims.trimestres[indice].periodo == "EM"){
-                            html_tabla += "Enero - Marzo";
-                        }else if(json_datos_trims.trimestres[indice].periodo == "AJ"){
-                            html_tabla += "Abril - Julio";
-                        }else if(json_datos_trims.trimestres[indice].periodo == "JA"){
-                            html_tabla += "Julio - Agosto";
-                        }
-                        html_tabla += " " + json_datos_trims.trimestres[indice].anyo;
-                    html_tabla += "</th>";
-                    html_tabla += "<th align='left' colspan='2'>";
-                        html_tabla += '<button type="button" data-toggle="modal" data-tipo-boton="eliminar_trimestre" data-tipo-boton="eliminar-trimestre" data-target="#modal-eliminar-trim-mat" class="btn btn-danger" aria-label="Left Align">';
-                        html_tabla += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>';
-                        html_tabla += '</button> ';
-                    html_tabla += "</th>"; // Falta identificador de indice/materia
-                html_tabla += "</tr>"; // Falta identificador de indice/materia
-            html_tabla += "</thead>"; // Falta identificador de indice/materia
+            var modal_agregar_mat = $("#modal-agregar-mat");
 
-            // Body
+            var  select_creditos_en_modal = modal_agregar_mat.find("#id_select_cred");
+            var  txt_input_codigo_mat_en_modal = modal_agregar_mat.find("#id_txt_input_codigo_mat");
+            var  txt_input_nombre_mat_en_modal = modal_agregar_mat.find("#id_txt_input_nombre_mat");
 
-            html_tabla += "<tbody>";
-                html_tabla += "<tr>";
-                    html_tabla += "<th align='center'>Código</th>";
-                    html_tabla += "<th align='center' class = 'hidden-xs'>Nombre</th>";
-                    html_tabla += "<th align='center'>Creditos</th>";
-                    html_tabla += "<th align='center'>Nota</th>";
-                    html_tabla += "<th align='right'>¿Eliminar?</th>";
-                html_tabla += "</tr>";
+            var btn_agregar_mat_en_modal = modal_agregar_mat.find("#btn-agregar-mat");
 
-            for( j in json_datos_trims.trimestres[indice].materias){
-                html_tabla += "<tr data-trimestre-codigo='" + json_datos_trims.trimestres[indice].codigo+ "' data-materia-codigo = '" + json_datos_trims.trimestres[indice].materias[j].codigo+ "'>";
-                    html_tabla += "<td>";
-                        html_tabla += json_datos_trims.trimestres[indice].materias[j].codigo;
-                    html_tabla += "</td>";
-                    html_tabla += "<td  class = 'hidden-xs'>";
-                        html_tabla += json_datos_trims.trimestres[indice].materias[j].nombre;
-                    html_tabla += "</td>";
-                    html_tabla += "<td align='center'>";
-                        html_tabla += json_datos_trims.trimestres[indice].materias[j].creditos;
-                    html_tabla += "</td>";
-                    html_tabla += "<td>";
-                        html_tabla += "<select class='form-control select-materia-cambiar-nota' style='width:50px;'>";
-                            for (k = 1; k <= 5; k++) {
-                                html_tabla += "<option ";
-                                if(json_datos_trims.trimestres[indice].materias[j].nota_final == k){
-                                    html_tabla+="selected";
+            modal_agregar_mat.on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var table_trim =  button.closest( "table" );
+                var codigo_trimestre   = table_trim.data("trimestre-codigo");
+
+                var i_trimestre = -1;
+                for (var i in json_datos_trims.trimestres){
+                    if(codigo_trimestre == json_datos_trims.trimestres[i].codigo){
+                        i_trimestre = i;
+                        break;
+                    }
+                }
+                btn_agregar_mat_en_modal.click(function (event) {
+                    $(this).off("click");
+
+                    modal_agregar_mat.modal("hide");
+                    var nueva_mat_json = {
+                        'codigo':txt_input_codigo_mat_en_modal.val(),
+                        'nombre':txt_input_nombre_mat_en_modal.val(),
+                        'creditos':parseInt(select_creditos_en_modal.val()),
+                        'nota_final':parseInt(modal_agregar_mat.find("#id_select_nota_final").val()),
+                        'esta_retirada':modal_agregar_mat.find("#id_check_esta_retirada")[0].checked,
+                    };
+                    //console.log(nueva_mat_json);
+
+                    var n_materias = json_datos_trims.trimestres[i_trimestre].materias.length;
+                    json_datos_trims.trimestres[i_trimestre].materias[n_materias] = nueva_mat_json;
+
+                    var nuevo_tr_mat_jquer = $(crear_html_tr_materia(i_trimestre,n_materias)).hide();
+
+                    // PAra insertarlo antes del boton
+                    nuevo_tr_mat_jquer.insertBefore(button.closest("tr"));
+
+                    nuevo_tr_mat_jquer.show('slow');
+
+                    actualizar_indices();
+                    btn_guardar_cambios.text("Guardar Cambios*");
+                    btn_guardar_cambios.removeAttr("disabled");
+
+              });
+            });
+
+            txt_input_codigo_mat_en_modal.on('input',function(e){
+                $.get({% url 'materias' %},{
+                            codigo:txt_input_codigo_mat_en_modal.val(),
+                            max_length:1,
+                            es_codigo_exacto:true
+                        },
+                        function(data, status){
+                            if (status == "success"){
+                                if(data.materias.length == 1){
+                                    select_creditos_en_modal.val(data.materias[0].creditos);
+                                    select_creditos_en_modal.attr("disabled","disabled");
+                                    txt_input_nombre_mat_en_modal.val(data.materias[0].nombre);
+                                    txt_input_nombre_mat_en_modal.attr("disabled","disabled");
+                                }else{
+                                    select_creditos_en_modal.val("1");
+                                    select_creditos_en_modal.removeAttr("disabled");
+                                    txt_input_nombre_mat_en_modal.val("");
+                                    txt_input_nombre_mat_en_modal.removeAttr("disabled");
                                 }
-                                html_tabla += ">" + k + "</option>";
+                            }else{
+                                console.log("Ocurrió un error obteniendo materias");
                             }
-                                html_tabla += "<option ";
-                                if(json_datos_trims.trimestres[indice].materias[j].esta_retirada){
-                                    html_tabla+="selected";
-                                }
-                                html_tabla += ">R</option>";
-                        html_tabla += "</select>";
-                    html_tabla += "</td>";
-                    html_tabla += "<td align='right'>";
-                    html_tabla += '<button type="button" data-toggle="modal" data-tipo-boton="eliminar-materia" data-target="#modal-eliminar-trim-mat" class="btn btn-warning" aria-label="Left Align">';
-                    html_tabla += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>';
-                    html_tabla += '</button> ';
-                    html_tabla += "</td>";
-                html_tabla += "</tr>";
-            }
-                html_tabla += "<tr>";
-                    html_tabla += "<td colspan='5' align='center'>";
-
-                    // Calculamos el indice del periodo
-                    //console.log(" acumulado: " + suma_nota_x_creditos_acumulado + "/" + creditos_que_cuentan + "= " + redondear(suma_nota_x_creditos_acumulado / creditos_que_cuentan ));
-                    html_tabla += '<button type="button" class="btn btn-primary" aria-label="Left Align">';
-                    html_tabla += '<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>';
-                    html_tabla += '</button> ';
-                    html_tabla += "</td>";
-                    html_tabla += "</td>";
-                html_tabla += "</tr>";
-
-                html_tabla += "<tr>";
-                    html_tabla += "<td colspan='5' align='center' id='td-indice-"  + json_datos_trims.trimestres[indice].codigo + "' >";
-                    html_tabla += "I.P.: NC| I.A.:NC";
-                    html_tabla += "</td>";
-                html_tabla += "</tr>";
-            html_tabla += "</tbody>";
-            return html_tabla;
+                    }
+                );
+            });
         }
 
+        /**
+         * Crea el Html del tr de una materia que pertenece a un trimestre
+         * @param indice_trimestre indice del trimestre al que pertenece la materia
+         * @param indice_materia   indice de la materia en el trimestre
+         * @returns {string} Html del tr
+         */
+        function crear_html_tr_materia(indice_trimestre,indice_materia){
+
+            var trimestre_json = json_datos_trims.trimestres[indice_trimestre];
+            var materia_json = trimestre_json.materias[indice_materia];
+
+            // Contendrá el html del <tr></tr> resultante
+            var html_tr_materia = "";
+
+            // data-materia-codigo es para poder referenciar cual materia está en este tr
+            html_tr_materia += "<tr data-materia-codigo = '" + materia_json.codigo+ "'>";
+
+                // Codigo de la materia
+                html_tr_materia += "<td>" + materia_json.codigo + "</td>";
+
+                // Nombre de la materia
+                // El hidden-xs hace que se oculte este td en pantallas pequeñas
+                html_tr_materia += "<td  class = 'hidden-xs'>" + materia_json.nombre + "</td>";
+
+                // Creditos de la materia
+                html_tr_materia += "<td>" + materia_json.creditos + "</td>";
+
+                // Select para las notas de la materia(Incluye la opción R - Retirada)
+                html_tr_materia += "<td>";
+                    html_tr_materia += "<select class='form-control' onchange='onchange_sel_nota(this)'>";
+                        for (var nota = 1; nota <= 5; nota++) {
+                            html_tr_materia += "<option ";
+                            if(materia_json.nota_final == nota){
+                                html_tr_materia+="selected";
+                            }
+                            html_tr_materia += ">" + nota + "</option>";
+                        }
+                        html_tr_materia += "<option ";
+                        if(materia_json.esta_retirada){
+                            html_tr_materia+="selected";
+                        }
+                        html_tr_materia += ">R</option>";
+                    html_tr_materia += "</select>";
+                html_tr_materia += "</td>";
+
+                // Boton para eliminar esta materia del plan
+                // Muestra un modal de confirmación
+                html_tr_materia += "<td>";
+                    html_tr_materia += '<button type="button" data-toggle="modal" data-tipo-boton="eliminar-materia" data-target="#modal-eliminar-trim-mat" class="btn btn-warning" >';
+                        html_tr_materia += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>';
+                    html_tr_materia += '</button> ';
+                html_tr_materia += "</td>";
+
+            html_tr_materia += "</tr>";
+            return html_tr_materia;
+        }
+
+        /**
+         * Crea el HTML de una tabla para un trimestre
+         * @param indice_trimestre Indice del trimestre en el json al cual se le creará la tabla
+         * @returns {string} HTML de la tabla -  <table></table>
+         */
+        function crear_html_tabla_trimestre(indice_trimestre){
+
+            var trimestre_json =  json_datos_trims.trimestres[indice_trimestre];
+
+            var html_tabla_trimestre = "<table class='table table-bordered' data-trimestre-codigo='" + trimestre_json.codigo +  "'>";
+                // HEAD de la tabla
+                html_tabla_trimestre+= "<thead>";
+                    html_tabla_trimestre += "<tr>";
+                        // Periodo del trimestre
+                        html_tabla_trimestre += "<th colspan='3'>";
+                            if(trimestre_json.periodo == "SD"){
+                                html_tabla_trimestre += "Septiembre - Diciembre";
+                            }else if(trimestre_json.periodo == "EM"){
+                                html_tabla_trimestre += "Enero - Marzo";
+                            }else if(trimestre_json.periodo == "AJ"){
+                                html_tabla_trimestre += "Abril - Julio";
+                            }else if(trimestre_json.periodo == "JA"){
+                                html_tabla_trimestre += "Intensivo(Julio - Agosto)";
+                            }
+                            html_tabla_trimestre += " " + trimestre_json.anyo;
+                        html_tabla_trimestre += "</th>";
+                        // Opción de eliminar el trimestre
+                        html_tabla_trimestre += "<th colspan='2' align='right'>";
+                            html_tabla_trimestre += '<button type="button" data-toggle="modal" data-tipo-boton="eliminar_trimestre" data-tipo-boton="eliminar-trimestre" data-target="#modal-eliminar-trim-mat" class="btn btn-danger">';
+                                html_tabla_trimestre += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>';
+                                html_tabla_trimestre += '¡Eliminar trimestre!';
+                            html_tabla_trimestre += '</button> ';
+                        html_tabla_trimestre += "</th>"; // Falta identificador de indice/materia
+                    html_tabla_trimestre += "</tr>"; // Falta identificador de indice/materia
+                html_tabla_trimestre += "</thead>"; // Falta identificador de indice/materia
+
+                // Body
+                html_tabla_trimestre += "<tbody>";
+                    html_tabla_trimestre += "<tr>";
+                        html_tabla_trimestre += "<th>Código</th>";
+                        html_tabla_trimestre += "<th class = 'hidden-xs'>Nombre</th>";
+                        html_tabla_trimestre += "<th>Creditos</th>";
+                        html_tabla_trimestre += "<th>Nota</th>";
+                        html_tabla_trimestre += "<th>¿Eliminar?</th>";
+                    html_tabla_trimestre += "</tr>";
+
+                // Creamos el html para cada tr de las materia
+                for(var  indice_materia in trimestre_json.materias){
+                    html_tabla_trimestre += crear_html_tr_materia(indice_trimestre,indice_materia)
+                }
+
+                html_tabla_trimestre += "<tr>";
+                    html_tabla_trimestre += "<td colspan='5' align='center'>";
+                        html_tabla_trimestre += '<button type="button" data-toggle="modal" data-target="#modal-agregar-mat" class="btn btn-primary" >';
+                            html_tabla_trimestre += '<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>';
+                            html_tabla_trimestre += '¡Agregar Materia!';
+                        html_tabla_trimestre += '</button> ';
+                    html_tabla_trimestre += "</td>";
+                html_tabla_trimestre += "</tr>";
+
+                html_tabla_trimestre += "</tbody>";
+                html_tabla_trimestre += "<tfoot>";
+                    html_tabla_trimestre += "<tr>";
+                        html_tabla_trimestre += "<td colspan='5' align='center' id='td-indice-"  + trimestre_json.codigo + "' >";
+                            html_tabla_trimestre += "I.P.: NC| I.A.:NC";
+                        html_tabla_trimestre += "</td>";
+                    html_tabla_trimestre += "</tr>";
+                html_tabla_trimestre += "</tfoot>";
+            html_tabla_trimestre += "</table>";
+            return html_tabla_trimestre;
+        }
+
+        /**
+         * Crea el HTML del boton agregar trimestre
+         */
         function crear_boton_agrega_trim_html() {
-            boton_agregar_trim = $('<tbody><tr><td colspan="5" align="center"><button  type="button" data-toggle="modal" data-target="#modal-agregar-trim"  class="btn btn-primary"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> ¡Agregar un trimestre!</button></td></tr></tbody>')
+            // Notar width:185, es para que se centre el elemento, 185 es el tam aprox del button
+            boton_agregar_trim = $('<div style="width:185px;margin:auto;" ><button  type="button" data-toggle="modal" data-target="#modal-agregar-trim"  class="btn btn-primary"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> ¡Agregar Trimestre!</button></div>')
         }
-        function crear_tabla_trimestres(){
-            var trimestre_codigo = "";
-            var html_tabla = "";
-            for(i in json_datos_trims.trimestres){
 
-                trimestre_codigo = "tri" + next_cod_trime++;
-                json_datos_trims.trimestres[i].codigo = trimestre_codigo;
-                html_tabla += crear_tabla_trimestre(i);
+        /**
+         * Crea las tablas de los trimestres, se llama al inicio cuando se carga la página
+         */
+        function crear_tabla_trimestres(){
+            var html_tablas_trim = "";
+
+            for(var indice_trimestre in json_datos_trims.trimestres){
+                json_datos_trims.trimestres[indice_trimestre].codigo = next_cod_trime++;
+                html_tablas_trim += crear_html_tabla_trimestre(indice_trimestre);
             }
 
-            //console.log(json_datos_trims.trimestres.length)
-            datos_tabla_html.html(html_tabla);
+            div_datos_trimestres_html.html(html_tablas_trim);
             crear_boton_agrega_trim_html();
-            datos_tabla_html.append(boton_agregar_trim)
+            div_datos_trimestres_html.append(boton_agregar_trim)
 
         }
 
@@ -346,17 +475,17 @@
         // una vez obtenidos se debe crear la vista del usuario
         $(document).ready(function(){
 
-            datos_tabla_html    = $("#tabla-trimestres");
+            div_datos_trimestres_html = $("#div-trimestres");
             btn_guardar_cambios = $("#btn-guardar-cambios");
 
-            datos_tabla_html.html("<tr><td>Cargando datos del plan...</td></tr>");
+            div_datos_trimestres_html.html("<p>Cargando datos del plan...</p>");
 
             $.get({% url 'obtener_datos_plan_ajax' %},{
                 nombre_plan: "{{ plan.nombre }}",
                 },function(data, status){
                     if (status == "success"){
 
-                        datos_tabla_html.html("<tr><td>Creando vista...</td></tr>");
+                        div_datos_trimestres_html.html("<p>Creando vista...</p>");
 
                         json_datos_trims = data;
 
@@ -412,63 +541,114 @@
               </div>
             </div>
 
-            <div style="margin-top:30px;">
-                <table class = "table" id="tabla-trimestres" >
+            <div style="margin-top:30px;" id="div-trimestres">
                     <!--Aquí se va a poner los datos del plan dinamicamente-->
-                </table>
             </div>
         </div>
     </div>
     <!-- /.row -->
 
     <!-- Modal de eliminar trimestre/materia -->
-    <div class="modal fade" tabindex="-1"  id="modal-eliminar-trim-mat" role="dialog" aria-labelledby="mySmallModalLabel">
+    <div class="modal fade" tabindex="-1"  id="modal-eliminar-trim-mat" role="dialog">
       <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel"></h4>
+                <h4 class="modal-title"></h4>
             </div>
             <div class="modal-body">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" id="btn-eliminar-plan">Eliminar</button>
+                <button type="button" class="btn btn-primary" id="btn-eliminar-trim-mat">Eliminar</button>
             </div>
         </div>
       </div>
     </div>
 
-
     <!-- Modal de agregar trimestre -->
-    <div class="modal fade" tabindex="-1"  id="modal-agregar-trim" role="dialog" aria-labelledby="mySmallModalLabel">
+    <div class="modal fade" tabindex="-1"  id="modal-agregar-trim" role="dialog">
       <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">¡Agrega un trimestre!</h4>
+                <h4 class="modal-title">¡Agrega un trimestre!</h4>
             </div>
             <div class="modal-body">
-                    <div class="form-group">
-                        <label class="control-label" for="id_select_periodo">Periodo</label>
-                        <select class="form-control form-component"  name="select_periodo" id="id_select_periodo">
-                            {% for x,y in periodos %}
-                                <option value="{{ x }}">{{ y }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                     <div class="form-group">
-                        <label class="control-label" for="id_select_anyo">Año</label>
-                        <select class="form-control form-component"  name="selec_anyo" id="id_select_anyo">
-                            {% for x,y in anyos %}
-                                <option value="{{ x }}" >{{ y }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label class="control-label" for="id_select_periodo">Periodo</label>
+                    <select class="form-control "  name="select_periodo" id="id_select_periodo">
+                        {% for x,y in periodos %}
+                            <option value="{{ x }}">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label class="control-label" for="id_select_anyo">Año</label>
+                    <select class="form-control "  name="select_anyo" id="id_select_anyo">
+                        {% for x,y in anyos %}
+                            <option value="{{ x }}" >{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-primary" id="btn-agregar-trim">Agregar</button>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de agregar materia -->
+    <div class="modal fade" tabindex="-1"  id="modal-agregar-mat" role="dialog">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">¡Agrega una materia al plan!</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="control-label" for="id_txt_input_codigo_mat">Código:</label>
+                    <input type="text" class="form-control" id="id_txt_input_codigo_mat" name="txt_input_codigo_mat" placeholder="Código">
+                </div>
+                 <div class="form-group">
+                    <label class="control-label" for="id_select_nota_final">Nota:</label>
+                    <select class="form-control"  name="select_nota_final" id="id_select_nota_final">
+                        <option value="1" >1</option>
+                        <option value="2" >2</option>
+                        <option value="3" >3</option>
+                        <option value="4" >4</option>
+                        <option value="5" >5</option>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label class="control-label" for="id_select_cred">Creditos:</label>
+                    <select class="form-control"  name="select_cred" id="id_select_cred">
+                        <option value="1" >1</option>
+                        <option value="2" >2</option>
+                        <option value="3" >3</option>
+                        <option value="4" >4</option>
+                        <option value="5" >5</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" id="id_check_esta_retirada">
+                          ¿Está retirada?
+                      </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="id_txt_input_nombre_mat">Nombre:</label>
+                    <input type="text" class="form-control" id="id_txt_input_nombre_mat" name="txt_input_nombre_mat" placeholder="Nombre">
+                </div>
+           </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btn-agregar-mat">Agregar</button>
             </div>
         </div>
       </div>
@@ -480,7 +660,6 @@
     <script>
 
         $('#modal-agregar-trim').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Button that triggered the modal
             var modal = $(this);
             var select_periodo = modal.find("#id_select_periodo");
             var select_anyo    = modal.find("#id_select_anyo");
@@ -488,12 +667,14 @@
             var nuevo_trim_js = {};
             nuevo_trim_js.materias = [];
 
+            // Si el usuario no tiene trimestres en el plan
+            // Se le coloca por default Septiembre - Diciembre del año actual
             if(json_datos_trims.trimestres.length == 0){
                 select_periodo.val('SD');
                 select_anyo.val(new Date().getFullYear());
-
             }else{
-                var last_trim = json_datos_trims.trimestres[json_datos_trims.trimestres.length - 1]
+                // Sino se le coloca por default el siguiente periodo al último creado
+                var last_trim = json_datos_trims.trimestres[json_datos_trims.trimestres.length - 1];
                 switch (last_trim.periodo){
                     case 'SD':
                         select_periodo.val('EM');
@@ -515,22 +696,22 @@
                 }
             }
 
-
             modal.find('#btn-agregar-trim').click(function (event) {
                 $(this).off("click");
 
                 nuevo_trim_js.periodo = select_periodo.val();
                 nuevo_trim_js.anyo = select_anyo.val();
-                nuevo_trim_js.codigo = "tri" + next_cod_trime++;
+                nuevo_trim_js.codigo = next_cod_trime++;
 
-                json_datos_trims.trimestres[json_datos_trims.trimestres.length] = nuevo_trim_js;
-                html_nueva_tabla_trim = crear_tabla_trimestre(json_datos_trims.trimestres.length - 1);
+                var n_trimestres = json_datos_trims.trimestres.length;
+                json_datos_trims.trimestres[n_trimestres] = nuevo_trim_js;
 
-                boton_agregar_trim.detach();
-                datos_tabla_html.append(html_nueva_tabla_trim);
-                datos_tabla_html.append(boton_agregar_trim);
+                var nueva_tabla_trim_jq = $(crear_html_tabla_trimestre(n_trimestres)).hide();
+                nueva_tabla_trim_jq.insertBefore(boton_agregar_trim);
 
-                //actualizar_indices();
+                nueva_tabla_trim_jq.show('slow');
+
+                actualizar_indices();
 
                 modal.modal("hide");
                 btn_guardar_cambios.text("Guardar Cambios*");
@@ -541,25 +722,28 @@
 
         $('#modal-eliminar-trim-mat').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); // Button that triggered the modal
-            var tr_con_datos =  button.closest( "tr" );
-            var codigo_trimestre_materia_eliminar = tr_con_datos.data("trimestre-codigo");
+            var tr_materia =  button.closest( "tr" );
+            var table_trimestre = tr_materia.closest( "table" );
+            var codigo_trimestre_materia_eliminar = table_trimestre.data("trimestre-codigo");
             var tipo_boton = button.data('tipo-boton'); // Extract info from data-* attributes
 
             var modal = $(this);
 
             if(tipo_boton == "eliminar-materia"){
-                var codigo_materia_eliminar   = tr_con_datos.data("materia-codigo");
+                var codigo_materia_eliminar   = tr_materia.data("materia-codigo");
 
                 var posicion = posicion_ij_materia(codigo_trimestre_materia_eliminar,codigo_materia_eliminar);
+                var trimestre_json = json_datos_trims.trimestres[posicion[0]];
+                var materia_json = trimestre_json.materias[posicion[1]];
 
-                modal.find('.modal-title').text('¿Eliminar ' + json_datos_trims.trimestres[posicion[0]].materias[posicion[1]].codigo + ' ?');
-                modal.find('.modal-body').text('Nombre: ' + json_datos_trims.trimestres[posicion[0]].materias[posicion[1]].nombre);
-                modal.find('#btn-eliminar-plan').click(function (event) {
+                modal.find('.modal-title').text('¿Eliminar ' + materia_json.codigo + ' ?');
+                modal.find('.modal-body').text('Nombre: '    + materia_json.nombre);
+                modal.find('#btn-eliminar-trim-mat').click(function (event) {
                     $(this).off("click");
 
-                    $('#modal-eliminar-trim-mat').modal("hide");
-                    tr_con_datos.hide('slow', function(){ tr_con_datos.remove(); });
-                    json_datos_trims.trimestres[posicion[0]].materias.splice(posicion,1);
+                    modal.modal("hide");
+                    tr_materia.hide('slow', function(){ table_trimestre.remove(); });
+                    trimestre_json.materias.splice(posicion,1);
                     actualizar_indices();
                     btn_guardar_cambios.text("Guardar Cambios*");
                     btn_guardar_cambios.removeAttr("disabled");
@@ -567,9 +751,9 @@
               });
             }else if(tipo_boton == "eliminar_trimestre"){
                 var i_trimestre;
-                for(var i in json_datos_trims.trimestres){
-                    if(json_datos_trims.trimestres[i].codigo == codigo_trimestre_materia_eliminar){
-                        i_trimestre = i;
+                for(var indice_trimestre in json_datos_trims.trimestres){
+                    if(json_datos_trims.trimestres[indice_trimestre].codigo == codigo_trimestre_materia_eliminar){
+                        i_trimestre = indice_trimestre;
                         break;
                     }
                 }
@@ -587,14 +771,11 @@
                 }
                 html_body_modal += "</p><p>Año: " + json_datos_trims.trimestres[i_trimestre].anyo + "</p>";
                 modal.find('.modal-body').html(html_body_modal);
-                modal.find('#btn-eliminar-plan').click(function (event) {
+                modal.find('#btn-eliminar-trim-mat').click(function (event) {
                     $(this).off("click");
 
-                    $('#modal-eliminar-trim-mat').modal("hide");
-                    var thead = tr_con_datos.closest("thead");
-                    var tbody = thead.next();
-                    thead.hide('slow', function(){ thead.remove(); });
-                    tbody.hide('slow', function(){ tbody.remove(); });
+                    modal.modal("hide");
+                    table_trimestre.hide('slow', function(){ table_trimestre.remove(); });
                     json_datos_trims.trimestres.splice(i_trimestre,1);
                     actualizar_indices();
                     btn_guardar_cambios.text("Guardar Cambios*");
@@ -604,7 +785,7 @@
 
 
             }
-        })
+        });
     </script>
 
 {% endblock %}

@@ -31,20 +31,21 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
     <!-- jQuery -->
-    <script src="{% static 'misvoti/js/jquery.js' %}"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+  <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
-    {% block inicio_pagina_scripts %}
-    {% endblock %}
 
     <!-- Bootstrap Core JavaScript -->
     <script src="{% static 'misvoti/js/bootstrap.min.js' %}"></script>
 
+    {% block inicio_pagina_scripts %}
+    {% endblock %}
     <!-- Morris Charts JavaScript -->
     <script src="{% static 'misvoti/js/plugins/morris/raphael.min.js' %}"></script>
     <script src="{% static 'misvoti/js/plugins/morris/morris.min.js' %}"></script>
     <script src="{% static 'misvoti/js/plugins/morris/morris-data.js' %}"></script>
     <script src="{% static 'misvoti/js/plugins/malsupform/jquery.form.js' %}"></script>
-
     <script src="{% static 'misvoti/js/csrftokens.js' %}"></script>
 
 </head>
