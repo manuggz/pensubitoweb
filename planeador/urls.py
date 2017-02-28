@@ -42,5 +42,7 @@ urlpatterns = [
 
     url(r'^planes_base',views.ver_planes_base,name='planes_base'),
     url(r'^materias/',views.materias_vista,name='materias'),
+
+
     url(r'^admin/', admin.site.urls),
 ]

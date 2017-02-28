@@ -11,7 +11,7 @@
     {% endif %}
 {% endif %}
 
-<form method="post" action="{% url 'login' %}" class="form-signin">
+<form method="post" action="{% url 'accounts:login' %}" class="form-signin">
     {% csrf_token %}
     <h2 class="form-signin-heading">Por favor , inicie sesión para continuar:</h2>
 

@@ -9,4 +9,9 @@ urlpatterns = [
         {'redirect_authenticated_user': 'misvoti:home'},
         name='login',
     ),
+    url(
+        '^logout/$',
+        auth_views.logout,
+        name='logout',
+    ),
 ]

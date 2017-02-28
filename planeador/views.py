@@ -42,6 +42,7 @@ def __test(request):
 
     return HttpResponse(salida)
 
+
 def crear_plan(request):
     context = {"planes_activo": "active"}
 
@@ -174,7 +175,7 @@ def obtener_datos_plan(request):
             trimestre_ctx = {"periodo": trimestre.periodo, "anyo": trimestre.anyo}
             trimestre_ctx["materias"] = []
 
-            for materia in MateriaPlaneada.objects.filter(trimestre_cursada_fk=trimestre.pk):
+            for materia in MateriaPlaneada.objects.filter(trimestre_cursada_fk=trimestre):
                 materia_ctx = {
                     "nombre": materia.nombre,
                     "codigo": materia.codigo,
@@ -262,77 +263,6 @@ def actualizar_plan(request):
         trimestres_bd = TrimestrePlaneado.objects.filter(planestudio_pert_fk=plan_estudio_modelo_ref)
         trimestres_bd.delete()
 
-        #
-        # i = 0
-        # while i < len(trimestres_bd):
-        #     trimestre_bd = trimestres_bd[i]
-        #     periodo_trimestre_bd = trimestre_bd.trimestre_base_fk.periodo
-        #     anyo_periodo_trimestre_bd = trimestre_bd.trimestre_base_fk.anyo
-        #
-        #     j = 0
-        #     while j < len(datos_post["trimestres"]):
-        #         trimestre_json = datos_post["trimestres"][j]
-        #
-        #         if trimestre_json["periodo"] == periodo_trimestre_bd and trimestre_json[
-        #             "anyo"] == anyo_periodo_trimestre_bd:
-        #
-        #             materias_trimestre_bd = list(MateriaPlaneada.objects.filter(trimestre_cursada_fk=trimestre_bd))
-        #
-        #             k = 0
-        #             while k < len(materias_trimestre_bd):
-        #
-        #                 nota_final_materia_bd = materias_trimestre_bd[k].nota_final
-        #                 codigo_materia_bd = materias_trimestre_bd[k].materia_base_fk.codigo
-        #
-        #                 l = 0
-        #                 while l < len(trimestre_json["materias"]):
-        #
-        #                     materia_trimestre_json = trimestre_json["materias"][l]
-        #                     nota_final_materia_json = materia_trimestre_json["nota_final"]
-        #
-        #                     if codigo_materia_bd == materia_trimestre_json["codigo"]:
-        #
-        #                         if nota_final_materia_bd != nota_final_materia_json:
-        #                             materias_trimestre_bd[k].nota_final = nota_final_materia_json
-        #                             materias_trimestre_bd[k].save()
-        #
-        #                         del trimestre_json["materias"][l]
-        #                         del materias_trimestre_bd[k]
-        #
-        #                     else:
-        #                         l += 1
-        #
-        #                 if l == len(trimestre_json["materias"]):
-        #                     k += 1
-        #
-        #             map(Model.delete, materias_trimestre_bd)
-        #
-        #             for materia_json in trimestre_json["materias"]:
-        #                 materiabase_md, is_created = MateriaBase.objects.get_or_create(
-        #                     nombre=materia_json["nombre"],
-        #                     codigo=materia_json["codigo"],
-        #                     creditos=materia_json["creditos"],
-        #                 )
-        #
-        #                 materiaplan_nueva = MateriaPlaneada(
-        #                     materia_base_fk=materiabase_md,
-        #                     nota_final=materia_json["nota_final"],
-        #                     esta_retirada=materia_json["esta_retirada"],
-        #                     trimestre_cursada_fk=trimestre_bd,
-        #                 )
-        #
-        #                 materiaplan_nueva.save()
-        #
-        #             del datos_post["trimestres"][j]
-        #             del trimestres_bd[i]
-        #             break
-        #         else:
-        #             j += 1
-        #
-        #     if j == len(datos_post["trimestres"]):
-        #         i += 1
-        #
-        # map(Model.delete,trimestres_bd)
 
         for trimestre in datos_post["trimestres"]:
             #print "trim:" + str(trimestre)

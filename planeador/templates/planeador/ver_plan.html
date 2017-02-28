@@ -742,7 +742,7 @@
                     $(this).off("click");
 
                     modal.modal("hide");
-                    tr_materia.hide('slow', function(){ table_trimestre.remove(); });
+                    tr_materia.hide('slow', function(){ tr_materia.remove(); });
                     trimestre_json.materias.splice(posicion,1);
                     actualizar_indices();
                     btn_guardar_cambios.text("Guardar Cambios*");

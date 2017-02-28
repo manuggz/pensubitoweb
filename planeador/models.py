@@ -98,8 +98,8 @@ class TrimestrePlaneado(models.Model):
         choices=PERIODOS_USB,
         default=SEPTIEMBRE_DICIEMBRE,
     )
-    planestudio_pert_fk = models.ForeignKey(PlanEstudio, on_delete=models.CASCADE)
     anyo = models.CharField(max_length=5)
+    planestudio_pert_fk = models.ForeignKey(PlanEstudio, on_delete=models.CASCADE)
     objects = TrimestreManager()
 
     def __lt__(self, other):
@@ -146,10 +146,10 @@ class TrimestrePlaneado(models.Model):
                     return 1
 
     def __str__(self):
-        return self.periodo + "," + str(self.planestudio_pert_fk) + ")"
+        return self.periodo + " " + self.anyo + str(self.planestudio_pert_fk) + ")"
 
     def __unicode__(self):
-        return self.periodo + "," + str(self.planestudio_pert_fk) + ")"
+        return self.periodo + " " + self.anyo + str(self.planestudio_pert_fk) + ")"
 
 
 # class DepartamentoUSB(models.Model):
@@ -191,7 +191,7 @@ class MateriaPlaneada(models.Model):
     POSIBLES_NOTAS = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'))
     trimestre_cursada_fk = models.ForeignKey(TrimestrePlaneado, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=200,null=True)
-    codigo = models.CharField(max_length=10,primary_key=True)
+    codigo = models.CharField(max_length=10)
     creditos = models.CharField(
         max_length=1,
         choices=MateriaBase.POSIBLES_CREDITOS,
@@ -204,3 +204,9 @@ class MateriaPlaneada(models.Model):
     )
     esta_retirada = models.BooleanField(default=False)
 
+
+    def __str__(self):
+        return self.codigo + " " + str(self.trimestre_cursada_fk) + ")"
+
+    def __unicode__(self):
+        return self.codigo + " " + str(self.trimestre_cursada_fk) + ")"

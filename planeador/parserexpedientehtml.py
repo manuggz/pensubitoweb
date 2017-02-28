@@ -1,4 +1,7 @@
 from HTMLParser import HTMLParser
+
+from django.core.exceptions import ObjectDoesNotExist
+
 from planeador.models import MateriaBase, TrimestrePlaneado, MateriaPlaneada, MiVotiUser
 
 ##
@@ -129,26 +132,28 @@ def parser_html(archivo_subido):
 
 def crear_modelos_desde_resultado_parser(resultado_parser, plan_modelo_ref):
     for trimestre in resultado_parser:
-        trimestre_basemd, is_created = TrimestrePlaneado.objects.get_or_create(
-            periodo=trimestre.periodo,
-            anyo=trimestre.anyo
-        )
-
         trimestre_actualmd = TrimestrePlaneado(
-            trimestre_base_fk=trimestre_basemd,
+            periodo=trimestre.periodo,
+            anyo=trimestre.anyo,
             planestudio_pert_fk=plan_modelo_ref,
         )
         trimestre_actualmd.save()
 
         for materia in trimestre.materias:
-            materiabase_md, is_created = MateriaBase.objects.get_or_create(
+            print trimestre.periodo + " " + trimestre.anyo + " " + materia.codigo
+            try:
+                MateriaBase.objects.get(codigo = materia.codigo)
+            except ObjectDoesNotExist:
+                MateriaBase(
+                    nombre=materia.nombre,
+                    codigo=materia.codigo,
+                    creditos=materia.creditos,
+                ).save()
+
+            materiaplan_nueva = MateriaPlaneada(
                 nombre=materia.nombre,
                 codigo=materia.codigo,
                 creditos=materia.creditos,
-            )
-
-            materiaplan_nueva = MateriaPlaneada(
-                materia_base_fk=materiabase_md,
                 nota_final=materia.nota,
                 esta_retirada=materia.esta_retirada,
                 trimestre_cursada_fk=trimestre_actualmd,
