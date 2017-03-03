@@ -2,35 +2,61 @@
 import json
 
 import time
+from urllib import quote
+
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Model
 from django.http import HttpResponse
 from django.http import HttpResponseNotFound
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
-
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth import get_user_model
+from django.conf import settings
 # Create your views here.
-from planeador.decorators import si_no_autenticado_redirec_home
+from django.urls import reverse
+
+from planeador.decorators import si_no_autenticado_redirec_index
 from planeador.forms import CrearNuevoPlanForm
 from planeador.models import PlanEstudio, TrimestrePlaneado, MateriaPlaneada, \
-    PlanEstudioBase, CarreraUsb, MateriaBase
+    PlanEstudioBase, CarreraUsb, MateriaBase, MiVotiUser
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
+from planeador.usbldap import get_ldap_data, random_key
 
 tiempos_tardo_en_respuesta = []
 # Vista para los usuarios no registrados
 def index(request):
+    context = {}
     if request.user.is_authenticated():
         return HttpResponseRedirect('/home/')
-    return render(request, 'misvoti/index.html', {})
 
+    if request.method == "POST":
+        form = AuthenticationForm(data=request.POST)
+        print request.POST
+        if form.is_valid():
+            user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
+            if user is not None:
+                login(request, user)
+                return HttpResponseRedirect('/home/')
+            else:
+                pass
+    else:
+        form = AuthenticationForm()
 
+    context["form"] = form
+    return render(request, 'misvoti/index.html', context)
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')
 # Home para los usuarios registrados que iniciaron sesion
-# @si_no_autenticado_redirec_home
+@login_required
 def home(request):
     context = {"myhome_activo": "active"}
-    return render(request, 'misvoti/index.html', context)
+    return render(request, 'misvoti/home.html', context)
 
 def __test(request):
     f_raw_plan = open("../../../plan_computacion_2013_pensum_raw")
@@ -43,6 +69,7 @@ def __test(request):
     return HttpResponse(salida)
 
 
+@login_required
 def crear_plan(request):
     context = {"planes_activo": "active"}
 
@@ -112,7 +139,84 @@ def crear_plan(request):
         context["form"] = CrearNuevoPlanForm()
     return render(request, 'planeador/crear_plan.html', context)
 
+def login_cas(request):
 
+    ticket = request.GET['ticket']
+    if not ticket:
+        # Error
+        print "Error no ticket"
+        return HttpResponseRedirect('/home/')
+    try:
+        import ssl
+        import urllib2
+        ssl._create_default_https_context = ssl._create_unverified_context
+
+        url_login_cast = quote(request.build_absolute_uri(reverse('login_cas')),safe='')
+
+        url = "https://secure.dst.usb.ve/validate?ticket="+ ticket + "&service=" + url_login_cast
+        req = urllib2.Request(url)
+        response = urllib2.urlopen(req)
+        the_page = response.read()
+    except Exception as e:
+        # Error
+        print "Error " ,e
+        return HttpResponseRedirect('/home/')
+
+    if the_page[0:2] == "no":
+        print the_page
+        print "Ticket no valido lul"
+        # Error
+        return HttpResponseRedirect('/home/')
+    else:
+        # session.casticket = request.vars.getfirst('ticket')
+        data  = the_page.split()
+        usbid = data[1]
+
+        try:
+            usuario_existente = MiVotiUser.objects.get(carnet = usbid)
+        except ObjectDoesNotExist:
+            usuario_existente = None
+
+        if usuario_existente:
+            if not usuario_existente.estan_cargados_datos_ldap:
+                us = get_ldap_data(usbid)
+                usuario_existente.first_name = us.get('first_name')
+                usuario_existente.last_name  = us.get('last_name')
+                usuario_existente.email = us.get('email')
+                usuario_existente.cedula = us['cedula']
+                usuario_existente.telefono = us['phone']
+                usuario_existente.tipo = us['tipo']
+                usuario_existente.estan_cargados_datos_ldap = True
+                usuario_existente.save()
+
+            login(request, usuario_existente)
+
+        else:
+            clave   = random_key()
+            us      = get_ldap_data(usbid)
+            nuevo_usuario = get_user_model().objects.create_user(usbid, us.get('email'),clave)
+            nuevo_usuario.first_name = us.get('first_name')
+            nuevo_usuario.last_name = us.get('last_name')
+            nuevo_usuario.cedula = us['cedula']
+            nuevo_usuario.telefono = us['phone']
+            nuevo_usuario.tipo = us['tipo']
+            nuevo_usuario.carnet = usbid
+            nuevo_usuario.estan_cargados_datos_ldap = True
+            nuevo_usuario.save()
+            login(request, nuevo_usuario)
+
+            if (us['tipo'] == "Pregrado") or (us['tipo'] == "Postgrado"):
+                # Si es estudiante insertar en su tabla
+                pass
+            elif us['tipo'] == "Docente":
+                # En caso de ser docente, agregar dpto.
+                pass
+
+
+        # Al finalizar login o registro, redireccionamos a home
+    return HttpResponseRedirect('/home/')
+
+@login_required
 def ver_plan(request, nombre_plan):
     context = {"planes_activo": "active"}
     plan_estudio_modelo_ref = get_object_or_404(PlanEstudio, usuario_creador_fk=request.user, nombre=nombre_plan)
@@ -124,6 +228,7 @@ def ver_plan(request, nombre_plan):
     return render(request, 'planeador/ver_plan.html', context)
 
 
+@login_required
 def ver_planes_base(request):
 
     respuesta = {"planes":[]}
@@ -143,6 +248,7 @@ def ver_planes_base(request):
 
     return JsonResponse(respuesta)
 
+@login_required
 def eliminar_plan_ajax(request):
     context = {}
     if request.method == "POST":
@@ -159,6 +265,7 @@ def eliminar_plan_ajax(request):
     return HttpResponseNotFound()
 
 
+@login_required
 def obtener_datos_plan(request):
     context = {}
     if request.method == "GET":
@@ -182,6 +289,7 @@ def obtener_datos_plan(request):
                     "creditos": int(materia.creditos),
                     "nota_final": int(materia.nota_final),
                     "esta_retirada": materia.esta_retirada,
+                    "tipo": materia.tipo,
                 }
                 trimestre_ctx["materias"].append(materia_ctx)
 
@@ -192,6 +300,7 @@ def obtener_datos_plan(request):
 
     return HttpResponseNotFound()
 
+@login_required
 def materias_vista(request):
     context = {}
 
@@ -242,6 +351,7 @@ def materias_vista(request):
 
     return JsonResponse(context)
 
+@login_required
 def actualizar_plan(request):
     global tiempos_tardo_en_respuesta
     context = {}
@@ -289,6 +399,7 @@ def actualizar_plan(request):
                     nombre=materia["nombre"],
                     codigo=materia["codigo"],
                     creditos=materia["creditos"],
+                    tipo=materia["tipo"],
                 )
 
                 materiaplan_nueva.save()

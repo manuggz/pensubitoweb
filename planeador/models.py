@@ -15,7 +15,10 @@ class TrimestreManager(models.Manager):
 
 
 class MiVotiUser(AbstractUser):
-    pass
+    carnet = models.CharField(max_length=10)
+    estan_cargados_datos_ldap = models.BooleanField(default=False)
+    cedula = models.CharField(max_length=12)
+    tipo = models.CharField(max_length=100)
 
 class CarreraUsb(models.Model):
     nombre = models.CharField(max_length=100)
@@ -189,6 +192,7 @@ class MateriaBase(models.Model):
 # Representa una materia con los datos particulares de cuando un usuario la va a cursar o la cursó
 class MateriaPlaneada(models.Model):
     POSIBLES_NOTAS = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'))
+    POSIBLES_TIPOS = (('RG', 'Regular'), ('EX', 'Extraplan'), ('EL', 'Electiva libre'), ('EA', 'Electiva de Area'))
     trimestre_cursada_fk = models.ForeignKey(TrimestrePlaneado, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=200,null=True)
     codigo = models.CharField(max_length=10)
@@ -196,6 +200,11 @@ class MateriaPlaneada(models.Model):
         max_length=1,
         choices=MateriaBase.POSIBLES_CREDITOS,
         default='1',
+    )
+    tipo = models.CharField(
+        max_length=2,
+        choices=POSIBLES_TIPOS,
+        default='RG',
     )
     nota_final = models.CharField(
         max_length=1,

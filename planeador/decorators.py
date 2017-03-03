@@ -16,7 +16,7 @@ from django.http import HttpResponseRedirect
 # Si no ha iniciado sesión redirecciona a la página de inicio
 # En caso contrario continua con la vista
 #
-def si_no_autenticado_redirec_home(func):
+def si_no_autenticado_redirec_index(func):
     def authenticate_and_call(*args, **kwargs):
         if args[0].user.is_authenticated():
             return func(*args, **kwargs)

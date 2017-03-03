@@ -238,81 +238,6 @@
 
             });
 
-            var modal_agregar_mat = $("#modal-agregar-mat");
-
-            var  select_creditos_en_modal = modal_agregar_mat.find("#id_select_cred");
-            var  txt_input_codigo_mat_en_modal = modal_agregar_mat.find("#id_txt_input_codigo_mat");
-            var  txt_input_nombre_mat_en_modal = modal_agregar_mat.find("#id_txt_input_nombre_mat");
-
-            var btn_agregar_mat_en_modal = modal_agregar_mat.find("#btn-agregar-mat");
-
-            modal_agregar_mat.on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget);
-                var table_trim =  button.closest( "table" );
-                var codigo_trimestre   = table_trim.data("trimestre-codigo");
-
-                var i_trimestre = -1;
-                for (var i in json_datos_trims.trimestres){
-                    if(codigo_trimestre == json_datos_trims.trimestres[i].codigo){
-                        i_trimestre = i;
-                        break;
-                    }
-                }
-                btn_agregar_mat_en_modal.click(function (event) {
-                    $(this).off("click");
-
-                    modal_agregar_mat.modal("hide");
-                    var nueva_mat_json = {
-                        'codigo':txt_input_codigo_mat_en_modal.val(),
-                        'nombre':txt_input_nombre_mat_en_modal.val(),
-                        'creditos':parseInt(select_creditos_en_modal.val()),
-                        'nota_final':parseInt(modal_agregar_mat.find("#id_select_nota_final").val()),
-                        'esta_retirada':modal_agregar_mat.find("#id_check_esta_retirada")[0].checked,
-                    };
-                    //console.log(nueva_mat_json);
-
-                    var n_materias = json_datos_trims.trimestres[i_trimestre].materias.length;
-                    json_datos_trims.trimestres[i_trimestre].materias[n_materias] = nueva_mat_json;
-
-                    var nuevo_tr_mat_jquer = $(crear_html_tr_materia(i_trimestre,n_materias)).hide();
-
-                    // PAra insertarlo antes del boton
-                    nuevo_tr_mat_jquer.insertBefore(button.closest("tr"));
-
-                    nuevo_tr_mat_jquer.show('slow');
-
-                    actualizar_indices();
-                    btn_guardar_cambios.text("Guardar Cambios*");
-                    btn_guardar_cambios.removeAttr("disabled");
-
-              });
-            });
-
-            txt_input_codigo_mat_en_modal.on('input',function(e){
-                $.get({% url 'materias' %},{
-                            codigo:txt_input_codigo_mat_en_modal.val(),
-                            max_length:1,
-                            es_codigo_exacto:true
-                        },
-                        function(data, status){
-                            if (status == "success"){
-                                if(data.materias.length == 1){
-                                    select_creditos_en_modal.val(data.materias[0].creditos);
-                                    select_creditos_en_modal.attr("disabled","disabled");
-                                    txt_input_nombre_mat_en_modal.val(data.materias[0].nombre);
-                                    txt_input_nombre_mat_en_modal.attr("disabled","disabled");
-                                }else{
-                                    select_creditos_en_modal.val("1");
-                                    select_creditos_en_modal.removeAttr("disabled");
-                                    txt_input_nombre_mat_en_modal.val("");
-                                    txt_input_nombre_mat_en_modal.removeAttr("disabled");
-                                }
-                            }else{
-                                console.log("Ocurrió un error obteniendo materias");
-                            }
-                    }
-                );
-            });
         }
 
         /**
@@ -333,11 +258,37 @@
             html_tr_materia += "<tr data-materia-codigo = '" + materia_json.codigo+ "'>";
 
                 // Codigo de la materia
-                html_tr_materia += "<td>" + materia_json.codigo + "</td>";
+                if(materia_json.codigo){
+                    html_tr_materia += "<td>" + materia_json.codigo + "</td>";
+                }else{
+                    html_tr_materia += "<td> S.D. </td>";
+                }
 
                 // Nombre de la materia
-                // El hidden-xs hace que se oculte este td en pantallas pequeñas
-                html_tr_materia += "<td  class = 'hidden-xs'>" + materia_json.nombre + "</td>";
+                if(materia_json.nombre){
+                    // El hidden-xs hace que se oculte este td en pantallas pequeñas
+                    html_tr_materia += "<td  class = 'hidden-xs'>" + materia_json.nombre + "</td>";
+                }else{
+                    html_tr_materia += "<td  class = 'hidden-xs'>";
+                    switch(materia_json.tipo){
+                        case 'RG':
+                            html_tr_materia += "Materia Regular";
+                            break;
+                        case 'GE':
+                            html_tr_materia += "General";
+                            break;
+                        case 'EA':
+                            html_tr_materia += "Electiva de Area";
+                            break;
+                        case 'EL':
+                            html_tr_materia += "Electiva Libre";
+                            break;
+                        case 'EX':
+                            html_tr_materia += "Extraplan";
+                            break;
+                    }
+                    html_tr_materia += "</td>";
+                }
 
                 // Creditos de la materia
                 html_tr_materia += "<td>" + materia_json.creditos + "</td>";
@@ -363,7 +314,7 @@
                 // Boton para eliminar esta materia del plan
                 // Muestra un modal de confirmación
                 html_tr_materia += "<td>";
-                    html_tr_materia += '<button type="button" data-toggle="modal" data-tipo-boton="eliminar-materia" data-target="#modal-eliminar-trim-mat" class="btn btn-warning" >';
+                    html_tr_materia += '<button type="button" data-toggle="modal" data-target="#modal-eliminar-mat" class="btn btn-warning" >';
                         html_tr_materia += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>';
                     html_tr_materia += '</button> ';
                 html_tr_materia += "</td>";
@@ -400,7 +351,7 @@
                         html_tabla_trimestre += "</th>";
                         // Opción de eliminar el trimestre
                         html_tabla_trimestre += "<th colspan='2' align='right'>";
-                            html_tabla_trimestre += '<button type="button" data-toggle="modal" data-tipo-boton="eliminar_trimestre" data-tipo-boton="eliminar-trimestre" data-target="#modal-eliminar-trim-mat" class="btn btn-danger">';
+                            html_tabla_trimestre += '<button type="button" data-toggle="modal" data-tipo-boton="eliminar-trimestre" data-target="#modal-eliminar-trim" class="btn btn-danger">';
                                 html_tabla_trimestre += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>';
                                 html_tabla_trimestre += '¡Eliminar trimestre!';
                             html_tabla_trimestre += '</button> ';
@@ -412,7 +363,7 @@
                 html_tabla_trimestre += "<tbody>";
                     html_tabla_trimestre += "<tr>";
                         html_tabla_trimestre += "<th>Código</th>";
-                        html_tabla_trimestre += "<th class = 'hidden-xs'>Nombre</th>";
+                        html_tabla_trimestre += "<th class = 'hidden-xs'>Nombre/Tipo</th>";
                         html_tabla_trimestre += "<th>Creditos</th>";
                         html_tabla_trimestre += "<th>Nota</th>";
                         html_tabla_trimestre += "<th>¿Eliminar?</th>";
@@ -548,8 +499,8 @@
     </div>
     <!-- /.row -->
 
-    <!-- Modal de eliminar trimestre/materia -->
-    <div class="modal fade" tabindex="-1"  id="modal-eliminar-trim-mat" role="dialog">
+    <!-- Modal de eliminar trimestre -->
+    <div class="modal fade" tabindex="-1"  id="modal-eliminar-trim" role="dialog">
       <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
@@ -560,7 +511,23 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" id="btn-eliminar-trim-mat">Eliminar</button>
+                <button type="button" class="btn btn-primary" id="btn-eliminar-trim">Eliminar</button>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" tabindex="-1"  id="modal-eliminar-mat" role="dialog">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btn-eliminar-mat">Eliminar</button>
             </div>
         </div>
       </div>
@@ -609,6 +576,16 @@
                 <h4 class="modal-title">¡Agrega una materia al plan!</h4>
             </div>
             <div class="modal-body">
+                 <div class="form-group">
+                    <label class="control-label" for="id_select_tipo_materia">Tipo de materia:</label>
+                    <select class="form-control"  name="select_tipo_materia" id="id_select_tipo_materia">
+                        <option value="RG" selected="selected" >Regular</option>
+                        <option value="EX" >Extraplan</option>
+                        <option value="GE" >General</option>
+                        <option value="EL" >Electiva Libre</option>
+                        <option value= "EA">Electiva de Area</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label class="control-label" for="id_txt_input_codigo_mat">Código:</label>
                     <input type="text" class="form-control" id="id_txt_input_codigo_mat" name="txt_input_codigo_mat" placeholder="Código">
@@ -659,14 +636,96 @@
 {% block final_pagina_scripts %}
     <script>
 
-        $('#modal-agregar-trim').on('show.bs.modal', function (event) {
-            var modal = $(this);
-            var select_periodo = modal.find("#id_select_periodo");
-            var select_anyo    = modal.find("#id_select_anyo");
 
-            var nuevo_trim_js = {};
-            nuevo_trim_js.materias = [];
+        var modal_agregar_mat = $("#modal-agregar-mat");
+        var modal_agregar_trim = $("#modal-agregar-trim");
+        var modal_eliminar_mat = $("#modal-eliminar-mat");
+        var modal_eliminar_trim = $("#modal-eliminar-trim");
+        var select_periodo = modal_agregar_trim.find("#id_select_periodo");
+        var select_anyo    = modal_agregar_trim.find("#id_select_anyo");
 
+        var button_related;
+        var tr_materia;
+        var table_trimestre;
+
+        var indice_tratado;
+
+        var  select_creditos_en_modal = modal_agregar_mat.find("#id_select_cred");
+        var  txt_input_codigo_mat_en_modal = modal_agregar_mat.find("#id_txt_input_codigo_mat");
+        var  txt_input_nombre_mat_en_modal = modal_agregar_mat.find("#id_txt_input_nombre_mat");
+        var  select_tipo_mat_en_modal = modal_agregar_mat.find("#id_select_tipo_materia");
+
+        var btn_agregar_mat_en_modal = modal_agregar_mat.find("#btn-agregar-mat");
+
+        modal_agregar_mat.on('show.bs.modal', function (event) {
+            button_related = $(event.relatedTarget);
+            table_trimestre =  button_related.closest( "table" );
+            var codigo_trimestre   = table_trimestre.data("trimestre-codigo");
+
+            for (var i in json_datos_trims.trimestres){
+                if(codigo_trimestre == json_datos_trims.trimestres[i].codigo){
+                    indice_tratado = i;
+                    break;
+                }
+            }
+        });
+
+        btn_agregar_mat_en_modal.click(function (event) {
+
+            modal_agregar_mat.modal("hide");
+            var nueva_mat_json = {
+                'codigo':txt_input_codigo_mat_en_modal.val(),
+                'nombre':txt_input_nombre_mat_en_modal.val(),
+                'creditos':parseInt(select_creditos_en_modal.val()),
+                'nota_final':parseInt(modal_agregar_mat.find("#id_select_nota_final").val()),
+                'esta_retirada':modal_agregar_mat.find("#id_check_esta_retirada")[0].checked,
+                'tipo':select_tipo_mat_en_modal.val(),
+            };
+            //console.log(nueva_mat_json);
+
+            var n_materias = json_datos_trims.trimestres[indice_tratado].materias.length;
+            json_datos_trims.trimestres[indice_tratado].materias[n_materias] = nueva_mat_json;
+
+            var nuevo_tr_mat_jquer = $(crear_html_tr_materia(indice_tratado,n_materias)).hide();
+
+            // PAra insertarlo antes del boton
+            nuevo_tr_mat_jquer.insertBefore(button_related.closest("tr"));
+
+            nuevo_tr_mat_jquer.show('slow');
+
+            actualizar_indices();
+            btn_guardar_cambios.text("Guardar Cambios*");
+            btn_guardar_cambios.removeAttr("disabled");
+
+      });
+        txt_input_codigo_mat_en_modal.on('input',function(e){
+            $.get({% url 'materias' %},{
+                        codigo:txt_input_codigo_mat_en_modal.val(),
+                        max_length:1,
+                        es_codigo_exacto:true
+                    },
+                    function(data, status){
+                        if (status == "success"){
+                            if(data.materias.length == 1){
+                                select_creditos_en_modal.val(data.materias[0].creditos);
+                                select_creditos_en_modal.attr("disabled","disabled");
+                                txt_input_nombre_mat_en_modal.val(data.materias[0].nombre);
+                                txt_input_nombre_mat_en_modal.attr("disabled","disabled");
+                            }else{
+                                select_creditos_en_modal.val("1");
+                                select_creditos_en_modal.removeAttr("disabled");
+                                txt_input_nombre_mat_en_modal.val("");
+                                txt_input_nombre_mat_en_modal.removeAttr("disabled");
+                            }
+                        }else{
+                            console.log("Ocurrió un error obteniendo materias");
+                        }
+                }
+            );
+        });
+
+
+        modal_agregar_trim.on('show.bs.modal', function (event) {
             // Si el usuario no tiene trimestres en el plan
             // Se le coloca por default Septiembre - Diciembre del año actual
             if(json_datos_trims.trimestres.length == 0){
@@ -696,95 +755,93 @@
                 }
             }
 
-            modal.find('#btn-agregar-trim').click(function (event) {
-                $(this).off("click");
-
-                nuevo_trim_js.periodo = select_periodo.val();
-                nuevo_trim_js.anyo = select_anyo.val();
-                nuevo_trim_js.codigo = next_cod_trime++;
-
-                var n_trimestres = json_datos_trims.trimestres.length;
-                json_datos_trims.trimestres[n_trimestres] = nuevo_trim_js;
-
-                var nueva_tabla_trim_jq = $(crear_html_tabla_trimestre(n_trimestres)).hide();
-                nueva_tabla_trim_jq.insertBefore(boton_agregar_trim);
-
-                nueva_tabla_trim_jq.show('slow');
-
-                actualizar_indices();
-
-                modal.modal("hide");
-                btn_guardar_cambios.text("Guardar Cambios*");
-                btn_guardar_cambios.removeAttr("disabled");
-          });
-
         });
 
-        $('#modal-eliminar-trim-mat').on('show.bs.modal', function (event) {
+        modal_agregar_trim.find('#btn-agregar-trim').click(function (event) {
+
+            var nuevo_trim_js = {};
+            nuevo_trim_js.materias = [];
+            nuevo_trim_js.periodo = select_periodo.val();
+            nuevo_trim_js.anyo = select_anyo.val();
+            nuevo_trim_js.codigo = next_cod_trime++;
+
+            var n_trimestres = json_datos_trims.trimestres.length;
+            json_datos_trims.trimestres[n_trimestres] = nuevo_trim_js;
+
+            var nueva_tabla_trim_jq = $(crear_html_tabla_trimestre(n_trimestres)).hide();
+            nueva_tabla_trim_jq.insertBefore(boton_agregar_trim);
+
+            nueva_tabla_trim_jq.show('slow');
+
+            actualizar_indices();
+
+            modal_agregar_trim.modal("hide");
+            btn_guardar_cambios.text("Guardar Cambios*");
+            btn_guardar_cambios.removeAttr("disabled");
+      });
+
+
+        modal_eliminar_mat.on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); // Button that triggered the modal
-            var tr_materia =  button.closest( "tr" );
-            var table_trimestre = tr_materia.closest( "table" );
+            tr_materia =  button.closest( "tr" );
+            table_trimestre = tr_materia.closest( "table" );
             var codigo_trimestre_materia_eliminar = table_trimestre.data("trimestre-codigo");
-            var tipo_boton = button.data('tipo-boton'); // Extract info from data-* attributes
+            var codigo_materia_eliminar   = tr_materia.data("materia-codigo");
 
-            var modal = $(this);
+            indice_tratado = posicion_ij_materia(codigo_trimestre_materia_eliminar,codigo_materia_eliminar);
+            var trimestre_json = json_datos_trims.trimestres[indice_tratado[0]];
+            var materia_json = trimestre_json.materias[indice_tratado[1]];
 
-            if(tipo_boton == "eliminar-materia"){
-                var codigo_materia_eliminar   = tr_materia.data("materia-codigo");
+            modal_eliminar_mat.find('.modal-title').text('¿Eliminar ' + materia_json.codigo + ' ?');
+            modal_eliminar_mat.find('.modal-body').text('Nombre: '    + materia_json.nombre);
+        });
 
-                var posicion = posicion_ij_materia(codigo_trimestre_materia_eliminar,codigo_materia_eliminar);
-                var trimestre_json = json_datos_trims.trimestres[posicion[0]];
-                var materia_json = trimestre_json.materias[posicion[1]];
+        modal_eliminar_trim.on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            tr_materia =  button.closest( "tr" );
+            table_trimestre = tr_materia.closest( "table" );
+            var codigo_trimestre_materia_eliminar = table_trimestre.data("trimestre-codigo");
 
-                modal.find('.modal-title').text('¿Eliminar ' + materia_json.codigo + ' ?');
-                modal.find('.modal-body').text('Nombre: '    + materia_json.nombre);
-                modal.find('#btn-eliminar-trim-mat').click(function (event) {
-                    $(this).off("click");
-
-                    modal.modal("hide");
-                    tr_materia.hide('slow', function(){ tr_materia.remove(); });
-                    trimestre_json.materias.splice(posicion,1);
-                    actualizar_indices();
-                    btn_guardar_cambios.text("Guardar Cambios*");
-                    btn_guardar_cambios.removeAttr("disabled");
-
-              });
-            }else if(tipo_boton == "eliminar_trimestre"){
-                var i_trimestre;
-                for(var indice_trimestre in json_datos_trims.trimestres){
-                    if(json_datos_trims.trimestres[indice_trimestre].codigo == codigo_trimestre_materia_eliminar){
-                        i_trimestre = indice_trimestre;
-                        break;
-                    }
+            for(var indice_trimestre in json_datos_trims.trimestres){
+                if(json_datos_trims.trimestres[indice_trimestre].codigo == codigo_trimestre_materia_eliminar){
+                    indice_tratado = indice_trimestre;
+                    break;
                 }
-                modal.find('.modal-title').text('¿Eliminar ' + json_datos_trims.trimestres[i_trimestre].periodo + " " + json_datos_trims.trimestres[i_trimestre].anyo + ' ?');
-                var periodo = json_datos_trims.trimestres[i_trimestre].periodo;
-                var html_body_modal = "<p>Periodo:";
-                if(periodo == "SD"){
-                    html_body_modal += "Septiembre - Diciembre";
-                }else if(periodo == "EM"){
-                    html_body_modal += "Enero - Marzo";
-                }else if(periodo == "AJ"){
-                    html_body_modal += "Abril - Julio";
-                }else if(periodo == "JA"){
-                    html_body_modal += "Julio - Agosto";
-                }
-                html_body_modal += "</p><p>Año: " + json_datos_trims.trimestres[i_trimestre].anyo + "</p>";
-                modal.find('.modal-body').html(html_body_modal);
-                modal.find('#btn-eliminar-trim-mat').click(function (event) {
-                    $(this).off("click");
-
-                    modal.modal("hide");
-                    table_trimestre.hide('slow', function(){ table_trimestre.remove(); });
-                    json_datos_trims.trimestres.splice(i_trimestre,1);
-                    actualizar_indices();
-                    btn_guardar_cambios.text("Guardar Cambios*");
-                    btn_guardar_cambios.removeAttr("disabled");
-
-              });
-
-
             }
+
+            var trimestre_elim_json = json_datos_trims.trimestres[indice_tratado];
+            modal_eliminar_trim.find('.modal-title').text('¿Eliminar ' + trimestre_elim_json.periodo + " " + trimestre_elim_json.anyo + ' ?');
+            var periodo = trimestre_elim_json.periodo;
+            var html_body_modal = "<p>Periodo:";
+            if(periodo == "SD"){
+                html_body_modal += "Septiembre - Diciembre";
+            }else if(periodo == "EM"){
+                html_body_modal += "Enero - Marzo";
+            }else if(periodo == "AJ"){
+                html_body_modal += "Abril - Julio";
+            }else if(periodo == "JA"){
+                html_body_modal += "Julio - Agosto";
+            }
+            html_body_modal += "</p><p>Año: " + trimestre_elim_json.anyo + "</p>";
+            modal_eliminar_trim.find('.modal-body').html(html_body_modal);
+        });
+
+        modal_eliminar_mat.find('#btn-eliminar-mat').click(function (event) {
+            modal_eliminar_mat.modal("hide");
+            tr_materia.hide('slow', function(){ tr_materia.remove(); });
+            json_datos_trims.trimestres[indice_tratado[0]].materias.splice(indice_tratado[1],1);
+            actualizar_indices();
+            btn_guardar_cambios.text("Guardar Cambios*");
+            btn_guardar_cambios.removeAttr("disabled");
+        });
+        modal_eliminar_trim.find('#btn-eliminar-trim').click(function (event) {
+            modal_eliminar_trim.modal("hide");
+            table_trimestre.hide('slow', function(){ table_trimestre.remove(); });
+            json_datos_trims.trimestres.splice(indice_tratado,1);
+            actualizar_indices();
+            btn_guardar_cambios.text("Guardar Cambios*");
+            btn_guardar_cambios.removeAttr("disabled");
+
         });
     </script>
 

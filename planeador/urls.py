@@ -17,6 +17,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from planeador import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
 
@@ -43,6 +44,13 @@ urlpatterns = [
     url(r'^planes_base',views.ver_planes_base,name='planes_base'),
     url(r'^materias/',views.materias_vista,name='materias'),
 
+    url(
+        '^logout/$',
+        views.logout_view,
+        name='logout',
+    ),
+
+    url(r'^login_cas/', views.login_cas, name='login_cas'),
 
     url(r'^admin/', admin.site.urls),
 ]

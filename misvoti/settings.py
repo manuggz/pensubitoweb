@@ -75,6 +75,7 @@ TEMPLATES = [
 ]
 
 LOGIN_REDIRECT_URL = "misvoti:index"
+LOGIN_URL = "home"
 
 WSGI_APPLICATION = 'misvoti.wsgi.application'
 
