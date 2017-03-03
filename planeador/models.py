@@ -15,10 +15,22 @@ class TrimestreManager(models.Manager):
 
 
 class MiVotiUser(AbstractUser):
+    CAS = 'PA'
+    INTERNA = 'IN'
+    FORMAS_ACCESO = (
+        (CAS, 'CAS'),
+        (INTERNA, 'Log interno'),
+    )
     carnet = models.CharField(max_length=10)
     estan_cargados_datos_ldap = models.BooleanField(default=False)
     cedula = models.CharField(max_length=12)
     tipo = models.CharField(max_length=100)
+    forma_acceso = models.CharField(
+        max_length=2,
+        choices=FORMAS_ACCESO,
+        default=INTERNA,
+    )
+
 
 class CarreraUsb(models.Model):
     nombre = models.CharField(max_length=100)

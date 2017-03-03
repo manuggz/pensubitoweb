@@ -40,6 +40,8 @@ def index(request):
             user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
             if user is not None:
                 login(request, user)
+                user.forma_acceso = MiVotiUser.INTERNA
+                user.save()
                 return HttpResponseRedirect('/home/')
             else:
                 pass
@@ -50,7 +52,10 @@ def index(request):
     return render(request, 'misvoti/index.html', context)
 
 def logout_view(request):
+    forma_acceso_usuario = request.user.forma_acceso
     logout(request)
+    if forma_acceso_usuario == MiVotiUser.CAS:
+        return redirect("http://secure.dst.usb.ve/logout")
     return redirect('home')
 # Home para los usuarios registrados que iniciaron sesion
 @login_required
@@ -187,7 +192,9 @@ def login_cas(request):
                 usuario_existente.telefono = us['phone']
                 usuario_existente.tipo = us['tipo']
                 usuario_existente.estan_cargados_datos_ldap = True
-                usuario_existente.save()
+
+            usuario_existente.forma_acceso = MiVotiUser.CAS
+            usuario_existente.save()
 
             login(request, usuario_existente)
 
@@ -202,6 +209,7 @@ def login_cas(request):
             nuevo_usuario.tipo = us['tipo']
             nuevo_usuario.carnet = usbid
             nuevo_usuario.estan_cargados_datos_ldap = True
+            nuevo_usuario.forma_acceso = MiVotiUser.CAS
             nuevo_usuario.save()
             login(request, nuevo_usuario)
 
@@ -211,6 +219,7 @@ def login_cas(request):
             elif us['tipo'] == "Docente":
                 # En caso de ser docente, agregar dpto.
                 pass
+
 
 
         # Al finalizar login o registro, redireccionamos a home
