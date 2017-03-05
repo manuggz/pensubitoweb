@@ -4,6 +4,8 @@ import json
 import time
 from urllib import quote
 
+import ssl
+import urllib2
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
@@ -19,30 +21,31 @@ from django.conf import settings
 # Create your views here.
 from django.urls import reverse
 
+from planeador.busqueda_bd import refinarBusqueda, construir_materia_ctx
+from planeador.calculardatosplan import obtener_datos_plan
 from planeador.decorators import si_no_autenticado_redirec_index
 from planeador.forms import CrearNuevoPlanForm
 from planeador.models import PlanEstudio, TrimestrePlaneado, MateriaPlaneada, \
     PlanEstudioBase, CarreraUsb, MateriaBase, MiVotiUser
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
-from planeador.usbldap import get_ldap_data, random_key
+from planeador.usbldap import obtener_datos_desde_ldap, random_password
 
-tiempos_tardo_en_respuesta = []
+
 # Vista para los usuarios no registrados
-def index(request):
+def index_vista(request):
     context = {}
     if request.user.is_authenticated():
-        return HttpResponseRedirect('/home/')
+        return redirect('myhome')
 
     if request.method == "POST":
         form = AuthenticationForm(data=request.POST)
-        print request.POST
         if form.is_valid():
             user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
             if user is not None:
                 login(request, user)
                 user.forma_acceso = MiVotiUser.INTERNA
                 user.save()
-                return HttpResponseRedirect('/home/')
+                return redirect('myhome')
             else:
                 pass
     else:
@@ -51,37 +54,112 @@ def index(request):
     context["form"] = form
     return render(request, 'misvoti/index.html', context)
 
+# Vista para deslogear a un usuario
 def logout_view(request):
     forma_acceso_usuario = request.user.forma_acceso
     logout(request)
     if forma_acceso_usuario == MiVotiUser.CAS:
         return redirect("http://secure.dst.usb.ve/logout")
     return redirect('home')
+
 # Home para los usuarios registrados que iniciaron sesion
 @login_required
-def home(request):
+def home_vista(request):
     context = {"myhome_activo": "active"}
     return render(request, 'misvoti/home.html', context)
 
-def __test(request):
-    f_raw_plan = open("../../../plan_computacion_2013_pensum_raw")
+## se encarga de logear al usuario que accede a traves del CAS
+## A esta vista se le pasa un link del tipo /login_cas/?ticket=ST-11140-4UfRysbyAPox0Kuwnh93-cas
+# No debería llamarse desde otro lugar
+def login_cas(request):
 
-    salida = ""
-    for linea in f_raw_plan.readlines():
-        salida += "<p>" + linea + "</p>"
-    f_raw_plan.close()
+    # Obtenemos el ticket del login
+    ticket = request.GET['ticket']
 
-    return HttpResponse(salida)
+    if not ticket:
+        # Error se necesita el ticket
+        return redirect('home')
+
+    # Obtenemos el carnet del ticket
+    try:
+        # Creamos un nuevo contexto ssl para que no nos de error de verificaciones
+        ssl._create_default_https_context = ssl._create_unverified_context
+
+        # Encodificamos el url de esta vista
+        url_login_cast = quote(request.build_absolute_uri(reverse('login_cas')),safe='')
+
+        # Construimos el url al servicio del dst que nos dará el carnet
+        url = "https://secure.dst.usb.ve/validate?ticket="+ ticket + "&service=" + url_login_cast
+        req = urllib2.Request(url)
+        response = urllib2.urlopen(req)
+        contenido_pagina = response.read()
+    except urllib2.HTTPError as e:
+        # Error en la obtención del carnet
+        return HttpResponseRedirect('/home/')
+
+    if contenido_pagina[0:2] == "no":
+        # contenido_pagina = no
+        # Error en el ticket
+        return HttpResponseRedirect('/home/')
+    else:
+        # contenido_pagina = yes 11-10390
+
+        data  = contenido_pagina.split()
+        usbid = data[1]
+
+        try:
+            usuario_existente = MiVotiUser.objects.get(carnet = usbid)
+        except ObjectDoesNotExist:
+            usuario_existente = None
+
+        if usuario_existente:
+            # if not usuario_existente.estan_cargados_datos_ldap:
+            #     us = get_ldap_data(usbid)
+            #     usuario_existente.first_name = us.get('first_name')
+            #     usuario_existente.last_name  = us.get('last_name')
+            #     usuario_existente.email = us.get('email')
+            #     usuario_existente.cedula = us['cedula']
+            #     usuario_existente.telefono = us['phone']
+            #     usuario_existente.tipo = us['tipo']
+            #     usuario_existente.estan_cargados_datos_ldap = True
+
+            usuario_existente.forma_acceso = MiVotiUser.CAS
+            usuario_existente.save()
+
+            login(request, usuario_existente)
+
+        else:
+            clave   = random_password()
+            us      = obtener_datos_desde_ldap(usbid)
+            nuevo_usuario = get_user_model().objects.create_user(usbid, us.get('email'),clave)
+            nuevo_usuario.first_name = us.get('first_name')
+            nuevo_usuario.last_name = us.get('last_name')
+            nuevo_usuario.cedula = us['cedula']
+            nuevo_usuario.telefono = us['phone']
+            nuevo_usuario.tipo = us['tipo']
+            nuevo_usuario.carnet = usbid
+            #nuevo_usuario.estan_cargados_datos_ldap = True
+            nuevo_usuario.forma_acceso = MiVotiUser.CAS
+            nuevo_usuario.save()
+            login(request, nuevo_usuario)
 
 
+
+    # Al finalizar login o registro, redireccionamos a home
+    return redirect('myhome')
+
+## Vista para crear un plan
+# Si recibe un GET muestra una plantilla para crear un formulario
+# Si recibe un POST
 @login_required
-def crear_plan(request):
+def crear_plan_vista(request):
     context = {"planes_activo": "active"}
-
+    
     if request.method == 'POST':
 
         form = CrearNuevoPlanForm(request.POST, request.FILES)
         context["esta_creado_plan"] = False
+
         if form.is_valid():
 
             nombre_nuevo_plan = form.cleaned_data["nombre_plan"]
@@ -98,8 +176,6 @@ def crear_plan(request):
                     return JsonResponse(context)
 
                 try:
-
-                    #print form.cleaned_data["plan_utilizar"]
                     plan_base = PlanEstudioBase.objects.get(
                         carrera_fk = carrera_plan_bd,
                         tipo = form.cleaned_data["plan_utilizar"]
@@ -118,7 +194,6 @@ def crear_plan(request):
                 periodo_inicio_usu = form.cleaned_data['periodo_inicio']
                 anyo_inicio_usu = form.cleaned_data['anyo_inicio']
 
-                print "'"+periodo_inicio_usu+"'","'"+anyo_inicio_usu+"'"
                 if form.cleaned_data["archivo_html_expediente"]:
                     # Parseamos el html
                     crear_modelos_desde_resultado_parser(
@@ -137,96 +212,17 @@ def crear_plan(request):
         else:
             context["errors"] = form.errors
 
-                    # Redireccionamos a la pagina para modificar el expediente
+        # Redireccionamos a la pagina para modificar el expediente
         return JsonResponse(context)
 
     else:
         context["form"] = CrearNuevoPlanForm()
+
     return render(request, 'planeador/crear_plan.html', context)
 
-def login_cas(request):
-
-    ticket = request.GET['ticket']
-    if not ticket:
-        # Error
-        print "Error no ticket"
-        return HttpResponseRedirect('/home/')
-    try:
-        import ssl
-        import urllib2
-        ssl._create_default_https_context = ssl._create_unverified_context
-
-        url_login_cast = quote(request.build_absolute_uri(reverse('login_cas')),safe='')
-
-        url = "https://secure.dst.usb.ve/validate?ticket="+ ticket + "&service=" + url_login_cast
-        req = urllib2.Request(url)
-        response = urllib2.urlopen(req)
-        the_page = response.read()
-    except Exception as e:
-        # Error
-        print "Error " ,e
-        return HttpResponseRedirect('/home/')
-
-    if the_page[0:2] == "no":
-        print the_page
-        print "Ticket no valido lul"
-        # Error
-        return HttpResponseRedirect('/home/')
-    else:
-        # session.casticket = request.vars.getfirst('ticket')
-        data  = the_page.split()
-        usbid = data[1]
-
-        try:
-            usuario_existente = MiVotiUser.objects.get(carnet = usbid)
-        except ObjectDoesNotExist:
-            usuario_existente = None
-
-        if usuario_existente:
-            if not usuario_existente.estan_cargados_datos_ldap:
-                us = get_ldap_data(usbid)
-                usuario_existente.first_name = us.get('first_name')
-                usuario_existente.last_name  = us.get('last_name')
-                usuario_existente.email = us.get('email')
-                usuario_existente.cedula = us['cedula']
-                usuario_existente.telefono = us['phone']
-                usuario_existente.tipo = us['tipo']
-                usuario_existente.estan_cargados_datos_ldap = True
-
-            usuario_existente.forma_acceso = MiVotiUser.CAS
-            usuario_existente.save()
-
-            login(request, usuario_existente)
-
-        else:
-            clave   = random_key()
-            us      = get_ldap_data(usbid)
-            nuevo_usuario = get_user_model().objects.create_user(usbid, us.get('email'),clave)
-            nuevo_usuario.first_name = us.get('first_name')
-            nuevo_usuario.last_name = us.get('last_name')
-            nuevo_usuario.cedula = us['cedula']
-            nuevo_usuario.telefono = us['phone']
-            nuevo_usuario.tipo = us['tipo']
-            nuevo_usuario.carnet = usbid
-            nuevo_usuario.estan_cargados_datos_ldap = True
-            nuevo_usuario.forma_acceso = MiVotiUser.CAS
-            nuevo_usuario.save()
-            login(request, nuevo_usuario)
-
-            if (us['tipo'] == "Pregrado") or (us['tipo'] == "Postgrado"):
-                # Si es estudiante insertar en su tabla
-                pass
-            elif us['tipo'] == "Docente":
-                # En caso de ser docente, agregar dpto.
-                pass
-
-
-
-        # Al finalizar login o registro, redireccionamos a home
-    return HttpResponseRedirect('/home/')
 
 @login_required
-def ver_plan(request, nombre_plan):
+def plan_vista(request, nombre_plan):
     context = {"planes_activo": "active"}
     plan_estudio_modelo_ref = get_object_or_404(PlanEstudio, usuario_creador_fk=request.user, nombre=nombre_plan)
 
@@ -243,8 +239,6 @@ def ver_planes_base(request):
     respuesta = {"planes":[]}
 
     if request.method == "GET":
-        print request.GET["carrera"]
-
         try:
             carrera_buscada = CarreraUsb.objects.get(codigo=request.GET["carrera"])
         except ObjectDoesNotExist:
@@ -258,13 +252,13 @@ def ver_planes_base(request):
     return JsonResponse(respuesta)
 
 @login_required
-def eliminar_plan_ajax(request):
+def eliminar_plan_vista(request):
     context = {}
     if request.method == "POST":
         context["eliminado"] = True
         try:
             plan_estudio = PlanEstudio.objects.get(nombre=request.POST["nombre_plan"])
-            plan_estudio.delete();
+            plan_estudio.delete()
             context["nombre"] = plan_estudio.nombre
         except ObjectDoesNotExist:
             context["eliminado"] = False
@@ -275,7 +269,7 @@ def eliminar_plan_ajax(request):
 
 
 @login_required
-def obtener_datos_plan(request):
+def obtener_datos_plan_vista(request):
     context = {}
     if request.method == "GET":
 
@@ -287,85 +281,70 @@ def obtener_datos_plan(request):
         context["nombre_plan"] = plan_estudio_modelo_ref.nombre
         context["trimestres"] = []
 
-        for trimestre in trimestres:
-            trimestre_ctx = {"periodo": trimestre.periodo, "anyo": trimestre.anyo}
+        for trimestre_bd in trimestres:
+            trimestre_ctx = {"periodo": trimestre_bd.periodo, "anyo": trimestre_bd.anyo}
             trimestre_ctx["materias"] = []
 
-            for materia in MateriaPlaneada.objects.filter(trimestre_cursada_fk=trimestre):
-                materia_ctx = {
-                    "nombre": materia.nombre,
-                    "codigo": materia.codigo,
-                    "creditos": int(materia.creditos),
-                    "nota_final": int(materia.nota_final),
-                    "esta_retirada": materia.esta_retirada,
-                    "tipo": materia.tipo,
-                }
-                trimestre_ctx["materias"].append(materia_ctx)
+            for materia_bd in MateriaPlaneada.objects.filter(trimestre_cursada_fk=trimestre_bd):
+                trimestre_ctx["materias"].append(construir_materia_ctx(materia_bd))
 
             context["trimestres"].append(trimestre_ctx)
-        print context
 
         return JsonResponse(context)
 
     return HttpResponseNotFound()
+
 
 @login_required
 def materias_vista(request):
     context = {}
 
     if request.method == "GET":
-        codigo_materia = request.GET.get("codigo","")
+        nombre_materia = request.GET.get("nombre","").lower()
+        codigo_materia = request.GET.get("codigo","").lower()
+
         max_length = int(request.GET.get("max_length",-1))
-        res_exacto = bool(request.GET.get("es_codigo_exacto",False))
+        res_exacto = bool(request.GET.get("obte_resultado_exacto",False))
 
-        codigos_agregados = []
+        lista_excluidos = []
         context["materias"] = []
-        n_agregados = 0
 
-        if not res_exacto:
-            lista_materias_base_bd =MateriaBase.objects.filter(codigo__contains=codigo_materia)
-        else:
-            lista_materias_base_bd =MateriaBase.objects.filter(codigo=codigo_materia)
+        n_agregados = refinarBusqueda(
+            nombre_materia,
+            codigo_materia,
+            res_exacto,
+            max_length,
+            (lambda mat_bd: lista_excluidos.count(mat_bd.codigo)),
+            (lambda mat_bd: lista_excluidos.append(mat_bd.codigo)),
+            MateriaBase.objects.all(),
+            context["materias"],
+            0
+        )
 
-        for materia in lista_materias_base_bd:
-            materia_ctx = {
-                "nombre": materia.nombre,
-                "codigo": materia.codigo,
-                "creditos": int(materia.creditos),
-            }
-            context["materias"].append(materia_ctx)
-            codigos_agregados.append(materia.codigo)
+        if n_agregados == max_length:
+            return JsonResponse(context)
 
-            n_agregados += 1
-            if max_length!= -1 and n_agregados >= max_length :
-                return JsonResponse(context)
+        n_agregados = refinarBusqueda(
+            nombre_materia,
+            codigo_materia,
+            max_length,
+            res_exacto,
+            (lambda mat_bd: lista_excluidos.count(mat_bd.codigo)),
+            (lambda mat_bd: lista_excluidos.append(mat_bd.codigo)),
+            MateriaPlaneada.objects.all(),
+            context["materias"],
+            n_agregados
+        )
 
-        if not res_exacto:
-            lista_materias_planeadas_bd =MateriaPlaneada.objects.filter(codigo__contains=codigo_materia)
-        else:
-            lista_materias_planeadas_bd =MateriaPlaneada.objects.filter(codigo=codigo_materia)
+        if n_agregados == max_length:
+            return JsonResponse(context)
 
-        for materia in lista_materias_planeadas_bd:
-            if materia.codigo not in codigos_agregados :
-                materia_ctx = {
-                    "nombre": materia.nombre,
-                    "codigo": materia.codigo,
-                    "creditos": int(materia.creditos),
-                }
-                context["materias"].append(materia_ctx)
-
-                n_agregados += 1
-                if max_length != -1 and n_agregados >= max_length:
-                    return JsonResponse(context)
 
     return JsonResponse(context)
 
 @login_required
 def actualizar_plan(request):
-    global tiempos_tardo_en_respuesta
     context = {}
-
-    t_inicial = time.time()
 
     if request.method == "POST":
         context["actualizado"] = True
@@ -413,17 +392,32 @@ def actualizar_plan(request):
 
                 materiaplan_nueva.save()
 
-        tiempos_tardo_en_respuesta.append(time.time() -  t_inicial)
-        print("tardo: " + str(tiempos_tardo_en_respuesta[-1]))
         return JsonResponse(context)
 
     return HttpResponseNotFound()
 
 
 @login_required
-def ver_lista_planes(request):
+def planes_vista(request):
     context = {"planes_activo": "active"}
 
-    context["planes"] = PlanEstudio.objects.filter(usuario_creador_fk=request.user)
+    context["planes"] = []
+    for plan_bd in PlanEstudio.objects.filter(usuario_creador_fk=request.user):
+        plan_ctx = {'nombre':plan_bd.nombre}
+        trimestres = TrimestrePlaneado.objects.con_trimestres_ordenados(planestudio_pert_fk=plan_bd)
+        plan_ctx['datos'] = obtener_datos_plan(trimestres)
+
+        context["planes"].append(plan_ctx)
 
     return render(request, 'planeador/tabla_planes.html', context)
+
+def __test(request):
+    f_raw_plan = open("../../../plan_computacion_2013_pensum_raw")
+
+    salida = ""
+    for linea in f_raw_plan.readlines():
+        salida += "<p>" + linea + "</p>"
+    f_raw_plan.close()
+
+    return HttpResponse(salida)
+

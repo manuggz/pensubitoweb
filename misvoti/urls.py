@@ -18,5 +18,4 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^',include('planeador.urls')),
-    url(r'^accounts/', include('accounts.urls',namespace="accounts")),
 ]

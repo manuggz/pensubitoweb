@@ -4,14 +4,19 @@ from django.forms import forms, CharField, Select, CheckboxInput, ChoiceField
 
 from planeador.models import CarreraUsb, PlanEstudioBase, TrimestrePlaneado
 
-
+## Form utilizado para cuando se va a crear un nuevo plan
 class CrearNuevoPlanForm(forms.Form):
     nombre_plan = CharField(label="Nombre del Plan",help_text="Nombre del plan a crear.")
 
     carrera_plan = ChoiceField(label=u'Carrera')
     plan_utilizar = ChoiceField(label=u"Plan a utilizar")
+
+    ## Dice si se va a crear el plan usando el plan base de la carrera
     construir_usando_pb = CheckboxInput()
 
+    ## El periodo - año de inicio indica:
+    # Cuando el usuario crea un plan vacio- se le agrega un periodo por default con estos datos iniciales
+    # Cuando se utiliza como base el plan de estudio de la carrera se comienza el llenado desde este periodo
     periodo_inicio = ChoiceField(label=u'Periodo inicio')
     anyo_inicio = ChoiceField(label=u"Año inicio")
 

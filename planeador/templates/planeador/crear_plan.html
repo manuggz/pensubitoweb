@@ -3,13 +3,11 @@
     <script>
 
         var btn_crear_plan = null;
-        var componentes_form = null;
+        var fieldset_form = null;
 
         // pre-submit callback
         function preAjaxSubmit(formData, jqForm, options) {
-            componentes_form.each(function () {
-                $(this).attr("disabled","disabled");
-            });
+            fieldset_form.attr("disabled","disabled");
 
             // formData is an array; here we use $.param to convert it to a string to display it
             // but the form plugin does this for you automatically when it submits the data
@@ -42,11 +40,9 @@
             if(statusText == "success"){
                 if(responseJson.esta_creado_plan) {
                     btn_crear_plan.text("¡El plan ha sido creado!");
-                    btn_crear_plan.attr("disabled", "disabled");
                     setTimeout("redirigir_plan_creado('" + responseJson.nombre_plan + "')", 1000);
                 }else{
                     btn_crear_plan.text("Crear Plan");
-                    btn_crear_plan.removeAttr("disabled");
                     html_errors = "";
                     for (var name in responseJson.errors) {
                         html_errors = "<ul>";
@@ -70,16 +66,11 @@
                         }
                     }
 
-                    componentes_form.each(function () {
-                        $(this).removeAttr("disabled");
-                    });
+                    fieldset_form.removeAttr("disabled");
                 }
             }else{
                 btn_crear_plan.text("Crear Plan");
-                btn_crear_plan.removeAttr("disabled");
-                componentes_form.each(function () {
-                    $(this).removeAttr("disabled");
-                });
+                fieldset_form.removeAttr("disabled");
             }
         }
 
@@ -89,17 +80,16 @@
         $(document).ready(function(){
 
             btn_crear_plan = $("button.btn-primary");
+            fieldset_form = $("fieldset");
 
             div_errores = {};
             {% for field in form%}
                 div_errores.{{ field.html_name }} = $("#div-alert-errors-" + "{{ field.html_name }}");
                 div_errores.{{ field.html_name }}.alert('close');
             {% endfor %}
-            componentes_form = $("form .form-component");
 
             $("form").submit(function (e) {
                 btn_crear_plan.text("Creando Plan...");
-                btn_crear_plan.attr("disabled","disabled");
                 var options = {
                     //target:        '#output2',   // target element(s) to be updated with server response
                     beforeSubmit:  preAjaxSubmit,  // pre-submit callback
@@ -157,115 +147,117 @@
 
     <div class="row">
         <div class="col-lg-6">
-            <form role="form" enctype="multipart/form-data" method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label class="control-label" for="{{ form.nombre_plan.id_for_label }}">Nombre</label>
-                    <input type="text" class="form-control form-component" id="{{ form.nombre_plan.id_for_label }}" name="{{ form.nombre_plan.html_name }}" aria-describedby="inputGroup1Status" placeholder="Nombre del plan">
-                </div>
-                <div id="div-alert-container-{{ form.nombre_plan.html_name }}">
-                    <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.nombre_plan.html_name }}">
-                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                             <span aria-hidden="true">×</span>
-                         </button>
-                        <div id="div-container-errors-{{ form.nombre_plan.html_name }}"></div>
-                    </div>
-                </div>
-
-                <div class="panel panel-primary">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">¿De cual plan se tomaran las materias?</h3>
-                  </div>
-                  <div class="panel-body">
+            <fieldset >
+                <form role="form" enctype="multipart/form-data" method="post">
+                    {% csrf_token %}
                     <div class="form-group">
-                        <label class="control-label" for="id_select_{{ form.carrera_plan.html_name }}">Carrera</label>
-                        <select class="form-control form-component"name="{{ form.carrera_plan.html_name }}" id="id_select_{{ form.carrera_plan.html_name }}" >
-                            {% for x,y in form.fields.carrera_plan.choices %}
-                                <option value="{{ x }}" {% if form.fields.carrera_plan.value == x %} selected="selected" {% endif %}>{{ x }} - {{ y }}</option>
-                            {% endfor %}
-                        </select>
-                        <div id="div-alert-container-{{ form.carrera_plan.html_name }}">
-                            <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.carrera_plan.html_name }}">
-                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                     <span aria-hidden="true">×</span>
-                                 </button>
-                                <div id="div-container-errors-{{ form.carrera_plan.html_name }}"></div>
-                            </div>
-                        </div>
+                        <label class="control-label" for="{{ form.nombre_plan.id_for_label }}">Nombre</label>
+                        <input type="text" class="form-control form-component" id="{{ form.nombre_plan.id_for_label }}" name="{{ form.nombre_plan.html_name }}" aria-describedby="inputGroup1Status" placeholder="Nombre del plan">
                     </div>
-                    <div class="form-group">
-                        <label class="control-label" for="id_select_{{ form.plan_utilizar.html_name }}">Plan de estudio</label>
-                        <select class="form-control form-component form-component"  name="{{ form.plan_utilizar.html_name }}" id="id_select_{{ form.plan_utilizar.html_name }}">
-                            {% for x,y in form.fields.plan_utilizar.choices %}
-                                <option value="{{ x }}" {% if form.fields.plan_utilizar.value == x %} selected="selected" {% endif %}>{{ y }}</option>
-                            {% endfor %}
-                        </select>
-                        <div id="div-alert-container-{{ form.plan_utilizar.html_name}}">
-                            <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.plan_utilizar.html_name}}">
-                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                     <span aria-hidden="true">×</span>
-                                 </button>
-                                <div id="div-container-errors-{{ form.plan_utilizar.html_name}}"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox">
-                          <label>
-                            <input type="checkbox" class="form-component" value="" name="{{ form.construir_usando_pb.html_name }}">
-                            ¡Crea todos los trimestres de acuerdo al plan!
-                          </label>
-                        </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="panel panel-info">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">¿Desde cuando planeas comenzar(o comenzaste) tus estudios?</h3>
-                  </div>
-                  <div class="panel-body">
-                    <div class="form-group">
-                        <label class="control-label" for="id_select_{{ form.periodo_inicio.html_name }}">Periodo</label>
-                        <select class="form-control form-component"  name="{{ form.periodo_inicio.html_name }}" id="id_select_{{ form.periodo_inicio.html_name }}">
-                            {% for x,y in form.fields.periodo_inicio.choices %}
-                                <option value="{{ x }}" {% if form.fields.periodo_inicio.value == x %} selected="selected" {% endif %}>{{ y }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label" for="id_select_{{ form.anyo_inicio.html_name }}">Año</label>
-                        <select class="form-control form-component"  name="{{ form.anyo_inicio.html_name }}" id="id_select_{{ form.anyo_inicio.html_name }}">
-                            {% for x,y in form.fields.anyo_inicio.choices %}
-                                <option value="{{ x }}" {% if form.fields.anyo_inicio.value == x %} selected="selected" {% endif %}>{{ y }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="panel panel-info">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">¡Utilizar datos de mi expediente!</h3>
-                  </div>
-                  <div class="panel-body">
-                    <div class="form-group">
-                        <label class="control-label" for="{{ form.archivo_html_expediente.id_for_label }}">Archivo HTML</label>
-                        <input type="file" class="form-control form-component"  name="{{ form.archivo_html_expediente.html_name }}" id="{{ form.archivo_html_expediente.id_for_label }}"  style="padding-bottom: 40px !important;">
-                    </div>
-                    <div id="div-alert-container-{{ form.archivo_html_expediente.html_name }}">
-                        <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.archivo_html_expediente.html_name }}">
+                    <div id="div-alert-container-{{ form.nombre_plan.html_name }}">
+                        <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.nombre_plan.html_name }}">
                              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                  <span aria-hidden="true">×</span>
                              </button>
-                            <div id="div-container-errors-{{ form.archivo_html_expediente.html_name }}"></div>
+                            <div id="div-container-errors-{{ form.nombre_plan.html_name }}"></div>
                         </div>
                     </div>
-                  </div>
-                </div>
 
-                <button type="submit" class="btn btn-primary" style="margin-top: 10px">Crear Plan</button>
-            </form>
+                    <div class="panel panel-primary">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">¿De cual plan se tomaran las materias?</h3>
+                      </div>
+                      <div class="panel-body">
+                        <div class="form-group">
+                            <label class="control-label" for="id_select_{{ form.carrera_plan.html_name }}">Carrera</label>
+                            <select class="form-control form-component"name="{{ form.carrera_plan.html_name }}" id="id_select_{{ form.carrera_plan.html_name }}" >
+                                {% for x,y in form.fields.carrera_plan.choices %}
+                                    <option value="{{ x }}" {% if form.fields.carrera_plan.value == x %} selected="selected" {% endif %}>{{ x }} - {{ y }}</option>
+                                {% endfor %}
+                            </select>
+                            <div id="div-alert-container-{{ form.carrera_plan.html_name }}">
+                                <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.carrera_plan.html_name }}">
+                                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                         <span aria-hidden="true">×</span>
+                                     </button>
+                                    <div id="div-container-errors-{{ form.carrera_plan.html_name }}"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label" for="id_select_{{ form.plan_utilizar.html_name }}">Plan de estudio</label>
+                            <select class="form-control form-component form-component"  name="{{ form.plan_utilizar.html_name }}" id="id_select_{{ form.plan_utilizar.html_name }}">
+                                {% for x,y in form.fields.plan_utilizar.choices %}
+                                    <option value="{{ x }}" {% if form.fields.plan_utilizar.value == x %} selected="selected" {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                            <div id="div-alert-container-{{ form.plan_utilizar.html_name}}">
+                                <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.plan_utilizar.html_name}}">
+                                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                         <span aria-hidden="true">×</span>
+                                     </button>
+                                    <div id="div-container-errors-{{ form.plan_utilizar.html_name}}"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" class="form-component" value="" name="{{ form.construir_usando_pb.html_name }}">
+                                ¡Crea todos los trimestres de acuerdo al plan!
+                              </label>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="panel panel-info">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">¿Desde cuando planeas comenzar(o comenzaste) tus estudios?</h3>
+                      </div>
+                      <div class="panel-body">
+                        <div class="form-group">
+                            <label class="control-label" for="id_select_{{ form.periodo_inicio.html_name }}">Periodo</label>
+                            <select class="form-control form-component"  name="{{ form.periodo_inicio.html_name }}" id="id_select_{{ form.periodo_inicio.html_name }}">
+                                {% for x,y in form.fields.periodo_inicio.choices %}
+                                    <option value="{{ x }}" {% if form.fields.periodo_inicio.value == x %} selected="selected" {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label" for="id_select_{{ form.anyo_inicio.html_name }}">Año</label>
+                            <select class="form-control form-component"  name="{{ form.anyo_inicio.html_name }}" id="id_select_{{ form.anyo_inicio.html_name }}">
+                                {% for x,y in form.fields.anyo_inicio.choices %}
+                                    <option value="{{ x }}" {% if form.fields.anyo_inicio.value == x %} selected="selected" {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="panel panel-info">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">¡Utilizar datos de mi expediente!</h3>
+                      </div>
+                      <div class="panel-body">
+                        <div class="form-group">
+                            <label class="control-label" for="{{ form.archivo_html_expediente.id_for_label }}">Archivo HTML</label>
+                            <input type="file" class="form-control form-component"  name="{{ form.archivo_html_expediente.html_name }}" id="{{ form.archivo_html_expediente.id_for_label }}"  style="padding-bottom: 40px !important;">
+                        </div>
+                        <div id="div-alert-container-{{ form.archivo_html_expediente.html_name }}">
+                            <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.archivo_html_expediente.html_name }}">
+                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                     <span aria-hidden="true">×</span>
+                                 </button>
+                                <div id="div-container-errors-{{ form.archivo_html_expediente.html_name }}"></div>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top: 10px">Crear Plan</button>
+                </form>
+            </fieldset>
         </div>
     </div>
     <!-- /.row -->

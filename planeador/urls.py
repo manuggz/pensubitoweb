@@ -22,26 +22,36 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
 
     ## Página principal que veran los usuarios no registrados
-    url(r'^$',views.index,name="home"),
+    url(r'^$', views.index_vista, name= 'home'),
 
     ## Home para los usuarios registrados que inicien sesión
-    url(r'^home/', views.home, name='myhome'),
+    url(r'^home/', views.home_vista, name= 'myhome'),
 
     # Pagina para ver los planes
-    url(r'^planes/$', views.ver_lista_planes, name='planes'),
+    url(r'^planes/$', views.planes_vista, name='planes'),
 
     # Pagina para ver un plan en especifico
-    url(r'^planes/(?P<nombre_plan>.*)/$', views.ver_plan, name='ver_plan'),
-    # Pagina para ver los planes
-    url(r'^nuevo_plan/$', views.crear_plan, name='crear_plan'),
+    url(r'^planes/(?P<nombre_plan>.*)/$', views.plan_vista, name='ver_plan'),
 
-    url(r'^eliminar_plan/$', views.eliminar_plan_ajax, name='eliminar_plan_ajax'),
-    url(r'^obtener_datos_plan/$', views.obtener_datos_plan, name='obtener_datos_plan_ajax'),
+    # Pagina para crear un nuevo plan
+    url(r'^nuevo_plan/$', views.crear_plan_vista, name='crear_plan'),
+
+    # Pagina para eliminar un plan
+    url(r'^eliminar_plan/$', views.eliminar_plan_vista, name='eliminar_plan_ajax'),
+
+    # Pagina para obtener datos de un plan
+    url(r'^obtener_datos_plan/$', views.obtener_datos_plan_vista, name='obtener_datos_plan_ajax'),
+
+    # Pagina para actualizar datos de un plan
     url(r'^actualizar_plan/$', views.actualizar_plan, name='actualizar_plan'),
 
+    # Para probar cualquier cosa
     url(r'^__test/$', views.__test, name='__test'),
 
+    # Para obtener los planes base
     url(r'^planes_base',views.ver_planes_base,name='planes_base'),
+
+    # Para obtener las materias base o planeadas segun un filtro
     url(r'^materias/',views.materias_vista,name='materias'),
 
     url(

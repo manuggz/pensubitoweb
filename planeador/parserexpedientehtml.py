@@ -102,10 +102,10 @@ class MyHTMLParser(HTMLParser):
 
 
         elif self.es_codigo_materia:
-            self.materia.codigo = data
+            self.materia.codigo = data.lower()
             self.es_codigo_materia = False
         elif self.es_nombre_materia:
-            self.materia.nombre = unicode(data.strip(), 'ISO-8859-1')
+            self.materia.nombre = unicode(data.strip(), 'ISO-8859-1').lower()
             self.es_nombre_materia = False
         elif self.es_creditos_materia:
             self.materia.creditos = data

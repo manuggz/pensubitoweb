@@ -16,37 +16,40 @@
     <!-- /.row -->
 
     <div class="row">
-        <div class="col-lg-6">
-            <h2>Planes Creados</h2>
-            <a href="{% url 'crear_plan' %}">Crear Nuevo Plan</a>
-            <div class="table-responsive" style="overflow: visible !important;">
-                <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th width align="center">Nombre</th>
-                                <th width align="center">Indice</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {%  for plan in planes %}
-                                <tr id="tr_{{ plan.nombre }}" data-nombreplan = "{{ plan.nombre }}">
-                                    <td> <a href="{% url 'ver_plan' plan.nombre %}" >{{ plan.nombre}}</a></td>
-                                    <td align="right">NC</td>
-                                    <td align="right">
-                                        <div class="dropdown" id="div_{{ plan.nombre }}">
-                                          <a href="#" data-target="#"  id="drop_a_{{ plan.nombre }}" data-nombreplan = "{{ plan.nombre }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"  role="button" >
-                                            <span class="caret"></span>
-                                          </a>
-                                          <ul class="dropdown-menu" aria-labelledby="drop_a_{{ plan.nombre }}">
-                                            <li><a href="#" data-toggle="modal" data-target="#modal-eliminar-plan"  data-nombreplan = "{{ plan.nombre }}">Eliminar</a></li>
-                                          </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                </table>
-            </div>
+        <div class="col-md-12">
+            <h2 style="display: inline-block;">Planes Creados</h2>
+            <a href="{% url 'crear_plan' %}" class="btn btn-primary" role="button" style="margin-left: 10px;">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                Crear Nuevo Plan
+            </a>
+            <hr>
+            {%  for plan in planes %}
+                <div class="panel panel-primary">
+                  <div class="panel-heading">
+                    <h3 class="panel-title"> <strong> Nombre del plan:</strong> {{ plan.nombre }}</h3>
+                  </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Indice Acumulado:</strong> {{ plan.datos.indice }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Retiros:</strong> {{ plan.datos.n_retiros }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Trimestres:</strong> {{ plan.datos.n_trimestres }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Creditos Inscritos:</strong> {{ plan.datos.creds_inscri }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                         <a href="{% url 'ver_plan' plan.nombre %}" role="button">Modificar</a>
+                        <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modal-eliminar-plan"  data-nombreplan = "{{ plan.nombre }}">Eliminar</button>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
     <!-- /.row -->
@@ -77,31 +80,34 @@
         $("tr").mouseleave(function(){
             $(this).removeClass("active");
         });
-        $('#modal-eliminar-plan').on('show.bs.modal', function (event) {
-            var a = $(event.relatedTarget); // Button that triggered the modal
-            var nombre_plan = a.data('nombreplan'); // Extract info from data-* attributes
-            var tr_plan = $("#tr_" + nombre_plan);
+
+        var modal_eliminar = $('#modal-eliminar-plan');
+        var button_trigger;
+        var nombre_plan_eliminar;
+
+        modal_eliminar.on('show.bs.modal', function (event) {
+            button_trigger = $(event.relatedTarget); // Button that triggered the modal
+            nombre_plan_eliminar = button_trigger.data('nombreplan'); // Extract info from data-* attributes
 
             // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
             // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-            var modal = $(this);
-            modal.find('.modal-title').text('¿Eliminar plan ' + nombre_plan + ' ?');
-            modal.find('#btn-eliminar-plan').click(function (event) {
-            $(this).off("click");
+            modal_eliminar.find('.modal-title').text('¿Eliminar plan: "' + nombre_plan_eliminar + '" ?');
 
+        });
+        modal_eliminar.find('#btn-eliminar-plan').click(function (event) {
+            var pannel_plan = button_trigger.closest("div.panel");
             $.post({% url 'eliminar_plan_ajax' %},{
-                nombre_plan: nombre_plan,
+                nombre_plan: nombre_plan_eliminar,
                 },function(data, status){
                     if (status == "success"){
-                        $('#modal-eliminar-plan').modal("hide");
-                        tr_plan.hide('slow', function(){ tr_plan.remove(); });
+                        modal_eliminar.modal("hide");
+                        pannel_plan.hide('slow', function(){ pannel_plan.remove(); });
                     }else{
                         alert("Ocurrió un error eliminando el plan");
                     }
                 }
             );
+        });
 
-          });
-        })
-    </script>
+     </script>
 {% endblock %}
