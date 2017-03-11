@@ -16,7 +16,7 @@
     <!-- /.row -->
 
     <div class="row">
-        <div class="col-md-offset-4 col-md-4">
+        <div class="col-sm-9 col-md-6 ">
             <div class="login-panel panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">Ingrese sus datos</h3>
@@ -39,16 +39,9 @@
 
                         <input type="hidden" name="next" value="{{ next }}" />
                     </form>
-                </div>
-            </div>
-            {% url 'login_cas' as login_cas%}
-            <div class=" panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Métodos alternativos de acceso</h3>
-                </div>
-                <div class="panel-body">
-                    <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas}}" class="btn btn-lg btn-primary btn-block" role="button" style="margin-top:5px">Iniciar sesión con mi USB-ID</a>
-                    <input type="hidden" name="next" value="{{ next }}" />
+                        <hr>
+                    {% url 'login_cas' as login_cas%}
+                    <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas}}" class="btn btn-primary btn-block" role="button" >USB-ID</a>
                 </div>
             </div>
         </div>

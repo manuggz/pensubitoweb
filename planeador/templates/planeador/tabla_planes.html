@@ -46,7 +46,7 @@
                     </div>
                     <div class="panel-footer">
                          <a href="{% url 'ver_plan' plan.nombre %}" role="button">Modificar</a>
-                        <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modal-eliminar-plan"  data-nombreplan = "{{ plan.nombre }}">Eliminar</button>
+                        <button type="button" class="btn btn-link" data-accion="eliminar-plan" data-nombre-plan = "{{ plan.nombre }}">Eliminar</button>
                     </div>
                 </div>
             {% endfor %}
@@ -54,59 +54,49 @@
     </div>
     <!-- /.row -->
 
-    <!-- Modal de eliminar plan -->
-    <div class="modal fade" tabindex="-1"  id="modal-eliminar-plan" role="dialog" aria-labelledby="mySmallModalLabel">
-      <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel"></h4>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" id="btn-eliminar-plan">Eliminar</button>
-            </div>
-        </div>
-      </div>
-    </div>
 {% endblock %}
 
 {% block final_pagina_scripts %}
     <script>
 
-        $("a[data-toggle='dropdown']").click(function(){
-            $("#tr_" + $(this).attr("data-nombreplan")).addClass("active");
-        });
-        $("tr").mouseleave(function(){
-            $(this).removeClass("active");
-        });
+        $("button[data-accion='eliminar-plan']").click(function (e) {
 
-        var modal_eliminar = $('#modal-eliminar-plan');
-        var button_trigger;
-        var nombre_plan_eliminar;
+            var button = $(this);
+            var nombre_plan = button.data('nombre-plan');
 
-        modal_eliminar.on('show.bs.modal', function (event) {
-            button_trigger = $(event.relatedTarget); // Button that triggered the modal
-            nombre_plan_eliminar = button_trigger.data('nombreplan'); // Extract info from data-* attributes
+            alertify.confirm(
+                    'Plan: ' + nombre_plan,
+                    '¿ Eliminar plan: "' + nombre_plan + '" ?',
+                    function(){
 
-            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-            modal_eliminar.find('.modal-title').text('¿Eliminar plan: "' + nombre_plan_eliminar + '" ?');
+                        var n_puntos = 1;
 
-        });
-        modal_eliminar.find('#btn-eliminar-plan').click(function (event) {
-            var pannel_plan = button_trigger.closest("div.panel");
-            $.post({% url 'eliminar_plan_ajax' %},{
-                nombre_plan: nombre_plan_eliminar,
-                },function(data, status){
-                    if (status == "success"){
-                        modal_eliminar.modal("hide");
-                        pannel_plan.hide('slow', function(){ pannel_plan.remove(); });
-                    }else{
-                        alert("Ocurrió un error eliminando el plan");
-                    }
-                }
-            );
+                        var msg_eliminando = alertify.message('Eliminando plan: ' + nombre_plan + '.',0, function(){ clearInterval(interval);});
+
+                         var interval = setInterval(function(){
+                             n_puntos = (n_puntos + 1) % 4;
+                            msg_eliminando.setContent('Eliminando plan: ' + nombre_plan + ".".repeat(n_puntos));
+                         },500);
+
+                        var pannel_plan = button.closest("div.panel");
+                        $.post("{% url 'eliminar_plan_ajax' %}",{
+                            nombre_plan: nombre_plan,
+                            },function(data, status){
+                                if (status == "success"){
+                                    alertify.success('¡Eliminado plan: ' + nombre_plan + "!");
+                                    msg_eliminando.dismiss();
+                                    pannel_plan.hide('slow', function(){ pannel_plan.remove(); });
+                                }else{
+                                    alertify.error('Ocurrió un error eliminando el plan: ' + nombre_plan);
+                                }
+                            }
+                        );
+
+                    },
+                    null
+            ).setting({
+                'labels':{ok:'¡Sí!', cancel:'¡No!'}
+            });
         });
 
      </script>

@@ -62,5 +62,4 @@ urlpatterns = [
 
     url(r'^login_cas/', views.login_cas, name='login_cas'),
 
-    url(r'^admin/', admin.site.urls),
 ]

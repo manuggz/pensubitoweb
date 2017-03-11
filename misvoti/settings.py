@@ -28,7 +28,7 @@ DEBUG = True
 ADMINS = [('Manuel', 'manuelggonzalezm@gmail.com')]
 
 ALLOWED_HOSTS = []
-AUTH_USER_MODEL = 'planeador.MiVotiUser'
+AUTH_USER_MODEL = 'api_misvoti.MiVotiUser'
 
 # Application definition
 
@@ -41,8 +41,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'misvoti',
     'planeador',
+    'api_misvoti',
+    'rest_framework',
 ]
-
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAdminUser',
+    ],
+    'PAGE_SIZE': 10
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

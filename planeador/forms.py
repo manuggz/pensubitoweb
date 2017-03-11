@@ -2,9 +2,11 @@
 import datetime
 from django.forms import forms, CharField, Select, CheckboxInput, ChoiceField
 
-from planeador.models import CarreraUsb, PlanEstudioBase, TrimestrePlaneado
 
 ## Form utilizado para cuando se va a crear un nuevo plan
+from api_misvoti.models import CarreraUsb, PlanEstudioBase, TrimestrePlaneado
+
+
 class CrearNuevoPlanForm(forms.Form):
     nombre_plan = CharField(label="Nombre del Plan",help_text="Nombre del plan a crear.")
 

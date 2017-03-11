@@ -1,32 +1,22 @@
 # coding=utf-8
 import json
-
-import time
 from urllib import quote
-
 import ssl
 import urllib2
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Model
 from django.http import HttpResponse
 from django.http import HttpResponseNotFound
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import get_user_model
-from django.conf import settings
-# Create your views here.
 from django.urls import reverse
-
+from api_misvoti.models import *
 from planeador.busqueda_bd import refinarBusqueda, construir_materia_ctx
-from planeador.calculardatosplan import obtener_datos_plan
-from planeador.decorators import si_no_autenticado_redirec_index
 from planeador.forms import CrearNuevoPlanForm
-from planeador.models import PlanEstudio, TrimestrePlaneado, MateriaPlaneada, \
-    PlanEstudioBase, CarreraUsb, MateriaBase, MiVotiUser
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 from planeador.usbldap import obtener_datos_desde_ldap, random_password
 
@@ -165,7 +155,7 @@ def crear_plan_vista(request):
             nombre_nuevo_plan = form.cleaned_data["nombre_plan"]
             context["nombre_plan"] = nombre_nuevo_plan
             context["errors"] = {"nombre_plan": [],"carrera_plan":[],'plan_utilizar':[]}
-            if PlanEstudio.objects.filter(nombre=nombre_nuevo_plan).exists():
+            if PlanCreado.objects.filter(nombre=nombre_nuevo_plan).exists():
                 context["errors"]["nombre_plan"].append("¡Ya existe un plan con ese nombre!")
             else:
 
@@ -184,7 +174,7 @@ def crear_plan_vista(request):
                     context["errors"]["plan_utilizar"].append("¡El plan de estudio seleccionado no existe!")
                     return JsonResponse(context)
 
-                nuevo_plan = PlanEstudio(
+                nuevo_plan = PlanCreado(
                     nombre=nombre_nuevo_plan,
                     usuario_creador_fk=request.user,
                     plan_estudio_base_fk=plan_base
@@ -224,7 +214,7 @@ def crear_plan_vista(request):
 @login_required
 def plan_vista(request, nombre_plan):
     context = {"planes_activo": "active"}
-    plan_estudio_modelo_ref = get_object_or_404(PlanEstudio, usuario_creador_fk=request.user, nombre=nombre_plan)
+    plan_estudio_modelo_ref = get_object_or_404(PlanCreado, usuario_creador_fk=request.user, nombre=nombre_plan)
 
     context["plan"] = plan_estudio_modelo_ref
     context['periodos'] = [(p[0], p[1]) for p in TrimestrePlaneado.PERIODOS_USB]
@@ -257,7 +247,7 @@ def eliminar_plan_vista(request):
     if request.method == "POST":
         context["eliminado"] = True
         try:
-            plan_estudio = PlanEstudio.objects.get(nombre=request.POST["nombre_plan"])
+            plan_estudio = PlanCreado.objects.get(nombre=request.POST["nombre_plan"])
             plan_estudio.delete()
             context["nombre"] = plan_estudio.nombre
         except ObjectDoesNotExist:
@@ -273,7 +263,7 @@ def obtener_datos_plan_vista(request):
     context = {}
     if request.method == "GET":
 
-        plan_estudio_modelo_ref = get_object_or_404(PlanEstudio, usuario_creador_fk=request.user,
+        plan_estudio_modelo_ref = get_object_or_404(PlanCreado, usuario_creador_fk=request.user,
                                                     nombre=request.GET["nombre_plan"])
 
         trimestres = TrimestrePlaneado.objects.con_trimestres_ordenados(planestudio_pert_fk=plan_estudio_modelo_ref)
@@ -352,7 +342,7 @@ def actualizar_plan(request):
         datos_post = json.loads(request.POST["datos"])
 
         try:
-            plan_estudio_modelo_ref = PlanEstudio.objects.get(nombre=datos_post["nombre_plan"])
+            plan_estudio_modelo_ref = PlanCreado.objects.get(nombre=datos_post["nombre_plan"])
 
         except ObjectDoesNotExist:
             context["actualizado"] = False
@@ -402,10 +392,10 @@ def planes_vista(request):
     context = {"planes_activo": "active"}
 
     context["planes"] = []
-    for plan_bd in PlanEstudio.objects.filter(usuario_creador_fk=request.user):
+    for plan_bd in PlanCreado.objects.filter(usuario_creador_fk=request.user):
         plan_ctx = {'nombre':plan_bd.nombre}
         trimestres = TrimestrePlaneado.objects.con_trimestres_ordenados(planestudio_pert_fk=plan_bd)
-        plan_ctx['datos'] = obtener_datos_plan(trimestres)
+        plan_ctx['datos'] = plan_bd.obtener_datos_analisis()
 
         context["planes"].append(plan_ctx)
 

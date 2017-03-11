@@ -1,48 +1,30 @@
 {% extends 'misvoti/base.html' %}
+{% load static %}
 {% block inicio_pagina_scripts %}
+    <style>
+        .ajs-message.ajs-custom { color: #31708f;  background-color: #d9edf7;  border-color: #31708f; }
+    </style>
     <script>
 
         var btn_crear_plan = null;
         var fieldset_form = null;
+        var msg_creando_plan;
 
-        // pre-submit callback
         function preAjaxSubmit(formData, jqForm, options) {
             fieldset_form.attr("disabled","disabled");
-
-            // formData is an array; here we use $.param to convert it to a string to display it
-            // but the form plugin does this for you automatically when it submits the data
-            var queryString = $.param(formData);
-
-            // jqForm is a jQuery object encapsulating the form element.  To access the
-            // DOM element for the form do this:
-            // var formElement = jqForm[0];
-
-            //alert('About to submit: \n\n' + queryString);
-
-            // here we could return false to prevent the form from being submitted;
-            // returning anything other than false will allow the form submit to continue
             return true;
         }
 
-        // post-submit callback
         function postAjaxSubmit(responseJson, statusText, xhr, $form)  {
-            // for normal html responses, the first argument to the success callback
-            // is the XMLHttpRequest object's responseText property
-
-            // if the ajaxSubmit method was passed an Options Object with the dataType
-            // property set to 'xml' then the first argument to the success callback
-            // is the XMLHttpRequest object's responseXML property
-
-            // if the ajaxSubmit method was passed an Options Object with the dataType
-            // property set to 'json' then the first argument to the success callback
-            // is the json data object returned by the server
 
             if(statusText == "success"){
                 if(responseJson.esta_creado_plan) {
+                    alertify.success("¡El plan ha sido creado!")
                     btn_crear_plan.text("¡El plan ha sido creado!");
-                    setTimeout("redirigir_plan_creado('" + responseJson.nombre_plan + "')", 1000);
+                    setTimeout("redirigir_plan_creado('" + responseJson.nombre_plan + "')", 2000);
                 }else{
                     btn_crear_plan.text("Crear Plan");
+                    alertify.error("¡Ocurrió un error creando el plan!",3)
                     html_errors = "";
                     for (var name in responseJson.errors) {
                         html_errors = "<ul>";
@@ -53,9 +35,6 @@
                         }
                         html_errors += "</ul>";
                         if(tiene_errores) {
-                            console.log(name);
-                            console.log(html_errors);
-                            console.log(div_errores[name]);
                             if (!jQuery.contains(document, div_errores[name])) {
                                 div_errores[name].addClass("in");
                                 $("#div-alert-container-" + name).append(div_errores[name]);
@@ -72,10 +51,11 @@
                 btn_crear_plan.text("Crear Plan");
                 fieldset_form.removeAttr("disabled");
             }
+            msg_creando_plan.dismiss()
         }
 
         function redirigir_plan_creado(nombre_plan) {
-            window.location.replace({% url 'planes'%} + nombre_plan);
+            window.location.replace("{% url 'planes'%}" + nombre_plan);
         }
         $(document).ready(function(){
 
@@ -89,21 +69,12 @@
             {% endfor %}
 
             $("form").submit(function (e) {
+                msg_creando_plan = alertify.notify('Creando plan <img src="{% static 'misvoti/images/gears.svg' %}" style="width: 40px;height:40px;">','custom',0,null);
                 btn_crear_plan.text("Creando Plan...");
                 var options = {
-                    //target:        '#output2',   // target element(s) to be updated with server response
                     beforeSubmit:  preAjaxSubmit,  // pre-submit callback
                     success:       postAjaxSubmit,  // post-submit callback
-
-                    // other available options:
-                    //url:       url         // override for form's 'action' attribute
-                    //type:      type        // 'get' or 'post', override for form's 'method' attribute
                     dataType:  'json',        // 'xml', 'script', or 'json' (expected server response type)
-                    //clearForm: true        // clear all form fields after successful submit
-                    //resetForm: true        // reset the form after successful submit
-
-                    // $.ajax options can be used here too, for example:
-                    //timeout:   3000
                 };
 
                 e.preventDefault();

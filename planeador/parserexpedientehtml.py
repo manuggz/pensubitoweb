@@ -2,7 +2,7 @@ from HTMLParser import HTMLParser
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from planeador.models import MateriaBase, TrimestrePlaneado, MateriaPlaneada, MiVotiUser
+from api_misvoti.models import MateriaBase, TrimestrePlaneado, MateriaPlaneada, MiVotiUser
 
 ##
 # Se ocupa de parsear el expediente

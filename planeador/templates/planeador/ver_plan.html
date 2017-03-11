@@ -239,7 +239,7 @@
                 // Notar que mandamos un json de la forma
                 // { "datos":json que el servidor nos manda}
                 // Se manda de esta forma por varios errores que daba django
-                $.post({% url 'actualizar_plan' %},{
+                $.post("{% url 'actualizar_plan' %}",{
                             datos:JSON.stringify(json_datos_trims)
                         },
                         function(data, status){
@@ -459,7 +459,7 @@
 
             div_datos_trimestres_html.html("<p>Cargando datos del plan...</p>");
 
-            $.get({% url 'obtener_datos_plan_ajax' %},{
+            $.get("{% url 'obtener_datos_plan_ajax' %}",{
                 nombre_plan: "{{ plan.nombre }}",
                 },function(data, status){
                     if (status == "success"){
@@ -623,7 +623,7 @@
         });
 
         txt_input_codigo_mat_en_modal.on('input',function(e){
-            $.get({% url 'materias' %},{
+            $.get("{% url 'materias' %}",{
                         codigo:txt_input_codigo_mat_en_modal.val(),
                         max_length:5,
                     },
@@ -648,7 +648,7 @@
             );
         });
         txt_input_nombre_mat_en_modal.on('input',function(e){
-            $.get({% url 'materias' %},{
+            $.get("{% url 'materias' %}",{
                         nombre:txt_input_nombre_mat_en_modal.val(),
                         max_length:5,
                     },
