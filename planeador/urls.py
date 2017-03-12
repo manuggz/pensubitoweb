@@ -36,15 +36,6 @@ urlpatterns = [
     # Pagina para crear un nuevo plan
     url(r'^nuevo_plan/$', views.crear_plan_vista, name='crear_plan'),
 
-    # Pagina para eliminar un plan
-    url(r'^eliminar_plan/$', views.eliminar_plan_vista, name='eliminar_plan_ajax'),
-
-    # Pagina para obtener datos de un plan
-    url(r'^obtener_datos_plan/$', views.obtener_datos_plan_vista, name='obtener_datos_plan_ajax'),
-
-    # Pagina para actualizar datos de un plan
-    url(r'^actualizar_plan/$', views.actualizar_plan, name='actualizar_plan'),
-
     # Para probar cualquier cosa
     url(r'^__test/$', views.__test, name='__test'),
 

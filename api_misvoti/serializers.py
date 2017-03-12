@@ -17,6 +17,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MateriaCreadaSerializer(serializers.ModelSerializer):
+    # Lo declaramos como integer para evitar que se envien como string
+    # Notar que debe poseer el mismo nombre que MateriaPlaneada.creditos , MateriaPlaneada.nota_final
+    creditos = serializers.IntegerField()
+    nota_final = serializers.IntegerField()
     class Meta:
         model = MateriaPlaneada
         exclude = ('trimestre_cursada_fk',)

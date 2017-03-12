@@ -1,4 +1,23 @@
 {% extends 'misvoti/base.html' %}
+
+{% block inicio_pagina_scripts %}
+    <script>
+        var n_planes = {{ n_planes }};
+        var div_alert_sin_planes ;
+
+        $(document).ready(function() {
+
+            div_alert_sin_planes = $("#alert-sin-planes");
+
+            if(n_planes <= 0){
+                div_alert_sin_planes.show();
+            }else{
+                div_alert_sin_planes.hide();
+            }
+        });
+
+    </script>
+{% endblock %}
 {% block content %}
     <!-- Page Heading -->
     <div class="row">
@@ -46,10 +65,11 @@
                     </div>
                     <div class="panel-footer">
                          <a href="{% url 'ver_plan' plan.nombre %}" role="button">Modificar</a>
-                        <button type="button" class="btn btn-link" data-accion="eliminar-plan" data-nombre-plan = "{{ plan.nombre }}">Eliminar</button>
+                        <button type="button" class="btn btn-link" data-accion="eliminar-plan" data-plan-nombre = "{{ plan.nombre }}" data-plan-id = "{{ plan.id }}">Eliminar</button>
                     </div>
                 </div>
             {% endfor %}
+                <div class="alert alert-info" role="alert" id="alert-sin-planes"><p><strong> Hey!</strong> No posees ningún plan :(</p></div>
         </div>
     </div>
     <!-- /.row -->
@@ -62,7 +82,8 @@
         $("button[data-accion='eliminar-plan']").click(function (e) {
 
             var button = $(this);
-            var nombre_plan = button.data('nombre-plan');
+            var nombre_plan = button.data('plan-nombre');
+            var id_plan = button.data('plan-id');
 
             alertify.confirm(
                     'Plan: ' + nombre_plan,
@@ -79,18 +100,25 @@
                          },500);
 
                         var pannel_plan = button.closest("div.panel");
-                        $.post("{% url 'eliminar_plan_ajax' %}",{
-                            nombre_plan: nombre_plan,
-                            },function(data, status){
-                                if (status == "success"){
-                                    alertify.success('¡Eliminado plan: ' + nombre_plan + "!");
-                                    msg_eliminando.dismiss();
-                                    pannel_plan.hide('slow', function(){ pannel_plan.remove(); });
-                                }else{
-                                    alertify.error('Ocurrió un error eliminando el plan: ' + nombre_plan);
+                        $.ajax({
+                            url:"http://127.0.0.1:8000/api/planes_creados/"+id_plan,
+                            type: 'DELETE',
+                            success: function(data,status,request) {
+                                alertify.success('¡Eliminado plan: ' + nombre_plan + "!");
+                                msg_eliminando.dismiss();
+                                pannel_plan.hide('slow', function(){ pannel_plan.remove(); });
+                                n_planes--;
+                                if(n_planes<=0){
+                                    div_alert_sin_planes.show("slow");
                                 }
-                            }
-                        );
+                            },
+                            error:function (request, status, error) {
+                                console.log(status,error);
+                                alertify.error('Ocurrió un error eliminando el plan: ' + nombre_plan)
+                            },
+                            contentType:'application/json; indent=4;charset=UTF-8',
+                            dataType:'json',
+                        });
 
                     },
                     null

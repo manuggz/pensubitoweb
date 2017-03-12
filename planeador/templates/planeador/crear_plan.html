@@ -21,7 +21,7 @@
                 if(responseJson.esta_creado_plan) {
                     alertify.success("¡El plan ha sido creado!")
                     btn_crear_plan.text("¡El plan ha sido creado!");
-                    setTimeout("redirigir_plan_creado('" + responseJson.nombre_plan + "')", 2000);
+                    setTimeout("redirigir_plan_creado('" + responseJson.nombre_plan + "')", 500);
                 }else{
                     btn_crear_plan.text("Crear Plan");
                     alertify.error("¡Ocurrió un error creando el plan!",3)
