@@ -16,6 +16,7 @@ from django.urls import reverse
 from api_misvoti.models import *
 from planeador.busqueda_bd import refinarBusqueda
 from planeador.cargar_pensum_desde_ods import cargar_pensum_ods
+from planeador.crear_plan_usuario_desde_pensum import llenar_plan_con_pensum_escogido
 from planeador.forms import CrearNuevoPlanForm
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 from planeador.usbldap import obtener_datos_desde_ldap, random_password
@@ -148,12 +149,12 @@ def crear_plan_vista(request):
     context = {"planes_activo": "active"}
 
     if request.method == 'POST':
-
         form = CrearNuevoPlanForm(request.POST, request.FILES)
         context["esta_creado_plan"] = False
 
         if form.is_valid():
 
+            print form.cleaned_data['construir_usando_pb']
             nombre_nuevo_plan = form.cleaned_data["nombre_plan"]
             context["nombre_plan"] = nombre_nuevo_plan
             context["errors"] = {"nombre_plan": [], "carrera_plan": [], 'plan_utilizar': []}
@@ -167,22 +168,23 @@ def crear_plan_vista(request):
                     return JsonResponse(context)
 
                 try:
-                    plan_base = PlanEstudioBase.objects.get(
-                        carrera_fk=carrera_plan_bd,
+                    pensum_escogido = Pensum.objects.get(
+                        carrera=carrera_plan_bd,
                         tipo=form.cleaned_data["plan_utilizar"]
                     )
                 except ObjectDoesNotExist:
-                    context["errors"]["plan_utilizar"].append("¡El plan de estudio seleccionado no existe!")
+                    context["errors"]["plan_utilizar"].append("¡El pensum seleccionado no existe!")
                     return JsonResponse(context)
 
                 nuevo_plan = PlanCreado(
                     nombre=nombre_nuevo_plan,
                     usuario_creador_fk=request.user,
-                    plan_estudio_base_fk=plan_base
+                    pensum=pensum_escogido
                 )
                 nuevo_plan.save()
 
-                periodo_inicio_usu = form.cleaned_data['periodo_inicio']
+                #periodo_inicio_usu = form.cleaned_data['periodo_inicio']
+                periodo_inicio_usu = ''
                 anyo_inicio_usu = form.cleaned_data['anyo_inicio']
 
                 if form.cleaned_data["archivo_html_expediente"]:
@@ -192,12 +194,8 @@ def crear_plan_vista(request):
                         nuevo_plan,
                     )
                 else:
-                    trimestre_inicial_bd = TrimestrePlaneado(
-                        periodo=periodo_inicio_usu,
-                        planestudio_pert_fk=nuevo_plan,
-                        anyo=anyo_inicio_usu
-                    )
-                    trimestre_inicial_bd.save()
+                    if form.cleaned_data['construir_usando_pb']:
+                        llenar_plan_con_pensum_escogido(nuevo_plan,periodo_inicio_usu,anyo_inicio_usu)
 
                 context["esta_creado_plan"] = True
         else:
@@ -207,7 +205,7 @@ def crear_plan_vista(request):
         return JsonResponse(context)
 
     else:
-        context["form"] = CrearNuevoPlanForm()
+        context["form"] = CrearNuevoPlanForm(user=request.user)
 
     return render(request, 'planeador/crear_plan.html', context)
 
@@ -221,7 +219,7 @@ def plan_vista(request, nombre_plan):
     plan_estudio_modelo_ref = get_object_or_404(PlanCreado, usuario_creador_fk=request.user, nombre=nombre_plan)
 
     context["plan"] = plan_estudio_modelo_ref
-    context['periodos'] = [(p[0], p[1]) for p in TrimestrePlaneado.PERIODOS_USB]
+    context['periodos'] = [(p[0], p[1]) for p in TrimestrePensum.PERIODOS_USB]
     context["anyos"] = [(anyo, anyo) for anyo in xrange(1993, 2030)]
 
     return render(request, 'planeador/ver_plan.html', context)
@@ -240,10 +238,10 @@ def ver_planes_base(request):
         except ObjectDoesNotExist:
             return JsonResponse(respuesta)
 
-        get_nombre_plan = PlanEstudioBase.get_nombre_tipo_plan
+        get_nombre_plan = Pensum.get_nombre_tipo_plan
         respuesta["planes"] = [{"codigo": plan_base_bd.pk,
                                 "nombre": get_nombre_plan(plan_base_bd)}
-                               for plan_base_bd in PlanEstudioBase.objects.filter(carrera_fk=carrera_buscada)]
+                               for plan_base_bd in Pensum.objects.filter(carrera_fk=carrera_buscada)]
 
     return JsonResponse(respuesta)
 

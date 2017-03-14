@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 from rest_framework.utils import model_meta
 
 from api_misvoti.fields_serializer import PlanEstudioCreadoUrl
-from api_misvoti.models import MiVotiUser, PlanCreado, TrimestrePlaneado, MateriaPlaneada, PlanEstudioBase
+from api_misvoti.models import MiVotiUser, PlanCreado, TrimestrePlaneado, MateriaPlaneada, Pensum
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,13 +37,13 @@ class TrimestreCreadoSerializer(serializers.ModelSerializer):
 class PlanUserEstudioSerializer(serializers.ModelSerializer):
     #trimestres_planeados = serializers.HyperlinkedIdentityField('trimestre-detail')
 
-    plan_base = serializers.StringRelatedField(source='plan_estudio_base_fk',read_only=True)
+    pensum = serializers.StringRelatedField(read_only=True)
     datos = serializers.ReadOnlyField(source='obtener_datos_analisis')
     url = serializers.HyperlinkedIdentityField('planescreados-detail')
 
     class Meta:
         model = PlanCreado
-        fields = ('id','url' ,'nombre', 'plan_base','datos')
+        fields = ('id','url' ,'nombre', 'pensum','datos')
 
 
 class PlanEstudioSerializer(serializers.ModelSerializer):
@@ -52,11 +52,11 @@ class PlanEstudioSerializer(serializers.ModelSerializer):
     )
 
     propietario = serializers.ReadOnlyField(source='usuario_creador_fk.username')
-    plan_base = serializers.StringRelatedField(source='plan_estudio_base_fk',read_only=True)
+    pensum = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = PlanCreado
-        fields = ('id','nombre','propietario','plan_base','trimestres_planeados')
+        fields = ('id','nombre','propietario','pensum','trimestres_planeados')
 
     def create(self, validated_data):
         trimestres_planeados_data = validated_data.pop('trimestres_planeados')

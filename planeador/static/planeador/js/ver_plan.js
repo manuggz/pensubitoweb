@@ -361,8 +361,14 @@ function convertir_tipo_materia_codigo_a_string(codigo) {
             return  "Electiva de Area";
         case 'EL':
             return  "Electiva Libre";
+        case 'PC':
+            return  "Pasantia Corta";
+        case 'PL':
+            return  "Pasantia Larga";
         case 'EX':
             return  "Extraplan";
+        default:
+            return 'Tipo desconocido - ' + codigo;
     }
 }
 function convertir_periodo_codigo_a_string(codigo) {

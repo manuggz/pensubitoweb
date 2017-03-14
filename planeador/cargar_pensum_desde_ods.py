@@ -3,8 +3,8 @@ from odf import opendocument
 from odf.namespaces import TABLENS
 from odf.table import TableRow, Table
 
-from api_misvoti.models import MateriaBase, RelacionMateriasCorrequisito, CarreraUsb, PlanEstudioBase, \
-    RelacionMateriaOpcional, TrimestrePensum
+from api_misvoti.models import MateriaBase, RelacionMateriasCorrequisito, CarreraUsb, Pensum, \
+    RelacionMateriaOpcional, TrimestrePensum, RelacionMateriaPensumBase
 from api_misvoti.models import RelacionMateriaPrerrequisito
 
 
@@ -14,14 +14,10 @@ def getSheet(opendoc,sheet_name):
             return table_element
     return None
 
-def cargarMaterias(sheet, plan_base_bd):
+def cargarMaterias(sheet):
 
     nombres_columnas = []
     leido_nombres_columnas = False
-
-    periodo_actual = ''
-    indice_orden_actual = 0
-    trimestre_actual_bd_ref = None
 
     for row_element in sheet.getElementsByType(TableRow):
         columna_actual = 0
@@ -39,31 +35,73 @@ def cargarMaterias(sheet, plan_base_bd):
                 columna_actual += 1
 
         if leido_nombres_columnas:
-            materia_bd = MateriaBase(
-                nombre = materia_dict.get('nombre',''),
-                codigo = materia_dict.get('codigo',''),
-                creditos= materia_dict.get('creditos',''),
-                horas_teoria=int(materia_dict.get('horas teoria',0)),
-                horas_practica =int(materia_dict.get('horas practica',0)),
-                horas_laboratorio=int(materia_dict.get('horas laboratorio',0)),
-                tipo_materia=materia_dict.get('tipo', MateriaBase.REGULAR),
-            )
+            try:
+                MateriaBase.objects.get(codigo=materia_dict['codigo'])
+            except ObjectDoesNotExist:
+                materia_bd = MateriaBase(
+                    nombre = materia_dict.get('nombre',''),
+                    codigo = materia_dict.get('codigo',''),
+                    creditos= materia_dict.get('creditos',''),
+                    horas_teoria=int(materia_dict.get('horas teoria',0)),
+                    horas_practica =int(materia_dict.get('horas practica',0)),
+                    horas_laboratorio=int(materia_dict.get('horas laboratorio',0)),
+                )
+                materia_bd.save()
 
-            if periodo_actual != '' and materia_dict.get('periodo','') != periodo_actual:
+        leido_nombres_columnas = True
 
+def cargarOrdenMaterias(sheet,pensum_bd):
+
+    nombres_columnas = []
+    leido_nombres_columnas = False
+
+    periodo_actual = ''
+    indice_orden_actual = 0
+    trimestre_actual_bd_ref = None
+
+    for row_element in sheet.getElementsByType(TableRow):
+        columna_actual = 0
+        relacion_materia_trimestre = {}
+
+        for table_cell in row_element.childNodes:
+
+            numero_columnas_repetidas = table_cell.attributes.get((TABLENS,u'number-columns-repeated'),1)
+            for repetir_i in range(int(numero_columnas_repetidas)):
+                for text_node in table_cell.childNodes:
+                    if not leido_nombres_columnas:
+                        nombres_columnas.append(text_node.childNodes[0].data)
+                    else:
+                        relacion_materia_trimestre[nombres_columnas[columna_actual]] = text_node.childNodes[0].data
+                columna_actual += 1
+
+        if leido_nombres_columnas:
+            tipo_relacion =  relacion_materia_trimestre.get('tipo', RelacionMateriaPensumBase.REGULAR)
+
+            materia_bd = None
+
+            if tipo_relacion == RelacionMateriaPensumBase.REGULAR:
+                ## Lanza error a proposito si la materia no existe en la BD, se supone la materia debe existir
+                materia_bd = MateriaBase.objects.get(codigo=relacion_materia_trimestre['codigo'])
+
+            periodo_fila = relacion_materia_trimestre.get('periodo', '')
+
+            if periodo_fila != periodo_actual:
                 indice_orden_actual += 1
-                periodo_actual = materia_dict.get('periodo','')
+                periodo_actual = periodo_fila
 
                 trimestre_actual_bd_ref = TrimestrePensum(
-                    periodo= periodo_actual,
-                    indice_orden=indice_orden_actual,
-                    planestudio_pert_fk=plan_base_bd
+                    periodo=periodo_actual,
+                    pensum=pensum_bd,
+                    indice_orden = indice_orden_actual,
                 )
+                trimestre_actual_bd_ref.save()
 
-            if materia_dict.get('periodo',''):
-                materia_bd.trimestre_plan_pensum = trimestre_actual_bd_ref
-
-            materia_bd.save()
+            RelacionMateriaPensumBase(
+                pensum=pensum_bd,
+                trimestre_pensum=trimestre_actual_bd_ref if periodo_fila else None ,
+                tipo_materia=tipo_relacion,
+                materia_base=materia_bd,
+            ).save()
 
         leido_nombres_columnas = True
 
@@ -84,7 +122,7 @@ def cargarPrerequisitos(sheet,plan_base_bd):
         RelacionMateriaPrerrequisito(
             materia_cursar    = MateriaBase.objects.get(codigo=codigo_materia_cursar),
             materia_requerida = materia_requerida_bd_ref,
-            tipo = tipo_prerre,
+            tipo_prerrequisito = tipo_prerre,
             pensum=plan_base_bd
         ).save()
 
@@ -109,28 +147,16 @@ def cargarOpcionales(sheet,plan_base_bd):
         try:
             materia_opcional_a_bd_ref = MateriaBase.objects.get(codigo=codigo_materia_a)
         except ObjectDoesNotExist:
-            if codigo_materia_a == MateriaBase.ELECTIVA_LIBRE:
-                materia_opcional_a_bd_ref = MateriaBase(
-                    tipo_materia=MateriaBase.ELECTIVA_LIBRE
-                )
-                materia_opcional_a_bd_ref.save()
-            else:
                 raise ReferenceError("No se encuentra el codigo:" + codigo_materia_a)
 
         try:
             materia_opcional_b_bd_ref = MateriaBase.objects.get(codigo=codigo_materia_b)
         except ObjectDoesNotExist:
-            if codigo_materia_b == MateriaBase.ELECTIVA_LIBRE:
-                materia_opcional_b_bd_ref = MateriaBase(
-                    tipo=MateriaBase.ELECTIVA_LIBRE
-                )
-                materia_opcional_b_bd_ref.save()
-            else:
-                raise ReferenceError("No se encuentra el codigo:" + codigo_materia_b)
+            raise ReferenceError("No se encuentra el codigo:" + codigo_materia_b)
 
         RelacionMateriaOpcional(
-            materia_opcional_a = materia_opcional_a_bd_ref,
-            materia_opcional_b = materia_opcional_b_bd_ref,
+            materia_primera_opcion = materia_opcional_a_bd_ref,
+            materia_segunda_opcion = materia_opcional_b_bd_ref,
             pensum=plan_base_bd
         ).save()
 
@@ -149,24 +175,26 @@ def cargar_pensum_ods(nombre_carrera,codigo_carrera,ruta_pensum_ods):
         print "Info! Creada la carrera."
 
     try:
-        plan_base = PlanEstudioBase.objects.get(
+        pensum_bd = Pensum.objects.get(
             carrera=carrera_usb,
-            tipo=PlanEstudioBase.PASANTIA_LARGA
+            tipo=Pensum.PASANTIA_LARGA
         )
         print "Warning! El plan ya existia"
     except ObjectDoesNotExist:
-        plan_base = PlanEstudioBase(
+        pensum_bd = Pensum(
             carrera=carrera_usb,
-            tipo=PlanEstudioBase.PASANTIA_LARGA,
+            tipo=Pensum.PASANTIA_LARGA,
         )
-        plan_base.save()
+        pensum_bd.save()
         print "Info! Creado el Plan."
 
-    cargarMaterias(getSheet(doc, 'materias'), plan_base)
+    cargarMaterias(getSheet(doc, 'materias_obligatorias_datos'))
     print "Cargadas Materias!"
-    cargarPrerequisitos(getSheet(doc, 'prerequisitos'), plan_base)
+    cargarOrdenMaterias(getSheet(doc, 'orden_materias'), pensum_bd)
+    print "Cargado Orden!"
+    cargarPrerequisitos(getSheet(doc, 'prerequisitos'), pensum_bd)
     print "Cargados Prerrequisitos!"
-    cargarCorrequisitos(getSheet(doc, 'correquisitos'), plan_base)
+    cargarCorrequisitos(getSheet(doc, 'correquisitos'), pensum_bd)
     print "Cargados Correquisitos!"
-    cargarOpcionales(getSheet(doc, 'opcionales'), plan_base)
+    cargarOpcionales(getSheet(doc, 'opcionales'), pensum_bd)
     print "Cargados Opcionales!"

@@ -2,13 +2,16 @@ from HTMLParser import HTMLParser
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from api_misvoti.models import MateriaBase, TrimestrePlaneado, MateriaPlaneada, MiVotiUser
+from api_misvoti.models import MateriaBase, TrimestrePlaneado, MateriaPlaneada, MiVotiUser, RelacionMateriaPensumBase, \
+    TrimestrePensum
 
 ##
 # Se ocupa de parsear el expediente
 # Primero parsea el html creando estructuras MateriaDatosModelo y TrimestreDatosModelo
 # Luego se debe llamar a crear_modelos_desde_resultado_parser el cual crea las estructuras en la BD
 # Se hace separado para evitar problemas tales como so ocurre un error en el parser no afecte a la BD
+from planeador.codigo_departamentos import *
+
 
 class MateriaDatosModelo:
     def __init__(self):
@@ -87,13 +90,13 @@ class MyHTMLParser(HTMLParser):
             self.nombre_trimestre = data
 
             if "ENERO" in data:
-                per_actual = TrimestrePlaneado.ENERO_MARZO
+                per_actual = TrimestrePensum.ENERO_MARZO
             elif "ABRIL" in data:
-                per_actual = TrimestrePlaneado.ABRIL_JULIO
+                per_actual = TrimestrePensum.ABRIL_JULIO
             elif "SEPTIEMBRE" in data:
-                per_actual = TrimestrePlaneado.SEPTIEMBRE_DICIEMBRE
+                per_actual = TrimestrePensum.SEPTIEMBRE_DICIEMBRE
             else:
-                per_actual = TrimestrePlaneado.JULIO_AGOSTO
+                per_actual = TrimestrePensum.JULIO_AGOSTO
 
             self.es_nombre_trimestre = False
 
@@ -102,10 +105,10 @@ class MyHTMLParser(HTMLParser):
 
 
         elif self.es_codigo_materia:
-            self.materia.codigo = data.lower()
+            self.materia.codigo = data
             self.es_codigo_materia = False
         elif self.es_nombre_materia:
-            self.materia.nombre = unicode(data.strip(), 'ISO-8859-1').lower()
+            self.materia.nombre = unicode(data.strip(), 'ISO-8859-1').title()
             self.es_nombre_materia = False
         elif self.es_creditos_materia:
             self.materia.creditos = data
@@ -131,32 +134,62 @@ def parser_html(archivo_subido):
 
 
 def crear_modelos_desde_resultado_parser(resultado_parser, plan_modelo_ref):
-    for trimestre in resultado_parser:
+
+    for trimestre_clase in resultado_parser:
         trimestre_actualmd = TrimestrePlaneado(
-            periodo=trimestre.periodo,
-            anyo=trimestre.anyo,
+            periodo=trimestre_clase.periodo,
+            anyo=trimestre_clase.anyo,
             planestudio_pert_fk=plan_modelo_ref,
         )
         trimestre_actualmd.save()
 
-        for materia in trimestre.materias:
-            print trimestre.periodo + " " + trimestre.anyo + " " + materia.codigo
+        for materia_clase in trimestre_clase.materias:
+            creada = False
+            tipo_materia = RelacionMateriaPensumBase.REGULAR
+
             try:
-                MateriaBase.objects.get(codigo = materia.codigo)
+                materia_base = MateriaBase.objects.get(codigo = materia_clase.codigo)
             except ObjectDoesNotExist:
-                MateriaBase(
-                    nombre=materia.nombre,
-                    codigo=materia.codigo,
-                    creditos=materia.creditos,
-                ).save()
+                materia_base = MateriaBase(
+                    nombre=materia_clase.nombre,
+                    codigo=materia_clase.codigo,
+                    creditos=materia_clase.creditos,
+                )
+                materia_base.save()
+                creada = True
+
+            relacion_con_pensum = None
+            if not creada:
+                try:
+                    relacion_con_pensum = RelacionMateriaPensumBase(pensum = plan_modelo_ref.pensum,materia_base = materia_base)
+                except ObjectDoesNotExist:
+                    pass
+
+            if relacion_con_pensum:
+                tipo_materia = relacion_con_pensum.tipo_materia
+            else:
+                if es_general_codigo(materia_clase.codigo):
+                    tipo_materia = RelacionMateriaPensumBase.GENERAL
+                else:
+                    tipo_materia = RelacionMateriaPensumBase.ELECTIVA_LIBRE
 
             materiaplan_nueva = MateriaPlaneada(
-                nombre=materia.nombre,
-                codigo=materia.codigo,
-                creditos=materia.creditos,
-                nota_final=materia.nota,
-                esta_retirada=materia.esta_retirada,
+
+                nombre=materia_base.nombre,
+                codigo=materia_base.codigo,
+                creditos=materia_base.creditos,
+
+                horas_teoria=materia_base.horas_teoria,
+                horas_practica=materia_base.horas_practica,
+                horas_laboratorio=materia_base.horas_laboratorio,
+
+                nota_final=materia_clase.nota,
+                esta_retirada=materia_clase.esta_retirada,
+
                 trimestre_cursada_fk=trimestre_actualmd,
+
+                tipo = tipo_materia,
             )
+
             materiaplan_nueva.save()
 

@@ -63,7 +63,7 @@ class CarreraUsb(models.Model):
 ## Plan de estudio base que un usuario puede utilizar para crear sus planes
 # Notar que no se guarda más información referente al plan solo que este existe
 # Sus detalles se guardarán en otro lugar
-class PlanEstudioBase(models.Model):
+class Pensum(models.Model):
     PASANTIA_LARGA = 'PA'
     PROYECTO_GRADO = 'PG'
     NO_DEFINIDO = 'ND'
@@ -89,7 +89,7 @@ class PlanEstudioBase(models.Model):
 
 
     def get_nombre_tipo_plan(self):
-        for n,v in PlanEstudioBase.TIPO_PLAN:
+        for n,v in Pensum.TIPO_PLAN:
             if n == self.tipo:
                 return v
 
@@ -103,7 +103,7 @@ class PlanEstudioBase(models.Model):
 # Un usuario puede crear multiples planes
 class PlanCreado(models.Model):
     nombre = models.CharField(max_length=200)
-    plan_estudio_base_fk = models.ForeignKey(PlanEstudioBase)
+    pensum = models.ForeignKey(Pensum)
     usuario_creador_fk = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name="planes_creados")
 
     def __str__(self):
@@ -208,22 +208,14 @@ class TrimestrePensum(models.Model):
         default=SEPTIEMBRE_DICIEMBRE,
     )
     indice_orden = models.IntegerField(default=0)
-    planestudio_pert_fk = models.ForeignKey(PlanEstudioBase, on_delete=models.CASCADE,
-                                            related_name="trimestres_base")
-    objects = TrimestreManager()
-
-    ## Compara dos trimestres
-    ## Regresa 0 si ambos trimestres son iguales/tienen el mismo nivel en el orden
-    ## -1 si el trimestre self es menor /debe estar ordenado en un menor nivel que other
-    ##  1 si el trimestre self es mayor/ debe estar en un nivel más alto que other
-    ## Basicamente,
-    ## 0  => self = other
-    ## -1 => self < other
-    ##  1 => self > other
-    def __cmp__(self, other):
-        return self.indice_orden - other.indice_orden
+    pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE,
+                               related_name="trimestres_base")
 
     def __str__(self):
+        # return self.periodo + " " + self.anyo + str(self.planestudio_pert_fk) + ")"
+        return "{0} {1} | {2}".format(self.periodo, self.indice_orden, self.planestudio_pert_fk)
+
+    def __unicode__(self):
         # return self.periodo + " " + self.anyo + str(self.planestudio_pert_fk) + ")"
         return "{0} {1} | {2}".format(self.periodo, self.indice_orden, self.planestudio_pert_fk)
 
@@ -285,24 +277,18 @@ class TrimestrePlaneado(models.Model):
         verbose_name = "trimestre creado"
         verbose_name_plural = "trimestres creados"
 
-
-
-## Representa una materia dictada en la USB
-## Notar que no está enlazada a ningún plan o usuario
-## Contiene datos generales de las materias que serán usados para crear MateriaPlaneada
-## Cuando se cargan datos desde un expediente se crean estas materias bases
-class MateriaBase(models.Model):
-    POSIBLES_CREDITOS = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'))
-
+class RelacionMateriaPensumBase(models.Model):
     GENERAL = 'GE'
     ELECTIVA_LIBRE = 'EL'
     ELECTIVA_DE_AREA = 'EA'
     REGULAR = 'RG'
+    EXTRAPLAN = 'EX'
     POSIBLES_TIPOS = (
         (REGULAR, 'Regular'),
         (GENERAL, 'General'),
         (ELECTIVA_LIBRE, 'Electiva libre'),
-        (ELECTIVA_DE_AREA, 'Electiva de Area')
+        (ELECTIVA_DE_AREA, 'Electiva de Area'),
+        (EXTRAPLAN, 'Extraplan'),
     )
 
     tipo_materia = models.CharField(
@@ -310,24 +296,34 @@ class MateriaBase(models.Model):
         choices=POSIBLES_TIPOS,
         default=REGULAR,
     )
+    trimestre_pensum = models.ForeignKey(TrimestrePensum, on_delete=models.CASCADE,null=True)
+    pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE)
+    materia_base = models.ForeignKey('MateriaBase', on_delete=models.CASCADE, null=True)
 
-    trimestre_plan_pensum = models.ForeignKey(TrimestrePlaneado, on_delete=models.CASCADE,related_name="materias_bases",null=True)
+
+## Representa una materia dictada en la USB
+## Notar que no está enlazada a ningún plan o usuario
+## Contiene datos generales de las materias que serán usados para crear MateriaPlaneada
+## Cuando se cargan datos desde un expediente se crean estas materias bases
+class MateriaBase(models.Model):
+
+    POSIBLES_CREDITOS = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'))
 
     nombre = models.CharField(max_length=200,blank=True)
     codigo = models.CharField(max_length=10,blank=True,help_text="Por favor use el siguiente formato: <em>XXX-YYYY</em>.")
     creditos = models.CharField(
         max_length=1,
         choices=POSIBLES_CREDITOS,
-        default='1',
+        default='3',
     )
     horas_teoria = models.IntegerField(default=0)
     horas_practica = models.IntegerField(default=0)
     horas_laboratorio = models.IntegerField(default=0)
 
     def __str__(self):
-        return "{0} - {1}".format(self.codigo,self.nombre)
+        return "{0} - {1}({2})".format(self.codigo,self.nombre,self.tipo_materia)
     def __unicode__(self):
-        return "{0} - {1}".format(self.codigo,self.nombre)
+        return "{0} - {1}({2})".format(self.codigo,self.nombre,self.tipo_materia)
 
     class Meta:
         verbose_name = "materia base"
@@ -339,25 +335,28 @@ class MateriaBase(models.Model):
 # con el mismo código
 class MateriaPlaneada(models.Model):
     POSIBLES_NOTAS = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'))
-    POSIBLES_TIPOS = (('RG', 'Regular'), ('EX', 'Extraplan'), ('EL', 'Electiva libre'), ('EA', 'Electiva de Area'))
     trimestre_cursada_fk = models.ForeignKey(TrimestrePlaneado, on_delete=models.CASCADE,related_name="materias_planeadas")
     nombre = models.CharField(max_length=200,blank=True)
     codigo = models.CharField(max_length=10,blank=True,help_text="Por favor use el siguiente formato: <em>XXX-YYYY</em>.")
     creditos = models.CharField(
         max_length=1,
         choices=MateriaBase.POSIBLES_CREDITOS,
-        default='1',
+        default='3',
     )
     tipo = models.CharField(
         max_length=2,
-        choices=POSIBLES_TIPOS,
-        default='RG',
+        choices=RelacionMateriaPensumBase.POSIBLES_TIPOS,
+        default=RelacionMateriaPensumBase.REGULAR,
     )
     nota_final = models.CharField(
         max_length=1,
         choices=POSIBLES_NOTAS,
-        default='1',
+        default='5',
     )
+    horas_teoria = models.IntegerField(default=0)
+    horas_practica = models.IntegerField(default=0)
+    horas_laboratorio = models.IntegerField(default=0)
+
     esta_retirada = models.BooleanField(default=False)
 
 
@@ -379,8 +378,8 @@ class RelacionMateriaPrerrequisito(models.Model):
     QUINTO_A_APRO = '5A'
     materia_cursar = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_cursar")
 
-    pensum = models.ForeignKey(PlanEstudioBase,on_delete=models.CASCADE)
-    tipo = models.CharField(
+    pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE)
+    tipo_prerrequisito = models.CharField(
         max_length=2,
         choices=(
             (MATERIA_REQUISITO,'Materia'),
@@ -399,6 +398,9 @@ class RelacionMateriaPrerrequisito(models.Model):
     def __str__(self):
         return "({0}) -> ({1})".format(self.materia_cursar,self.materia_requerida)
 
+    def __unicode__(self):
+        return "({0}) -> ({1})".format(self.materia_cursar,self.materia_requerida)
+
     class Meta:
         verbose_name = "requisito"
         verbose_name_plural = "requisitos"
@@ -406,9 +408,11 @@ class RelacionMateriaPrerrequisito(models.Model):
 class RelacionMateriasCorrequisito(models.Model):
     materia_cursar_junta_a = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_cursar_junta_a")
     materia_cursar_junta_b = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_cursar_junta_b")
-    pensum = models.ForeignKey(PlanEstudioBase,on_delete=models.CASCADE)
+    pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE)
 
     def __str__(self):
+        return "({0}) <-> ({1})".format(self.materia_cursar_junta_a,self.materia_cursar_junta_b)
+    def __unicode__(self):
         return "({0}) <-> ({1})".format(self.materia_cursar_junta_a,self.materia_cursar_junta_b)
 
     class Meta:
@@ -417,14 +421,17 @@ class RelacionMateriasCorrequisito(models.Model):
         unique_together = ('materia_cursar_junta_a','materia_cursar_junta_b')
 
 class RelacionMateriaOpcional(models.Model):
-    materia_opcional_a = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_opcional_a")
-    materia_opcional_b = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_opcional_b")
-    pensum = models.ForeignKey(PlanEstudioBase,on_delete=models.CASCADE)
+    materia_primera_opcion = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_primera_opcion")
+    materia_segunda_opcion = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_segunda_opcion")
+    pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "({0}) o ({1})".format(self.materia_cursar,self.materia_requerida)
+        return "({0}) o ({1})".format(self.materia_primera_opcion,self.materia_segunda_opcion)
+    def __unicode__(self):
+        return "({0}) o ({1})".format(self.materia_primera_opcion,self.materia_segunda_opcion)
 
     class Meta:
         verbose_name = "relacion materia opcional"
         verbose_name_plural = "relaciones de materias opcionales"
-        unique_together = ('materia_opcional_a','materia_opcional_b')
+        unique_together = ('materia_primera_opcion','materia_segunda_opcion')
+
