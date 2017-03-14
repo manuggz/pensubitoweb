@@ -39,8 +39,8 @@ def cargarMaterias(sheet):
                 MateriaBase.objects.get(codigo=materia_dict['codigo'])
             except ObjectDoesNotExist:
                 materia_bd = MateriaBase(
-                    nombre = materia_dict.get('nombre',''),
-                    codigo = materia_dict.get('codigo',''),
+                    nombre = materia_dict.get('nombre','').title(),
+                    codigo = materia_dict.get('codigo','').upper(),
                     creditos= materia_dict.get('creditos',''),
                     horas_teoria=int(materia_dict.get('horas teoria',0)),
                     horas_practica =int(materia_dict.get('horas practica',0)),
