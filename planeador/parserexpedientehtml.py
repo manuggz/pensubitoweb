@@ -2,8 +2,7 @@ from HTMLParser import HTMLParser
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from api_misvoti.models import MateriaBase, TrimestrePlaneado, MateriaPlaneada, MiVotiUser, RelacionMateriaPensumBase, \
-    TrimestrePensum
+from api_misvoti.models import MateriaBase,MiVotiUser, RelacionMateriaPensumBase, TrimestrePensum
 
 ##
 # Se ocupa de parsear el expediente
@@ -133,63 +132,66 @@ def parser_html(archivo_subido):
     return parser.trimestres
 
 
-def crear_modelos_desde_resultado_parser(resultado_parser, plan_modelo_ref):
+def crear_modelos_desde_resultado_parser(dict_nuevo_plan,resultado_parser):
+
+    l_trims = []
 
     for trimestre_clase in resultado_parser:
-        trimestre_actualmd = TrimestrePlaneado(
-            periodo=trimestre_clase.periodo,
-            anyo=trimestre_clase.anyo,
-            planestudio_pert_fk=plan_modelo_ref,
-        )
-        trimestre_actualmd.save()
+
+        dict_trim = {
+            'periodo':trimestre_clase.periodo,
+            'anyo': trimestre_clase.anyo,
+        }
+
+        l_mats = []
 
         for materia_clase in trimestre_clase.materias:
-            creada = False
-            tipo_materia = RelacionMateriaPensumBase.REGULAR
+
+            dict_mat = {
+                'nombre':materia_clase.nombre,
+                'codigo': materia_clase.codigo,
+                'creditos': materia_clase.creditos,
+                'nota_final' : materia_clase.nota,
+                'esta_retirada':materia_clase.esta_retirada,
+                'tipo':RelacionMateriaPensumBase.REGULAR
+            }
 
             try:
                 materia_base = MateriaBase.objects.get(codigo = materia_clase.codigo)
             except ObjectDoesNotExist:
-                materia_base = MateriaBase(
-                    nombre=materia_clase.nombre,
-                    codigo=materia_clase.codigo,
-                    creditos=materia_clase.creditos,
-                )
-                materia_base.save()
-                creada = True
+                materia_base = None
 
             relacion_con_pensum = None
-            if not creada:
+
+            if materia_base:
                 try:
-                    relacion_con_pensum = RelacionMateriaPensumBase(pensum = plan_modelo_ref.pensum,materia_base = materia_base)
+                    relacion_con_pensum = RelacionMateriaPensumBase(
+                        pensum_id = dict_nuevo_plan['id_pensum'],
+                        materia_base = materia_base
+                    )
                 except ObjectDoesNotExist:
                     pass
 
             if relacion_con_pensum:
-                tipo_materia = relacion_con_pensum.tipo_materia
+                dict_mat['tipo'] = relacion_con_pensum.tipo_materia
             else:
                 if es_general_codigo(materia_clase.codigo):
-                    tipo_materia = RelacionMateriaPensumBase.GENERAL
+                    dict_mat['tipo'] = RelacionMateriaPensumBase.GENERAL
                 else:
-                    tipo_materia = RelacionMateriaPensumBase.ELECTIVA_LIBRE
+                    dict_mat['tipo'] = RelacionMateriaPensumBase.ELECTIVA_LIBRE
 
-            materiaplan_nueva = MateriaPlaneada(
+            if materia_base:
+                dict_mat.update({
+                    'horas_teoria':materia_base.horas_teoria,
+                    'horas_practica':materia_base.horas_practica,
+                    'horas_laboratorio':materia_base.horas_laboratorio,
+                })
 
-                nombre=materia_base.nombre,
-                codigo=materia_base.codigo,
-                creditos=materia_base.creditos,
+            l_mats.append(dict_mat)
 
-                horas_teoria=materia_base.horas_teoria,
-                horas_practica=materia_base.horas_practica,
-                horas_laboratorio=materia_base.horas_laboratorio,
 
-                nota_final=materia_clase.nota,
-                esta_retirada=materia_clase.esta_retirada,
+        dict_trim['materias'] = l_mats
 
-                trimestre_cursada_fk=trimestre_actualmd,
+        l_trims.append(dict_trim)
 
-                tipo = tipo_materia,
-            )
-
-            materiaplan_nueva.save()
-
+    dict_nuevo_plan['trimestres'] = l_trims

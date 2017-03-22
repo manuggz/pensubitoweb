@@ -4,7 +4,7 @@ import datetime
 ## Form utilizado para cuando se va a crear un nuevo plan
 from django.forms import forms, CharField, ChoiceField, BooleanField, CheckboxInput
 
-from api_misvoti.models import CarreraUsb, Pensum, TrimestrePlaneado
+from api_misvoti.models import CarreraUsb, Pensum
 
 
 class CrearNuevoPlanForm(forms.Form):

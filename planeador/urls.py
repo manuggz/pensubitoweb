@@ -31,10 +31,10 @@ urlpatterns = [
     url(r'^planes/$', views.planes_vista, name='planes'),
 
     # Pagina para ver un plan en especifico
-    url(r'^planes/(?P<nombre_plan>.*)/$', views.plan_vista, name='ver_plan'),
+    url(r'^mi_plan/$', views.plan_vista, name='ver_plan'),
 
     # Pagina para crear un nuevo plan
-    url(r'^nuevo_plan/$', views.crear_plan_vista, name='crear_plan'),
+    url(r'^crear_plan/$', views.crear_plan_vista, name='crear_plan'),
 
     # Para probar cualquier cosa
     url(r'^__test/$', views.__test, name='__test'),

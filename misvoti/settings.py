@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'misvoti',
-    'planeador',
+    'planeador.apps.PlaneadorConfig',
     'api_misvoti',
     'rest_framework',
 ]

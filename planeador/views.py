@@ -1,4 +1,6 @@
 # coding=utf-8
+import json
+import os
 from urllib import quote
 import ssl
 import urllib2
@@ -6,10 +8,12 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
@@ -18,8 +22,10 @@ from planeador.busqueda_bd import refinarBusqueda
 from planeador.cargar_pensum_desde_ods import cargar_pensum_ods
 from planeador.crear_plan_usuario_desde_pensum import llenar_plan_con_pensum_escogido
 from planeador.forms import CrearNuevoPlanForm
+from planeador.gdrive_namespaces import ID_DRIVE_CARPETA_MIS_VOTI
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 from planeador.usbldap import obtener_datos_desde_ldap, random_password
+
 
 
 # Vista para los usuarios no registrados
@@ -146,6 +152,7 @@ def login_cas(request):
 # TODO: Mover al Api el POST por Ajax
 @login_required
 def crear_plan_vista(request):
+
     context = {"planes_activo": "active"}
 
     if request.method == 'POST':
@@ -154,50 +161,60 @@ def crear_plan_vista(request):
 
         if form.is_valid():
 
-            print form.cleaned_data['construir_usando_pb']
             nombre_nuevo_plan = form.cleaned_data["nombre_plan"]
             context["nombre_plan"] = nombre_nuevo_plan
             context["errors"] = {"nombre_plan": [], "carrera_plan": [], 'plan_utilizar': []}
-            if PlanCreado.objects.filter(nombre=nombre_nuevo_plan).exists():
-                context["errors"]["nombre_plan"].append("¡Ya existe un plan con ese nombre!")
-            else:
-                try:
-                    carrera_plan_bd = CarreraUsb.objects.get(codigo=form.cleaned_data["carrera_plan"])
-                except ObjectDoesNotExist:
-                    context["errors"]["carrera_plan"].append("¡La carrera seleccionada no existe!")
-                    return JsonResponse(context)
 
-                try:
-                    pensum_escogido = Pensum.objects.get(
-                        carrera=carrera_plan_bd,
-                        tipo=form.cleaned_data["plan_utilizar"]
-                    )
-                except ObjectDoesNotExist:
-                    context["errors"]["plan_utilizar"].append("¡El pensum seleccionado no existe!")
-                    return JsonResponse(context)
+            try:
+                carrera_plan_bd = CarreraUsb.objects.get(codigo=form.cleaned_data["carrera_plan"])
+            except ObjectDoesNotExist:
+                context["errors"]["carrera_plan"].append("¡La carrera seleccionada no existe!")
+                return JsonResponse(context)
 
-                nuevo_plan = PlanCreado(
-                    nombre=nombre_nuevo_plan,
-                    usuario_creador_fk=request.user,
-                    pensum=pensum_escogido
+            try:
+                pensum_escogido = Pensum.objects.get(
+                    carrera=carrera_plan_bd,
+                    tipo=form.cleaned_data["plan_utilizar"]
                 )
-                nuevo_plan.save()
+            except ObjectDoesNotExist:
+                context["errors"]["plan_utilizar"].append("¡El pensum seleccionado no existe!")
+                return JsonResponse(context)
 
-                #periodo_inicio_usu = form.cleaned_data['periodo_inicio']
-                periodo_inicio_usu = ''
-                anyo_inicio_usu = form.cleaned_data['anyo_inicio']
+            dict_nuevo_plan = {
+                'nombre':nombre_nuevo_plan,
+                #usuario_creador_fk=request.user,
+                'id_pensum':pensum_escogido.id,
 
-                if form.cleaned_data["archivo_html_expediente"]:
-                    # Parseamos el html
-                    crear_modelos_desde_resultado_parser(
-                        parser_html(request.FILES['archivo_html_expediente']),
-                        nuevo_plan,
-                    )
-                else:
-                    if form.cleaned_data['construir_usando_pb']:
-                        llenar_plan_con_pensum_escogido(nuevo_plan,periodo_inicio_usu,anyo_inicio_usu)
+            }
 
-                context["esta_creado_plan"] = True
+            #periodo_inicio_usu = form.cleaned_data['periodo_inicio']
+            periodo_inicio_usu = ''
+            anyo_inicio_usu = form.cleaned_data['anyo_inicio']
+
+            if form.cleaned_data["archivo_html_expediente"]:
+
+                # Parseamos el html
+                crear_modelos_desde_resultado_parser(
+                    dict_nuevo_plan,
+                    parser_html(request.FILES['archivo_html_expediente']),
+                )
+            else:
+                if form.cleaned_data['construir_usando_pb']:
+                    llenar_plan_con_pensum_escogido(dict_nuevo_plan,periodo_inicio_usu,anyo_inicio_usu)
+
+            gdrive_file = apps.get_app_config('planeador').g_drive.CreateFile({'title': request.user.username + '_plan', 'parents': [
+                {
+                    "kind": "drive#parentReference",
+                    'id': ID_DRIVE_CARPETA_MIS_VOTI
+                }
+            ]})
+            gdrive_file.SetContentString(json.dumps(dict_nuevo_plan))
+            gdrive_file.Upload()  # Upload the file.
+
+            request.user.gdrive_id_json_plan = gdrive_file['id']
+            request.user.save()
+
+            context["esta_creado_plan"] = True
         else:
             context["errors"] = form.errors
 
@@ -214,15 +231,33 @@ def crear_plan_vista(request):
 # Muestra los datos de un plan creado por el usuario
 # La vista se puede editar
 @login_required
-def plan_vista(request, nombre_plan):
+def plan_vista(request):
+
     context = {"planes_activo": "active"}
-    plan_estudio_modelo_ref = get_object_or_404(PlanCreado, usuario_creador_fk=request.user, nombre=nombre_plan)
 
-    context["plan"] = plan_estudio_modelo_ref
-    context['periodos'] = [(p[0], p[1]) for p in TrimestrePensum.PERIODOS_USB]
-    context["anyos"] = [(anyo, anyo) for anyo in xrange(1993, 2030)]
+    if not request.user.gdrive_id_json_plan:
+        raise Http404('No has creado un plan aun :(')
+    else:
 
-    return render(request, 'planeador/ver_plan.html', context)
+        ruta_local = os.path.join('planes_json_cache',request.user.gdrive_id_json_plan)
+        if os.path.exists(ruta_local):
+
+            archivo = open(ruta_local)
+            dict_plan = json.loads(archivo.read())
+            archivo.close()
+
+        else:
+            archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile({'id': request.user.gdrive_id_json_plan})
+            archivo_plan_json.GetContentFile(ruta_local)
+
+            dict_plan = json.loads(archivo_plan_json.GetContentString())
+
+
+        context["plan"] = dict_plan
+        context['periodos'] = [(p[0], p[1]) for p in TrimestrePensum.PERIODOS_USB]
+        context["anyos"] = [(anyo, anyo) for anyo in xrange(1993, 2030)]
+
+        return render(request, 'planeador/ver_plan.html', context)
 
 
 ###
@@ -277,20 +312,20 @@ def materias_vista(request):
         if n_agregados == max_length:
             return JsonResponse(context)
 
-        n_agregados = refinarBusqueda(
-            nombre_materia,
-            codigo_materia,
-            max_length,
-            res_exacto,
-            (lambda mat_bd: lista_excluidos.count(mat_bd.codigo)),
-            (lambda mat_bd: lista_excluidos.append(mat_bd.codigo)),
-            MateriaPlaneada.objects.all(),
-            context["materias"],
-            n_agregados
-        )
-
-        if n_agregados == max_length:
-            return JsonResponse(context)
+        # n_agregados = refinarBusqueda(
+        #     nombre_materia,
+        #     codigo_materia,
+        #     max_length,
+        #     res_exacto,
+        #     (lambda mat_bd: lista_excluidos.count(mat_bd.codigo)),
+        #     (lambda mat_bd: lista_excluidos.append(mat_bd.codigo)),
+        #     MateriaPlaneada.objects.all(),
+        #     context["materias"],
+        #     n_agregados
+        # )
+        #
+        # if n_agregados == max_length:
+        #     return JsonResponse(context)
 
     return JsonResponse(context)
 
@@ -302,12 +337,12 @@ def planes_vista(request):
 
     context["planes"] = []
     n_planes = 0
-    for plan_bd in PlanCreado.objects.filter(usuario_creador_fk=request.user):
-        plan_ctx = {'nombre': plan_bd.nombre, 'id': plan_bd.id}
-        plan_ctx['datos'] = plan_bd.obtener_datos_analisis()
-
-        context["planes"].append(plan_ctx)
-        n_planes += 1
+    # for plan_bd in PlanCreado.objects.filter(usuario_creador_fk=request.user):
+    #     plan_ctx = {'nombre': plan_bd.nombre, 'id': plan_bd.id}
+    #     plan_ctx['datos'] = plan_bd.obtener_datos_analisis()
+    #
+    #     context["planes"].append(plan_ctx)
+    #     n_planes += 1
 
     context["n_planes"] = n_planes
 
@@ -319,3 +354,5 @@ def __test(request):
     cargar_pensum_ods("Ingeniería de Computación",'0800','planeador/static/planeador/pensums/pensum_0800_pa_2013.ods')
 
     return HttpResponse('¡Testeado!')
+
+

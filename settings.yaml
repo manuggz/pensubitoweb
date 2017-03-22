@@ -1,0 +1,4 @@
+client_config_file: planeador/static/planeador/others/client_secret.json
+save_credentials: True
+save_credentials_backend: file
+save_credentials_file: planeador/static/planeador/others/credentials.cred
