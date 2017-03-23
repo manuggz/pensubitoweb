@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework import permissions
 
 from api_misvoti.permissions import EsCreadorPlanOAdmin, EsElMismo
-from api_misvoti.serializers import UserSerializer, PlanEstudioSerializer
+from api_misvoti.serializers import UserSerializer
 from api_misvoti.models import MiVotiUser
 from api_misvoti.serializer_plan_estudio import PlanEstudioUsuarioSerializer
 
@@ -85,55 +85,4 @@ def user_plan(request,username):
         request.user.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-# class PlanesCreadosList(generics.ListCreateAPIView):
-#     model = PlanCreado
-#     queryset = PlanCreado.objects.all().order_by('usuario_creador_fk')
-#     serializer_class = PlanEstudioSerializer
-#     permission_classes = [
-#         permissions.IsAuthenticated,EsCreadorPlanOAdmin
-#     ]
-#
-#     def get_queryset(self):
-#         queryset = super(PlanesCreadosList, self).get_queryset()
-#         if not (self.request.user and is_authenticated(self.request.user)) or not self.request.user.is_staff:
-#             raise PermissionDenied()
-#
-#         return queryset
-#
-#
-# class PlanesCreadosDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = PlanCreado.objects.all()
-#     serializer_class = PlanEstudioSerializer
-#     permission_classes = [
-#         permissions.IsAuthenticated,EsCreadorPlanOAdmin
-#     ]
-#
-#
-# class PlanesCreadosTriList(generics.ListAPIView):
-#     model = TrimestrePlaneado
-#     queryset = TrimestrePlaneado.objects.all()
-#     serializer_class = TrimestreCreadoSerializer
-#     permission_classes = [
-#         permissions.IsAuthenticated,EsCreadorPlanOAdmin
-#     ]
-#
-#     def get_queryset(self):
-#         queryset = super(PlanesCreadosTriList, self).get_queryset()
-#         return queryset.filter(planestudio_pert_fk__pk=self.kwargs.get('pk'))
-#
-# class TrimestresCreadosList(generics.ListCreateAPIView):
-#     model = TrimestrePlaneado
-#     queryset = TrimestrePlaneado.objects.all().order_by('planestudio_pert_fk')
-#     serializer_class = TrimestreCreadoSerializer
-#     permission_classes = [
-#         permissions.IsAuthenticated,EsCreadorPlanOAdmin
-#     ]
-#
-#
-# class TrimestresCreadosDetail(generics.RetrieveUpdateDestroyAPIView):
-#     model = TrimestrePlaneado
-#     queryset = TrimestrePlaneado.objects.all()
-#     serializer_class = TrimestreCreadoSerializer
-#     permission_classes = [
-#         permissions.IsAuthenticated,EsCreadorPlanOAdmin
-#     ]
+

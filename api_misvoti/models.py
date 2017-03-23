@@ -1,7 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -101,95 +100,6 @@ class Pensum(models.Model):
         verbose_name_plural = "planes de estudio bases"
         unique_together = (("carrera", "tipo"),)
 
-#
-# ## Plan de estudio creado por el usuario
-# # Un usuario puede crear multiples planes
-# class PlanCreado(models.Model):
-#     nombre = models.CharField(max_length=200)
-#     pensum = models.ForeignKey(Pensum)
-#     usuario_creador_fk = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name="planes_creados")
-#
-#     def __str__(self):
-#         return "Plan: '{0}' - Creador:{1}".format(self.nombre,self.usuario_creador_fk)
-#
-#     def obtener_datos_analisis(self):
-#         suma_nota_cred = 0
-#         creds_inscri = 0
-#         creds_ret = 0
-#         creds_apro = 0
-#         creds_repro = 0
-#         creds_cont = 0
-#         n_retiros = 0
-#         materias_vistas = {}
-#         trimestres_bd = TrimestrePlaneado.objects.filter(planestudio_pert_fk=self)
-#         for trimestre_bd in trimestres_bd:
-#             sum_nota_creds_trimact = 0
-#             cred_cont_trimact = 0
-#
-#             for materia in MateriaPlaneada.objects.filter(trimestre_cursada_fk=trimestre_bd):
-#
-#                 cred_materia = int(materia.creditos)
-#                 nota_final = int(materia.nota_final)
-#
-#                 creds_inscri += cred_materia
-#
-#                 if not materia.esta_retirada:
-#
-#                     if nota_final <= 2:
-#                         creds_repro += cred_materia
-#                     else:
-#                         resultados_anteriores = materias_vistas.get(materia.codigo)
-#                         resultado_eliminar = 0
-#
-#                         if resultados_anteriores:
-#                             for resultado in resultados_anteriores:
-#                                 if int(resultado.nota_final) <= 2 and not resultado.esta_retirada:
-#                                     resultado_eliminar = int(resultado.nota_final)
-#
-#                         if resultado_eliminar != 0:
-#                             creds_cont -= cred_materia
-#                             suma_nota_cred -= resultado_eliminar * cred_materia
-#
-#                         creds_apro += cred_materia
-#
-#                     sum_nota_creds_trimact += nota_final * cred_materia
-#                     cred_cont_trimact += cred_materia
-#
-#                 else:
-#                     creds_ret += cred_materia
-#                     n_retiros += 1
-#
-#                 if not materias_vistas.get(materia.codigo):
-#                     materias_vistas[materia.codigo] = [materia]
-#                 else:
-#                     materias_vistas[materia.codigo].append(materia)
-#
-#             suma_nota_cred += sum_nota_creds_trimact
-#             creds_cont += cred_cont_trimact
-#
-#         respuesta = {
-#             'indice': 0 if creds_cont == 0 else  round(suma_nota_cred / float(creds_cont), 4),
-#             'creds_inscri': creds_inscri,
-#             'creds_ret': creds_ret,
-#             'creds_apro': creds_apro,
-#             'creds_repro': creds_repro,
-#             'n_trimestres': len(trimestres_bd),
-#             'n_retiros': n_retiros
-#         }
-#         return respuesta
-#
-#     class Meta:
-#         verbose_name = "Plan de estudio creado"
-#         verbose_name_plural = "Planes de estudio creados"
-#         unique_together = (("nombre", "usuario_creador_fk"),)
-
-
-## Manager para los trimestres
-class TrimestreManager(models.Manager):
-    # Regresa el filtro aplicado a los trimestres ordenados
-    def con_trimestres_ordenados(self, *args, **kwargs):
-        qs = self.get_queryset().filter(*args, **kwargs)
-        return sorted(qs)
 
 ## Representa un trimestre planeado por el usuario
 class TrimestrePensum(models.Model):
@@ -225,60 +135,6 @@ class TrimestrePensum(models.Model):
     class Meta:
         verbose_name = "trimestre pensum"
         verbose_name_plural = "trimestres pensums"
-
-
-## Representa un trimestre planeado por el usuario
-# class TrimestrePlaneado(models.Model):
-#     periodo = models.CharField(
-#         max_length=2,
-#         choices=TrimestrePensum.PERIODOS_USB,
-#         default=TrimestrePensum.SEPTIEMBRE_DICIEMBRE,
-#     )
-#     anyo = models.CharField(max_length=5)
-#     planestudio_pert_fk = models.ForeignKey(PlanCreado, on_delete=models.CASCADE,related_name="trimestres_planeados")
-#     objects = TrimestreManager()
-
-    ## Compara dos trimestres
-    ## Regresa 0 si ambos trimestres son iguales/tienen el mismo nivel en el orden
-    ## -1 si el trimestre self es menor /debe estar ordenado en un menor nivel que other
-    ##  1 si el trimestre self es mayor/ debe estar en un nivel más alto que other
-    ## Basicamente,
-    ## 0  => self = other
-    ## -1 => self < other
-    ##  1 => self > other
-    # def __cmp__(self, other):
-    #     if not isinstance(other, TrimestrePlaneado): return
-    #
-    #     if int(self.anyo) < int(other.anyo):
-    #         return -1
-    #     elif int(self.anyo) > int(other.anyo):
-    #         return 1
-    #     else:
-    #         if self.periodo == other.periodo:
-    #             return 0
-    #         else:
-    #             if self.periodo == TrimestrePlaneado.ENERO_MARZO:
-    #                 return -1
-    #             elif self.periodo == TrimestrePlaneado.ABRIL_JULIO:
-    #                 if other.periodo == TrimestrePlaneado.ENERO_MARZO:
-    #                     return 1
-    #                 else:
-    #                     return -1
-    #             elif self.periodo == TrimestrePlaneado.JULIO_AGOSTO:
-    #                 if other.periodo == TrimestrePlaneado.SEPTIEMBRE_DICIEMBRE:
-    #                     return -1
-    #                 else:
-    #                     return 1
-    #             elif self.periodo == TrimestrePlaneado.SEPTIEMBRE_DICIEMBRE:
-    #                 return 1
-    #
-    # def __str__(self):
-    #     #return self.periodo + " " + self.anyo + str(self.planestudio_pert_fk) + ")"
-    #     return "{0} {1} | {2}".format(self.periodo,self.anyo,self.planestudio_pert_fk)
-    #
-    # class Meta:
-    #     verbose_name = "trimestre creado"
-    #     verbose_name_plural = "trimestres creados"
 
 class RelacionMateriaPensumBase(models.Model):
     GENERAL = 'GE'
@@ -327,36 +183,7 @@ class MateriaBase(models.Model):
         verbose_name_plural = "materias bases"
 
 
-# Representa una materia con los datos particulares de cuando un usuario la va a cursar o la cursó
-# Puede contener datos arbitrarios de un usuario distintos a los almacenados en MateriaBase para la materia
-# con el mismo código
-# class MateriaPlaneada(models.Model):
-#     POSIBLES_NOTAS = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'))
-#     trimestre_cursada_fk = models.ForeignKey(TrimestrePlaneado, on_delete=models.CASCADE,related_name="materias_planeadas")
-#     nombre = models.CharField(max_length=200,blank=True)
-#     codigo = models.CharField(max_length=10,blank=True,help_text="Por favor use el siguiente formato: <em>XXX-YYYY</em>.")
-#     creditos = models.IntegerField(default=3)
-#     tipo = models.CharField(
-#         max_length=2,
-#         choices=RelacionMateriaPensumBase.POSIBLES_TIPOS,
-#         default=RelacionMateriaPensumBase.REGULAR,
-#     )
-#     nota_final = models.IntegerField(default=0)
-#     horas_teoria = models.IntegerField(default=0)
-#     horas_practica = models.IntegerField(default=0)
-#     horas_laboratorio = models.IntegerField(default=0)
-#
-#     esta_retirada = models.BooleanField(default=False)
-#
-#
-#     def __str__(self):
-#         return "{0} - {1} | {2}".format(self.codigo,self.nombre,self.trimestre_cursada_fk)
-#
-#     class Meta:
-#         verbose_name = "materia creada"
-#         verbose_name_plural = "materias creadas"
-
-
+## Indica una Relación de Prerrequisito donde para inscribir matera_a_cursar se debe cumplir con tipo_prerrequisito
 class RelacionMateriaPrerrequisito(models.Model):
     MATERIA_REQUISITO = 'MA'
     PERMISO_COORDINACION_REQUISITO = "PC"
@@ -394,6 +221,7 @@ class RelacionMateriaPrerrequisito(models.Model):
         verbose_name = "requisito"
         verbose_name_plural = "requisitos"
 
+## Indica que materias A y B son correquisitos por lo que se deben inscribir en el mismo trimestre
 class RelacionMateriasCorrequisito(models.Model):
     materia_cursar_junta_a = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_cursar_junta_a")
     materia_cursar_junta_b = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_cursar_junta_b")
@@ -409,6 +237,8 @@ class RelacionMateriasCorrequisito(models.Model):
         verbose_name_plural = "corequisitos"
         unique_together = ('materia_cursar_junta_a','materia_cursar_junta_b')
 
+## Indica que entre las materias A y B una de las dos se debe/puede inscribir en un trimestre
+## La primera opción es la escogida cuando se crea un pensum por default
 class RelacionMateriaOpcional(models.Model):
     materia_primera_opcion = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_primera_opcion")
     materia_segunda_opcion = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_segunda_opcion")
