@@ -100,7 +100,7 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     },
     'datos_pensum': {
-        'NAME': os.path.join(BASE_DIR, 'datos_pensum.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, '_datos_pensum.sqlite3'),
         'ENGINE': 'django.db.backends.sqlite3',
     }
 }
