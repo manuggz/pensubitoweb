@@ -33,7 +33,7 @@ from planeador.usbldap import obtener_datos_desde_ldap, random_password
 def index_vista(request):
     context = {}
     if request.user.is_authenticated():
-        return redirect('myhome')
+        return redirect('planes')
 
     if request.method == "POST":
         form = AuthenticationForm(data=request.POST)
