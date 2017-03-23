@@ -27,20 +27,30 @@ En comandos,
     $ pip install -r requirements.txt
     $ python manage.py makemigrations api_misvoti
     $ python manage.py migrate
+    $ python manage.py migrate --database datos_pensum
 
 ¡Listo! , para correr:
 
     $ python manage.py runserver
 
-## A considerar
+## Pasos siguientes
 
-###Crear una cuenta superusuario para iniciar sesión
+###Crear una cuenta superusuario
 
     $ python manage.py createsuperuser
 
-O puedes iniciar sesión por CAS
+Esta te permitirá acceder a la interfaz de administrador de Django:
 
-### Crear la BD del plan base de Ing. Computación
+    http://127.0.0.1:8000/admin/
+
+y para la Interfaz del Api:
+
+    http://127.0.0.1:8000/api/users/
+
+### Llenar la BD con el pensum de Ing. Computación
 
 Acceder a http://127.0.0.1:8000/crear_plan_base_test/
 
+
+## Autores
+- [Manuel González](https://github.com/manuggz)

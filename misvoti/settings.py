@@ -92,11 +92,13 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     },
-    'pensums': {
+    'datos_pensum': {
+        'NAME': os.path.join(BASE_DIR, 'datos_pensum.sqlite3'),
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'pensums.sqlite3'),
     }
 }
+
+DATABASE_ROUTERS = ['api_misvoti.ModelsRouter.ApiModelRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -129,7 +131,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-DATABASE_ROUTERS = []
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 

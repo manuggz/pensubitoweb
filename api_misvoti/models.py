@@ -174,10 +174,10 @@ class MateriaBase(models.Model):
     horas_laboratorio = models.IntegerField(default=0)
 
     def __str__(self):
-        return "{0} - {1}({2})".format(self.codigo, self.nombre, self.tipo_materia)
+        return "{0} - {1}".format(self.codigo, self.nombre)
 
     def __unicode__(self):
-        return "{0} - {1}({2})".format(self.codigo, self.nombre, self.tipo_materia)
+        return "{0} - {1}".format(self.codigo, self.nombre)
 
     class Meta:
         verbose_name = "materia base"
