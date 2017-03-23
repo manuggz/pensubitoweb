@@ -9,11 +9,11 @@ from api_misvoti.models import MiVotiUser, Pensum
 
 
 class UserSerializer(serializers.ModelSerializer):
-    planes_creados = serializers.PrimaryKeyRelatedField(read_only=True,many=True)
+    plan_json = serializers.StringRelatedField(source='gdrive_id_json_plan')
 
     class Meta:
         model = MiVotiUser
-        fields = ('username', 'forma_acceso', 'carnet', 'estan_cargados_datos_ldap', 'cedula', 'tipo', 'planes_creados')
+        fields = ('username', 'forma_acceso', 'carnet', 'estan_cargados_datos_ldap', 'cedula', 'tipo', 'plan_json')
 
 
 # class MateriaCreadaSerializer(serializers.ModelSerializer):
