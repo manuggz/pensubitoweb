@@ -15,17 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-from django.contrib import admin
+
 from planeador import views
-from django.contrib.auth import views as auth_views
 
 urlpatterns = [
 
     ## Página principal que veran los usuarios no registrados
-    url(r'^$', views.index_vista, name= 'home'),
+    url(r'^$', views.index_vista, name='home'),
 
     ## Home para los usuarios registrados que inicien sesión
-    url(r'^home/', views.home_vista, name= 'myhome'),
+    url(r'^home/', views.home_vista, name='myhome'),
 
     # Pagina para ver los planes
     url(r'^planes/$', views.ver_plan_vista_principal, name='planes'),
@@ -40,16 +39,12 @@ urlpatterns = [
     url(r'^crear_plan_base_test/$', views.crear_plan_base_test, name='crear_plan_base_test'),
 
     # Para obtener los planes base
-    url(r'^planes_base',views.ver_planes_base,name='planes_base'),
+    url(r'^planes_base', views.ver_planes_base, name='planes_base'),
 
     # Para obtener las materias base o planeadas segun un filtro
-    url(r'^materias/',views.materias_vista,name='materias'),
+    url(r'^materias/', views.materias_vista, name='materias'),
 
-    url(
-        '^logout/$',
-        views.logout_view,
-        name='logout',
-    ),
+    url('^logout/$', views.logout_view, name='logout', ),
 
     url(r'^login_cas/', views.login_cas, name='login_cas'),
 

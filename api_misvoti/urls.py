@@ -1,6 +1,5 @@
 from django.conf.urls import url, include
-from rest_framework import routers
-from api_misvoti import views
+
 from api_misvoti.views import UserDetail, UserList, user_plan
 
 # from api_misvoti.views import UserPlanesCreadosList, UserDetail, UserList, PlanesCreadosDetail,PlanesCreadosTriList,TrimestresCreadosDetail, \

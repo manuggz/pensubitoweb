@@ -1,23 +1,19 @@
 # coding=utf-8
 import json
 import os
-from django.apps import apps
 
-from rest_framework import generics,permissions
+from django.apps import apps
+from rest_framework import generics
+from rest_framework import permissions
 from rest_framework import status
-from rest_framework.compat import is_authenticated
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import permissions
 
-from api_misvoti.permissions import EsCreadorPlanOAdmin, EsElMismo
-from api_misvoti.serializers import UserSerializer
 from api_misvoti.models import MiVotiUser
+from api_misvoti.permissions import EsElMismo
 from api_misvoti.serializer_plan_estudio import PlanEstudioUsuarioSerializer
+from api_misvoti.serializers import UserSerializer
 
 
 class UserDetail(generics.RetrieveAPIView):
@@ -26,9 +22,8 @@ class UserDetail(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     lookup_field = 'username'
     permission_classes = [
-        permissions.IsAuthenticated,EsElMismo
+        permissions.IsAuthenticated, EsElMismo
     ]
-
 
 
 class UserList(generics.ListCreateAPIView):
@@ -39,18 +34,18 @@ class UserList(generics.ListCreateAPIView):
         permissions.IsAdminUser
     ]
 
+
 @api_view(['GET', 'POST', 'DELETE'])
 @permission_classes((IsAuthenticated, EsElMismo))
-def user_plan(request,username):
+def user_plan(request, username):
     """
     Obtiene, Crea o Borra el plan creado por un usuario
     """
     if not request.user.gdrive_id_json_plan:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-
     if request.method == 'GET':
-        ruta_local = os.path.join('planes_json_cache',request.user.gdrive_id_json_plan)
+        ruta_local = os.path.join('planes_json_cache', request.user.gdrive_id_json_plan)
         if os.path.exists(ruta_local):
 
             archivo = open(ruta_local)
@@ -58,7 +53,8 @@ def user_plan(request,username):
             archivo.close()
 
         else:
-            archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile({'id': request.user.gdrive_id_json_plan})
+            archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile(
+                {'id': request.user.gdrive_id_json_plan})
             archivo_plan_json.GetContentFile(ruta_local)
 
             dict_plan = json.loads(archivo_plan_json.GetContentString())
@@ -73,16 +69,16 @@ def user_plan(request,username):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        ruta_local = os.path.join('planes_json_cache',request.user.gdrive_id_json_plan)
+        ruta_local = os.path.join('planes_json_cache', request.user.gdrive_id_json_plan)
 
         if os.path.exists(ruta_local):
             os.remove(ruta_local)
 
-        archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile({'id': request.user.gdrive_id_json_plan})
+        archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile(
+            {'id': request.user.gdrive_id_json_plan})
         archivo_plan_json.Delete()
 
         request.user.gdrive_id_json_plan = None
         request.user.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-

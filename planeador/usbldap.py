@@ -3,6 +3,7 @@ import ldap
 import string
 import random
 
+
 # Requiere:
 # sudo apt-get install libsasl2-dev python-dev libldap2-dev libssl-dev ldap-utils
 
@@ -18,30 +19,29 @@ import random
 #
 # Para mayor información descargar un "ldap browser" y conectar a "ldap.usb.ve" de forma Anonima
 def obtener_datos_desde_ldap(usbid):
-
     def obtenerValor(maybeList):
         # Evitar excepcion de index no encontrado
-        if type(maybeList)==list and len(maybeList)>0:
+        if type(maybeList) == list and len(maybeList) > 0:
             return maybeList[0]
         else:
             return None
 
     user = {}
-    l    = ldap.open("ldap.usb.ve")
-    searchScope        = ldap.SCOPE_SUBTREE
-    retrieveAttributes = None #Traemos todos los atributos
+    l = ldap.open("ldap.usb.ve")
+    searchScope = ldap.SCOPE_SUBTREE
+    retrieveAttributes = None  # Traemos todos los atributos
     baseDN = "ou=People,dc=usb,dc=ve"
-    searchFilter = "uid=*"+usbid+"*"
-    ldap_result_id = l.search(baseDN,searchScope,searchFilter,retrieveAttributes)
+    searchFilter = "uid=*" + usbid + "*"
+    ldap_result_id = l.search(baseDN, searchScope, searchFilter, retrieveAttributes)
     result_type, consulta = l.result(ldap_result_id, 0)
     datos = consulta[0][1]
     # Extraer datos evitando campos inexistentes
     user['first_name'] = obtenerValor(datos.get('givenName'))
-    user['last_name']  = obtenerValor(datos.get('sn'))
-    user['email']      = obtenerValor(datos.get('mail'))
-    user['cedula']     = obtenerValor(datos.get('personalId'))
-    user['phone']      = obtenerValor(datos.get('mobile'))
-    user_type          = obtenerValor(datos.get('gidNumber'))
+    user['last_name'] = obtenerValor(datos.get('sn'))
+    user['email'] = obtenerValor(datos.get('mail'))
+    user['cedula'] = obtenerValor(datos.get('personalId'))
+    user['phone'] = obtenerValor(datos.get('mobile'))
+    user_type = obtenerValor(datos.get('gidNumber'))
 
     if user_type == "1000":
         user['tipo'] = "Docente"
@@ -62,6 +62,7 @@ def obtener_datos_desde_ldap(usbid):
         user['tipo'] = "Administrativo"
 
     return user
+
 
 def random_password():
     return ''.join(random.choice(string.ascii_uppercase) for _ in range(20))

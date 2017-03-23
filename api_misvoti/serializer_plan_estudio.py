@@ -2,14 +2,17 @@
 import json
 import os
 import re
+
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
+
 from api_misvoti.models import RelacionMateriaPensumBase, TrimestrePensum, Pensum
 from planeador.gdrive_namespaces import ID_DRIVE_CARPETA_MIS_VOTI
 
 ## Pattern para validar los códigos de las materias
 pattern_codigo_materia = re.compile("^[a-zA-Z]{2,4}-?\d{3,4}$")
+
 
 # ## Define una
 # class MateriaUsuario(object):
@@ -44,28 +47,27 @@ pattern_codigo_materia = re.compile("^[a-zA-Z]{2,4}-?\d{3,4}$")
 
 ## Serializador Para las Materas
 class MateriaUsuarioSerializer(serializers.Serializer):
-
-    creditos = serializers.IntegerField(required=False,min_value=1,max_value=9)
-    horas_teoria = serializers.IntegerField(required=False,min_value=0)
-    horas_practica = serializers.IntegerField(required=False,min_value=0)
-    horas_laboratorio = serializers.IntegerField(required=False,min_value=0)
+    creditos = serializers.IntegerField(required=False, min_value=1, max_value=9)
+    horas_teoria = serializers.IntegerField(required=False, min_value=0)
+    horas_practica = serializers.IntegerField(required=False, min_value=0)
+    horas_laboratorio = serializers.IntegerField(required=False, min_value=0)
     nombre = serializers.CharField(required=False)
     codigo = serializers.CharField(required=False)
     tipo = serializers.ChoiceField(RelacionMateriaPensumBase.POSIBLES_TIPOS)
-    nota_final = serializers.IntegerField(required=False,min_value=1,max_value=5)
+    nota_final = serializers.IntegerField(required=False, min_value=1, max_value=5)
     esta_retirada = serializers.BooleanField(default=False)
 
     ## Es ejecutado automáticamente para validar el código de las materias en el JSON
-    def validate_codigo(self,value):
-
+    def validate_codigo(self, value):
         if pattern_codigo_materia.match(value):
             return value
 
         raise serializers.ValidationError("¡Codigo de Materia Inválido!")
 
+
 class TrimestreUsuarioSerializer(serializers.Serializer):
     periodo = serializers.ChoiceField(TrimestrePensum.PERIODOS_USB)
-    anyo = serializers.IntegerField(min_value=1900,max_value=3000)
+    anyo = serializers.IntegerField(min_value=1900, max_value=3000)
     materias = MateriaUsuarioSerializer(many=True)
 
 
@@ -77,7 +79,7 @@ class PlanEstudioUsuarioSerializer(serializers.Serializer):
     ## Valida el Id del Pensum buscando una Pensum en la BD que tenga un pk igual al id pasado
     ## Esto implica que el usuario debe saber los id's de los pensums que contiene la BD
     ## TODO : Por lo que, Se debe proveer una parte donde el usuario pueda obtener los pensums
-    def validate_id_pensum(self,value):
+    def validate_id_pensum(self, value):
 
         try:
             Pensum.objects.get(pk=value)
@@ -86,14 +88,14 @@ class PlanEstudioUsuarioSerializer(serializers.Serializer):
             raise serializers.ValidationError("¡Código de Pensum Inválido!")
 
     ## Guarda el Pensum -> Crea el archivo en la carpeta del drive
-    def save(self,user):
-        ruta_local = os.path.join('planes_json_cache',user.gdrive_id_json_plan)
+    def save(self, user):
+        ruta_local = os.path.join('planes_json_cache', user.gdrive_id_json_plan)
 
-        #Eliminamos la Copia Local
+        # Eliminamos la Copia Local
         if os.path.exists(ruta_local):
-          os.remove(ruta_local)
+            os.remove(ruta_local)
 
-        #Obtenemos la referencia al archivo en Google Drive
+        # Obtenemos la referencia al archivo en Google Drive
         if user.gdrive_id_json_plan:
             gdrive_file = apps.get_app_config('planeador').g_drive.CreateFile({'id': user.gdrive_id_json_plan})
         else:

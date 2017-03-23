@@ -5,14 +5,13 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-
 ## Modelo para manejar el usuario del sistema
 
 
 class MiVotiUser(AbstractUser):
-    CAS = 'PA' # Forma de Acceso atraves del CAS
-    INTERNA = 'IN' # Forma de acceso a traves del login interno de la página
-    FORMAS_ACCESO = ( # Indica las posibles formas de acceso que dispone la página
+    CAS = 'PA'  # Forma de Acceso atraves del CAS
+    INTERNA = 'IN'  # Forma de acceso a traves del login interno de la página
+    FORMAS_ACCESO = (  # Indica las posibles formas de acceso que dispone la página
         (CAS, 'CAS'),
         (INTERNA, 'Log interno'),
     )
@@ -27,23 +26,24 @@ class MiVotiUser(AbstractUser):
     )
 
     # Carnet del usuario
-    carnet = models.CharField(max_length=10,blank=True)
+    carnet = models.CharField(max_length=10, blank=True)
 
     # Indica si se han cargados los datos del ldap
     estan_cargados_datos_ldap = models.BooleanField(default=False)
 
     # Cedula del usuario
-    cedula = models.CharField(max_length=12,blank=True)
+    cedula = models.CharField(max_length=12, blank=True)
 
     # Tipo de usuario obtenido del ldap
-    tipo = models.CharField(max_length=100,blank=True)
+    tipo = models.CharField(max_length=100, blank=True)
 
     # Id del  Archivo de json en Google Drive
-    gdrive_id_json_plan = models.CharField(max_length=50,null=True,editable=False)
+    gdrive_id_json_plan = models.CharField(max_length=50, null=True, editable=False)
 
     class Meta:
         verbose_name = "usuario"
         verbose_name_plural = "usuarios"
+
 
 ## Representa una carrera de la USB
 class CarreraUsb(models.Model):
@@ -51,10 +51,10 @@ class CarreraUsb(models.Model):
     codigo = models.CharField(max_length=10, primary_key=True)
 
     def __str__(self):
-        return "{0} {1}".format(self.codigo,self.nombre)
+        return "{0} {1}".format(self.codigo, self.nombre)
 
     def __unicode__(self):
-        return "{0} {1}".format(self.codigo,self.nombre)
+        return "{0} {1}".format(self.codigo, self.nombre)
 
     class Meta:
         verbose_name = "carrera"
@@ -89,9 +89,8 @@ class Pensum(models.Model):
     def __unicode__(self):
         return "{0} {1}".format(self.carrera.nombre, self.get_nombre_tipo_plan())
 
-
     def get_nombre_tipo_plan(self):
-        for n,v in Pensum.TIPO_PLAN:
+        for n, v in Pensum.TIPO_PLAN:
             if n == self.tipo:
                 return v
 
@@ -136,6 +135,7 @@ class TrimestrePensum(models.Model):
         verbose_name = "trimestre pensum"
         verbose_name_plural = "trimestres pensums"
 
+
 class RelacionMateriaPensumBase(models.Model):
     GENERAL = 'GE'
     ELECTIVA_LIBRE = 'EL'
@@ -155,7 +155,7 @@ class RelacionMateriaPensumBase(models.Model):
         choices=POSIBLES_TIPOS,
         default=REGULAR,
     )
-    trimestre_pensum = models.ForeignKey(TrimestrePensum, on_delete=models.CASCADE,null=True)
+    trimestre_pensum = models.ForeignKey(TrimestrePensum, on_delete=models.CASCADE, null=True)
     pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE)
     materia_base = models.ForeignKey('MateriaBase', on_delete=models.CASCADE, null=True)
 
@@ -165,18 +165,19 @@ class RelacionMateriaPensumBase(models.Model):
 ## Contiene datos generales de las materias que serán usados para crear MateriaPlaneada
 ## Cuando se cargan datos desde un expediente se crean estas materias bases
 class MateriaBase(models.Model):
-
-    nombre = models.CharField(max_length=200,blank=True)
-    codigo = models.CharField(max_length=10,blank=True,help_text="Por favor use el siguiente formato: <em>XXX-YYYY</em>.")
+    nombre = models.CharField(max_length=200, blank=True)
+    codigo = models.CharField(max_length=10, blank=True,
+                              help_text="Por favor use el siguiente formato: <em>XXX-YYYY</em>.")
     creditos = models.IntegerField(default=3)
     horas_teoria = models.IntegerField(default=0)
     horas_practica = models.IntegerField(default=0)
     horas_laboratorio = models.IntegerField(default=0)
 
     def __str__(self):
-        return "{0} - {1}({2})".format(self.codigo,self.nombre,self.tipo_materia)
+        return "{0} - {1}({2})".format(self.codigo, self.nombre, self.tipo_materia)
+
     def __unicode__(self):
-        return "{0} - {1}({2})".format(self.codigo,self.nombre,self.tipo_materia)
+        return "{0} - {1}({2})".format(self.codigo, self.nombre, self.tipo_materia)
 
     class Meta:
         verbose_name = "materia base"
@@ -188,20 +189,20 @@ class RelacionMateriaPrerrequisito(models.Model):
     MATERIA_REQUISITO = 'MA'
     PERMISO_COORDINACION_REQUISITO = "PC"
     PRIMER_A_APRO = '1A'
-    SEGUNDO_A_APRO= '2A'
+    SEGUNDO_A_APRO = '2A'
     TERCER_A_APRO = '3A'
     CUARTO_A_APRO = '4A'
     QUINTO_A_APRO = '5A'
-    materia_cursar = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_cursar")
+    materia_cursar = models.ForeignKey(MateriaBase, on_delete=models.CASCADE, related_name="materia_cursar")
 
     pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE)
     tipo_prerrequisito = models.CharField(
         max_length=2,
         choices=(
-            (MATERIA_REQUISITO,'Materia'),
+            (MATERIA_REQUISITO, 'Materia'),
             (PERMISO_COORDINACION_REQUISITO, 'Permiso de la coordinación'),
             (PRIMER_A_APRO, 'Primer año aprobado'),
-            (SEGUNDO_A_APRO,'Segundo año aprobado'),
+            (SEGUNDO_A_APRO, 'Segundo año aprobado'),
             (TERCER_A_APRO, 'Tercer año aprobado'),
             (CUARTO_A_APRO, 'Cuarto año aprobado'),
             (QUINTO_A_APRO, 'Quinto año aprobado'),
@@ -209,48 +210,56 @@ class RelacionMateriaPrerrequisito(models.Model):
         default=MATERIA_REQUISITO,
     )
 
-    materia_requerida = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materias_requeridas",null=True)
+    materia_requerida = models.ForeignKey(MateriaBase, on_delete=models.CASCADE, related_name="materias_requeridas",
+                                          null=True)
 
     def __str__(self):
-        return "({0}) -> ({1})".format(self.materia_cursar,self.materia_requerida)
+        return "({0}) -> ({1})".format(self.materia_cursar, self.materia_requerida)
 
     def __unicode__(self):
-        return "({0}) -> ({1})".format(self.materia_cursar,self.materia_requerida)
+        return "({0}) -> ({1})".format(self.materia_cursar, self.materia_requerida)
 
     class Meta:
         verbose_name = "requisito"
         verbose_name_plural = "requisitos"
 
+
 ## Indica que materias A y B son correquisitos por lo que se deben inscribir en el mismo trimestre
 class RelacionMateriasCorrequisito(models.Model):
-    materia_cursar_junta_a = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_cursar_junta_a")
-    materia_cursar_junta_b = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_cursar_junta_b")
+    materia_cursar_junta_a = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,
+                                               related_name="materia_cursar_junta_a")
+    materia_cursar_junta_b = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,
+                                               related_name="materia_cursar_junta_b")
     pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "({0}) <-> ({1})".format(self.materia_cursar_junta_a,self.materia_cursar_junta_b)
+        return "({0}) <-> ({1})".format(self.materia_cursar_junta_a, self.materia_cursar_junta_b)
+
     def __unicode__(self):
-        return "({0}) <-> ({1})".format(self.materia_cursar_junta_a,self.materia_cursar_junta_b)
+        return "({0}) <-> ({1})".format(self.materia_cursar_junta_a, self.materia_cursar_junta_b)
 
     class Meta:
         verbose_name = "corequisito"
         verbose_name_plural = "corequisitos"
-        unique_together = ('materia_cursar_junta_a','materia_cursar_junta_b')
+        unique_together = ('materia_cursar_junta_a', 'materia_cursar_junta_b')
+
 
 ## Indica que entre las materias A y B una de las dos se debe/puede inscribir en un trimestre
 ## La primera opción es la escogida cuando se crea un pensum por default
 class RelacionMateriaOpcional(models.Model):
-    materia_primera_opcion = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_primera_opcion")
-    materia_segunda_opcion = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,related_name="materia_segunda_opcion")
+    materia_primera_opcion = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,
+                                               related_name="materia_primera_opcion")
+    materia_segunda_opcion = models.ForeignKey(MateriaBase, on_delete=models.CASCADE,
+                                               related_name="materia_segunda_opcion")
     pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "({0}) o ({1})".format(self.materia_primera_opcion,self.materia_segunda_opcion)
+        return "({0}) o ({1})".format(self.materia_primera_opcion, self.materia_segunda_opcion)
+
     def __unicode__(self):
-        return "({0}) o ({1})".format(self.materia_primera_opcion,self.materia_segunda_opcion)
+        return "({0}) o ({1})".format(self.materia_primera_opcion, self.materia_segunda_opcion)
 
     class Meta:
         verbose_name = "relacion materia opcional"
         verbose_name_plural = "relaciones de materias opcionales"
-        unique_together = ('materia_primera_opcion','materia_segunda_opcion')
-
+        unique_together = ('materia_primera_opcion', 'materia_segunda_opcion')

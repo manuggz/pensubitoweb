@@ -25,30 +25,36 @@
                     <form method="post" action="{% url 'home' %}" class="form-signin" role="form">
                         {% csrf_token %}
 
-                        <label for="{{form.username.id_for_label}}" class="sr-only">{{form.username.label}}</label>
-                        <input type="text" id="{{form.username.id_for_label}}" maxlength="254" name="username" class="form-control" placeholder="{{form.username.label}}" required autofocus>
+                        <label for="{{ form.username.id_for_label }}" class="sr-only">{{ form.username.label }}</label>
+                        <input type="text" id="{{ form.username.id_for_label }}" maxlength="254" name="username"
+                               class="form-control" placeholder="{{ form.username.label }}" required autofocus>
 
-                        <label for="{{form.password.id_for_label}}" class="sr-only">{{form.password.label}}</label>
-                        <input type="password"  style="margin-top:5px" id="{{form.password.id_for_label}}" name="password" class="form-control" placeholder="{{form.password.label}}" required>
+                        <label for="{{ form.password.id_for_label }}" class="sr-only">{{ form.password.label }}</label>
+                        <input type="password" style="margin-top:5px" id="{{ form.password.id_for_label }}"
+                               name="password" class="form-control" placeholder="{{ form.password.label }}" required>
 
                         {% if form.errors %}
-                            <p class="bg-danger" style="margin-top:10px;padding:5px">Username o contraseña incorrecta. Revise e intente de nuevo.</p>
+                            <p class="bg-danger" style="margin-top:10px;padding:5px">Username o contraseña incorrecta.
+                                Revise e intente de nuevo.</p>
                         {% endif %}
 
-                        <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top:5px">Iniciar sesión</button>
+                        <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top:5px">Iniciar
+                            sesión
+                        </button>
 
-                        <input type="hidden" name="next" value="{{ next }}" />
+                        <input type="hidden" name="next" value="{{ next }}"/>
                     </form>
-                        <hr>
-                    {% url 'login_cas' as login_cas%}
-                    <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas}}" class="btn btn-primary btn-block" role="button" >USB-ID</a>
+                    <hr>
+                    {% url 'login_cas' as login_cas %}
+                    <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas }}"
+                       class="btn btn-primary btn-block" role="button">USB-ID</a>
                 </div>
             </div>
         </div>
     </div>
-{% comment %}
+    {% comment %}
     {{ request.get_host }}
 {{ request.build_absolute_uri }}--{{ object.get_absolute_url}}--
 {% endcomment %}
-                <!-- /.row -->
+    <!-- /.row -->
 {% endblock %}
