@@ -150,9 +150,9 @@ def crear_modelos_desde_resultado_parser(dict_nuevo_plan,resultado_parser):
             dict_mat = {
                 'nombre':materia_clase.nombre,
                 'codigo': materia_clase.codigo,
-                'creditos': materia_clase.creditos,
-                'nota_final' : materia_clase.nota,
-                'esta_retirada':materia_clase.esta_retirada,
+                'creditos': int(materia_clase.creditos),
+                'nota_final' : int(materia_clase.nota),
+                'esta_retirada':int(materia_clase.esta_retirada),
                 'tipo':RelacionMateriaPensumBase.REGULAR
             }
 
@@ -182,9 +182,9 @@ def crear_modelos_desde_resultado_parser(dict_nuevo_plan,resultado_parser):
 
             if materia_base:
                 dict_mat.update({
-                    'horas_teoria':materia_base.horas_teoria,
-                    'horas_practica':materia_base.horas_practica,
-                    'horas_laboratorio':materia_base.horas_laboratorio,
+                    'horas_teoria':int(materia_base.horas_teoria),
+                    'horas_practica':int(materia_base.horas_practica),
+                    'horas_laboratorio':int(materia_base.horas_laboratorio),
                 })
 
             l_mats.append(dict_mat)
