@@ -16,7 +16,7 @@ class MiVotiUser(AbstractUser):
     cedula = models.CharField(max_length=12, blank=True)
 
     # Id del  Archivo de json en Google Drive
-    gdrive_id_json_plan = models.CharField(max_length=50, null=True)
+    gdrive_id_json_plan = models.CharField(max_length=50, null=True,blank=True)
 
     class Meta:
         verbose_name = "usuario"
