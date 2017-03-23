@@ -25,9 +25,7 @@ En comandos,
     [LINUX] $ source venv/bin/activate
     [WINDOW]> venv\Scripts\activate
     $ pip install -r requirements.txt
-    $ python manage.py makemigrations api_misvoti
     $ python manage.py migrate
-    $ python manage.py migrate --database datos_pensum
 
 ¡Listo! , para correr:
 
@@ -47,10 +45,8 @@ y para la Interfaz del Api:
 
     http://127.0.0.1:8000/api/users/
 
-### Llenar la BD con el pensum de Ing. Computación
-
-Acceder a http://127.0.0.1:8000/crear_plan_base_test/
-
+## Pagina Web en Heroku:
+https://misvoti.herokuapp.com/
 
 ## Autores
 - [Manuel González](https://github.com/manuggz)
