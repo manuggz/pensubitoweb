@@ -6,9 +6,10 @@ from django.apps import apps
 from rest_framework import generics,permissions
 from rest_framework import status
 from rest_framework.compat import is_authenticated
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import permissions
@@ -39,6 +40,7 @@ class UserList(generics.ListCreateAPIView):
     ]
 
 @api_view(['GET', 'POST', 'DELETE'])
+@permission_classes((IsAuthenticated, EsElMismo))
 def user_plan(request,username):
     """
     Obtiene, Crea o Borra el plan creado por un usuario
@@ -71,7 +73,6 @@ def user_plan(request,username):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-
         ruta_local = os.path.join('planes_json_cache',request.user.gdrive_id_json_plan)
 
         if os.path.exists(ruta_local):

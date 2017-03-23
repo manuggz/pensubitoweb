@@ -101,6 +101,7 @@
                                 setTimeout("location.reload()", 500);
                             },
                             error:function (request, status, error) {
+                                msg_eliminando.dismiss();
                                 console.log(status,error);
                                 alertify.error('Ocurrió un error eliminando el plan: ' + nombre_plan)
                             },
