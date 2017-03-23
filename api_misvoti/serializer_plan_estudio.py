@@ -1,47 +1,48 @@
 # coding=utf-8
 import json
 import os
-
 import re
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import request
 from rest_framework import serializers
-from rest_framework import status
-from rest_framework.response import Response
-
 from api_misvoti.models import RelacionMateriaPensumBase, TrimestrePensum, Pensum
 from planeador.gdrive_namespaces import ID_DRIVE_CARPETA_MIS_VOTI
 
+## Pattern para validar los códigos de las materias
 pattern_codigo_materia = re.compile("^[a-zA-Z]{2,4}-?\d{3,4}$")
 
-class MateriaUsuario(object):
+# ## Define una
+# class MateriaUsuario(object):
+#
+#     def __init__(self,tipo,creditos=None,horas_teoria=None,horas_practica=None,horas_laboratorio=None,nombre=None,codigo=None,nota_final=None,esta_retirada=False):
+#         self.creditos = creditos
+#         self.horas_teoria = horas_teoria
+#         self.horas_practica = horas_practica
+#         self.horas_laboratorio = horas_laboratorio
+#         self.nombre = nombre
+#         self.codigo = codigo
+#         self.tipo  = tipo
+#         self.nota_final = nota_final
+#         self.esta_retirada = esta_retirada
+#
+#
+# class TrimestreUsuario(object):
+#
+#     def __init__(self,periodo,anyo,materias):
+#         self.periodo = periodo
+#         self.anyo = anyo
+#         self.materias = materias
+#
+# class PlanEstudioUsuario(object):
+#     def __init__(self, nombre, trimestres,id_pensum):
+#         self.nombre = nombre
+#         self.trimestres = trimestres
+#         self.id_pensum = id_pensum
 
-    def __init__(self,tipo,creditos=None,horas_teoria=None,horas_practica=None,horas_laboratorio=None,nombre=None,codigo=None,nota_final=None,esta_retirada=False):
-        self.creditos = creditos
-        self.horas_teoria = horas_teoria
-        self.horas_practica = horas_practica
-        self.horas_laboratorio = horas_laboratorio
-        self.nombre = nombre
-        self.codigo = codigo
-        self.tipo  = tipo
-        self.nota_final = nota_final
-        self.esta_retirada = esta_retirada
+## Estos Serializadores son los encargados de Parsear el JSON que es mandado por los usuarios del API
+## El JSON es de la forma {nombre:string,id_pensum:int,trimestres:[{periodo:string,anyo:int,materias:[{creditos...}]}]}
 
-
-class TrimestreUsuario(object):
-
-    def __init__(self,periodo,anyo,materias):
-        self.periodo = periodo
-        self.anyo = anyo
-        self.materias = materias
-
-class PlanEstudioUsuario(object):
-    def __init__(self, nombre, trimestres,id_pensum):
-        self.nombre = nombre
-        self.trimestres = trimestres
-        self.id_pensum = id_pensum
-
+## Serializador Para las Materas
 class MateriaUsuarioSerializer(serializers.Serializer):
 
     creditos = serializers.IntegerField(required=False,min_value=1,max_value=9)
@@ -54,6 +55,7 @@ class MateriaUsuarioSerializer(serializers.Serializer):
     nota_final = serializers.IntegerField(required=False,min_value=1,max_value=5)
     esta_retirada = serializers.BooleanField(default=False)
 
+    ## Es ejecutado automáticamente para validar el código de las materias en el JSON
     def validate_codigo(self,value):
 
         if pattern_codigo_materia.match(value):
@@ -72,6 +74,9 @@ class PlanEstudioUsuarioSerializer(serializers.Serializer):
     trimestres = TrimestreUsuarioSerializer(many=True)
     id_pensum = serializers.IntegerField()
 
+    ## Valida el Id del Pensum buscando una Pensum en la BD que tenga un pk igual al id pasado
+    ## Esto implica que el usuario debe saber los id's de los pensums que contiene la BD
+    ## TODO : Por lo que, Se debe proveer una parte donde el usuario pueda obtener los pensums
     def validate_id_pensum(self,value):
 
         try:
@@ -80,8 +85,8 @@ class PlanEstudioUsuarioSerializer(serializers.Serializer):
         except ObjectDoesNotExist:
             raise serializers.ValidationError("¡Código de Pensum Inválido!")
 
+    ## Guarda el Pensum -> Crea el archivo en la carpeta del drive
     def save(self,user):
-        print 'validado:',self.validated_data
         ruta_local = os.path.join('planes_json_cache',user.gdrive_id_json_plan)
 
         #Eliminamos la Copia Local
