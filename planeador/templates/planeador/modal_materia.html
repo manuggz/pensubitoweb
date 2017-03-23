@@ -298,11 +298,9 @@
         var jqIcono = container.children("span.glyphicon");
 
         container[0].className = "form-group";
-        console.log(jqIcono);
         if(jqIcono.length > 0) {
             jqIcono[0].className = " glyphicon form-control-feedback ";
             container[0].className += " has-feedback";
-                console.log('AGRAGAOSAD en limpiar');
         }
 
         jqMensajes.html("");
@@ -314,7 +312,6 @@
     }
 
     function validarCampo(jqCampo) {
-        console.log('Validar campo: ' ,jqCampo);
         var container = jqCampo.closest("div.form-group");
         var jqIcono = container.children("span.glyphicon");
 
@@ -326,7 +323,6 @@
         if(pattern_valid != undefined){
             if(!jqCampo.val().match(pattern_valid)){
                 state = "error";
-                console.log('Validar campo: ' ,1);
                 mensaje_error = jqCampo.data('validator-pattern-mensage') || "¡El campo contiene campos inválidos!";
                 agregarErrorCampo(jqCampo,mensaje_error);
             }
@@ -344,7 +340,6 @@
                 state = "success";
             }else{
                 state = "error";
-                console.log('Validar campo: ' ,2);
                 for(var i in resultado.errores){
                     agregarErrorCampo(jqCampo,resultado.errores[i]);
                 }
@@ -353,7 +348,6 @@
 
         if(jqCampo.prop('required')&& jqCampo.val() == ""){
             state = "error";
-            console.log('Validar campo: ' ,3);
             agregarErrorCampo(jqCampo,'¡Este campo es obligatorio!');
         }
 
@@ -371,7 +365,6 @@
             errores_en_campos = true;
             btn_accion[0].className = "btn btn-danger";
         }
-        console.log('Validar campo: ' + state);
 
     }
 
@@ -380,7 +373,6 @@
         // Creamos los elementos en el DOM para colocar los errores
         campos_validar.each(function () {
             var dElement = $(this);
-            console.log(dElement,'iniciars:',dElement.is('input'));
 
             var container = dElement.closest("div.form-group");
 
@@ -388,7 +380,6 @@
             if(dElement.is('input')){
                 container.append('<span class="glyphicon form-control-feedback" aria-hidden="true"></span>');
                 container.addClass("has-feedback");
-                console.log('AGRAGAOSAD');
             }
             container.append("<div class = 'help-block validate-errors'><ul></ul></div>");
         });

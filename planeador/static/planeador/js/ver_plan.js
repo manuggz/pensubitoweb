@@ -208,48 +208,6 @@ function on_change_select_nota_final(sel_obj){
 }
 
 
-// Listener para cuando se clickea el boton de guardar
-// El cual hace que se mande al servidor el estado del plan que maneja el cliente
-// Actualizandolo
-btn_guardar_cambios.click(function () {
-
-    // Desactivamos los select que permiten al usuario cambiar la nota de las materias
-    // Para cada select en la tabla
-
-    fieldset.attr("disabled","disabled");
-
-    // Desactivamos el boton de guardar
-    btn_guardar_cambios.text("Guardando Cambios...");
-
-    // Mandamos los datos al servidor
-    // Notar que mandamos un json de la forma
-    // { "datos":json que el servidor nos manda}
-    // Se manda de esta forma por varios errores que daba django
-    var msg_actualizando_plan = alertify.notify('Actualizando <img src=' + path_image_gear + '  style="width: 40px;height:40px;">','custom',0,null);
-
-    $.ajax({
-        url:location.origin + "/api/planes_creados/" + plan_creado_json.id + "/",
-        type: 'PUT',
-        data:JSON.stringify(plan_creado_json),
-        success: function(data,status,request) {
-            alertify.success('¡Plan actualizado!');
-            btn_guardar_cambios.text("¡Cambios Guardados!");
-            btn_guardar_cambios.attr("disabled","disabled")
-        },
-        error:function (request, status, error) {
-            console.log(status,error);
-            alertify.error('Ocurrió un error actualizando el plan :(');
-            btn_guardar_cambios.text("Guardar Cambios*");
-        },
-        complete:function (request,status) {
-            fieldset.removeAttr("disabled");
-            msg_actualizando_plan.dismiss();
-        },
-        contentType:'application/json; indent=4;charset=UTF-8',
-    });
-
-});
-
 /**
  * Crea el Html del tr de una materia que pertenece a un trimestre
  * @param indice_trimestre indice del trimestre al que pertenece la materia
@@ -476,7 +434,7 @@ function crear_html_panel_trimestre(indice_trimestre){
                 html_tabla_trimestre += "</tr>";
             html_tabla_trimestre += "</thead>";
 
-            html_tabla_trimestre += "<tbody>";
+            html_tabla_trimestre += "<tbody  class = 'materias-trimestres'>";
                 // Creamos el html para cada tr de las materia
                 for(var  indice_materia in trimestre_json.materias){
                     html_tabla_trimestre += crear_html_tr_materia(indice_trimestre,indice_materia)
@@ -486,7 +444,7 @@ function crear_html_panel_trimestre(indice_trimestre){
         html_tabla_trimestre += "</table>";
 
         html_tabla_trimestre += '<div class="panel-footer">';
-            html_tabla_trimestre += '<button type="button" data-toggle="modal" data-target="#modal-agregar-mat"class="btn btn-link">';
+            html_tabla_trimestre += '<button type="button" data-toggle="modal" data-target="#modal-materia"class="btn btn-link">';
                 html_tabla_trimestre += '<span class="glyphicon glyphicon-plus"  style="margin-left: 4px"></span>';
             html_tabla_trimestre += '</button> ';
         html_tabla_trimestre += "</div>";
