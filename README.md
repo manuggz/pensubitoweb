@@ -22,7 +22,8 @@ En comandos,
     $ git clone https://github.com/manuggz/misvoti.git
     $ cd misvoti
     $ virtualenv venv --no-site-packages
-    $ source venv/bin/activate
+    [LINUX]$ source venv/bin/activate
+    [WINDOW]> > venv\Scripts\activate
     $ pip install -r requirements.txt
     $ python manage.py makemigrations api_misvoti
     $ python manage.py migrate
