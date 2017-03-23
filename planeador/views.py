@@ -43,7 +43,7 @@ def index_vista(request):
                 login(request, user)
                 user.forma_acceso = MiVotiUser.INTERNA
                 user.save()
-                return redirect('myhome')
+                return redirect('planes')
             else:
                 pass
     else:
@@ -144,7 +144,7 @@ def login_cas(request):
             login(request, nuevo_usuario)
 
     # Al finalizar login o registro, redireccionamos a home
-    return redirect('myhome')
+    return redirect('planes')
 
 
 ## Vista para crear un plan

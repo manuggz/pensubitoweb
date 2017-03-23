@@ -93,16 +93,12 @@
 
                         var pannel_plan = button.closest("div.panel");
                         $.ajax({
-                            url:"http://127.0.0.1:8000/api/planes_creados/"+id_plan,
+                            url:"{% url 'api:userplan-detail' request.user.username %}",
                             type: 'DELETE',
                             success: function(data,status,request) {
                                 alertify.success('¡Eliminado plan: ' + nombre_plan + "!");
                                 msg_eliminando.dismiss();
-                                pannel_plan.hide('slow', function(){ pannel_plan.remove(); });
-                                n_planes--;
-                                if(n_planes<=0){
-                                    div_alert_sin_planes.show("slow");
-                                }
+                                setTimeout("location.reload()", 500);
                             },
                             error:function (request, status, error) {
                                 console.log(status,error);
