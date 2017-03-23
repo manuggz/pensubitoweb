@@ -4,18 +4,6 @@
 {% block inicio_pagina_scripts %}
     <script>
         var plan = {{ plan | as_json}};
-        var div_alert_sin_planes ;
-
-        $(document).ready(function() {
-
-            div_alert_sin_planes = $("#alert-sin-planes");
-
-            if(plan != undefined){
-                div_alert_sin_planes.show();
-            }else{
-                div_alert_sin_planes.hide();
-            }
-        });
 
     </script>
 {% endblock %}
@@ -38,41 +26,42 @@
     <div class="row">
         <div class="col-md-12">
 
-            <h2 style="display: inline-block;"><strong> Nombre del plan:</strong> {{ plan.nombre }} </h2>
+            {% if plan %}
+                <h2 style="display: inline-block;"><strong> Nombre del plan:</strong> {{ plan.nombre }} </h2>
 
-            <hr>
-            <div class="panel panel-primary">
-              <div class="panel-heading">
-                <h3 class="panel-title"> <strong> Nombre del plan:</strong> {{ plan.nombre }}</h3>
-              </div>
-                <div class="panel-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <strong>Indice Acumulado:</strong> {{datos.indice }}
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Retiros:</strong> {{datos.n_retiros }}
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Trimestres:</strong> {{datos.n_trimestres }}
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Creditos Inscritos:</strong> {{datos.creds_inscri }}
+                <hr>
+                <div class="panel panel-primary">
+                  <div class="panel-heading">
+                    <h3 class="panel-title"> <strong> Nombre del plan:</strong> {{ plan.nombre }}</h3>
+                  </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Indice Acumulado:</strong> {{datos.indice }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Retiros:</strong> {{datos.n_retiros }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Trimestres:</strong> {{datos.n_trimestres }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Creditos Inscritos:</strong> {{datos.creds_inscri }}
+                            </div>
                         </div>
                     </div>
+                    <div class="panel-footer">
+                         <a href="{% url 'ver_plan' %}" role="button">Modificar</a>
+                        <button type="button" class="btn btn-link" data-accion="eliminar-plan" data-plan-nombre = "{{ plan.nombre }}" data-plan-id = "{{ plan.id }}">Eliminar</button>
+                    </div>
                 </div>
-                <div class="panel-footer">
-                     <a href="{% url 'ver_plan' %}" role="button">Modificar</a>
-                    <button type="button" class="btn btn-link" data-accion="eliminar-plan" data-plan-nombre = "{{ plan.nombre }}" data-plan-id = "{{ plan.id }}">Eliminar</button>
+            {% else %}
+                <div class="jumbotron">
+                  <h1>¡No tienes ningún plan creado!</h1>
+                  <p>¡Comienza a llevar el control de tu progreso y planear tus trimestres con nosotros!</p>
+                  <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan' %}" role="button">¡Crear Plan!</a></p>
                 </div>
-            </div>
-            <div class="alert alert-info" role="alert" id="alert-sin-planes">
-                <p><strong> Hey!</strong> No posees ningún plan :(</p>
-                <a href="{% url 'crear_plan' %}" class="btn btn-primary" role="button" style="margin-left: 10px;">
-                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                        Crear Nuevo Plan
-                </a>
-            </div>
+            {% endif %}
         </div>
     </div>
     <!-- /.row -->
@@ -90,7 +79,7 @@
 
             alertify.confirm(
                     'Plan: ' + nombre_plan,
-                    '¿ Eliminar plan: "' + nombre_plan + '" ?',
+                    '¿ Eliminar plan ?',
                     function(){
 
                         var n_puntos = 1;
