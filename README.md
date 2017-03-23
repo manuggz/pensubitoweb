@@ -36,5 +36,6 @@ En comandos,
 - Crear una cuenta superusuario para iniciar sesión
 
 
+
     $ python manage.py createsuperuser
 
