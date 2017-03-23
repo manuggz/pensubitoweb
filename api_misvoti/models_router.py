@@ -1,3 +1,6 @@
+# coding=utf-8
+
+## Dado el nombre de un modelo dice para cual BD debe ir
 def debe_ir_db_datos_pensum(nombre_model):
 
     if nombre_model.find('.') != -1:
@@ -11,11 +14,11 @@ def debe_ir_db_datos_pensum(nombre_model):
            nombre_model == 'relacionmateriaopcional' or \
            nombre_model == 'relacionmateriaprerrequisito'
 
-
+## Django Router https://docs.djangoproject.com/en/1.10/topics/db/multi-db/
 class ApiModelRouter(object):
     """
-    A router to control all database operations on models in the
-    auth application.
+     Un Router que se encarga de controlar el destino para los modelos en la aplicación su objetivo
+     en particular será de decir que los modelos en debe_ir_db_datos_pensum() se tratarán en la BD datos_pensum
     """
 
     def db_for_read(self, model, **hints):
