@@ -23,6 +23,7 @@ from planeador.cargar_pensum_desde_ods import cargar_pensum_ods
 from planeador.crear_plan_usuario_desde_pensum import llenar_plan_con_pensum_escogido
 from planeador.forms import CrearNuevoPlanForm
 from planeador.gdrive_namespaces import ID_DRIVE_CARPETA_MIS_VOTI
+from planeador.obtener_datos_plan import obtener_datos_analisis
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 from planeador.usbldap import obtener_datos_desde_ldap, random_password
 
@@ -332,21 +333,32 @@ def materias_vista(request):
 
 ## Muestra los planes creados por el usuario
 @login_required
-def planes_vista(request):
+def ver_plan_vista_principal(request):
     context = {"planes_activo": "active"}
 
-    context["planes"] = []
-    n_planes = 0
-    # for plan_bd in PlanCreado.objects.filter(usuario_creador_fk=request.user):
-    #     plan_ctx = {'nombre': plan_bd.nombre, 'id': plan_bd.id}
-    #     plan_ctx['datos'] = plan_bd.obtener_datos_analisis()
-    #
-    #     context["planes"].append(plan_ctx)
-    #     n_planes += 1
+    context['plan'] = None
+    context["datos"] = None
 
-    context["n_planes"] = n_planes
+    if request.user.gdrive_id_json_plan:
+        ruta_local = os.path.join('planes_json_cache',request.user.gdrive_id_json_plan)
+        if os.path.exists(ruta_local):
 
-    return render(request, 'planeador/tabla_planes.html', context)
+            archivo = open(ruta_local)
+            dict_plan = json.loads(archivo.read())
+            archivo.close()
+
+        else:
+            archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile({'id': request.user.gdrive_id_json_plan})
+            archivo_plan_json.GetContentFile(ruta_local)
+
+            dict_plan = json.loads(archivo_plan_json.GetContentString())
+
+
+        context["plan"] = dict_plan
+        context["datos"] = obtener_datos_analisis(dict_plan)
+
+
+    return render(request, 'planeador/vista_principal_plan.html', context)
 
 
 

@@ -28,7 +28,7 @@ urlpatterns = [
     url(r'^home/', views.home_vista, name= 'myhome'),
 
     # Pagina para ver los planes
-    url(r'^planes/$', views.planes_vista, name='planes'),
+    url(r'^planes/$', views.ver_plan_vista_principal, name='planes'),
 
     # Pagina para ver un plan en especifico
     url(r'^mi_plan/$', views.plan_vista, name='ver_plan'),

@@ -5,7 +5,6 @@ import random
 
 # Requiere:
 # sudo apt-get install libsasl2-dev python-dev libldap2-dev libssl-dev ldap-utils
-# pip install ldap
 
 # Los resultados vienen de la forma
 # Ejemplo estudiante:
