@@ -35,7 +35,7 @@ En comandos,
 
 ## Pasos siguientes
 
-###Crear una cuenta superusuario
+### Crear una cuenta superusuario
 
     $ python manage.py createsuperuser
 
