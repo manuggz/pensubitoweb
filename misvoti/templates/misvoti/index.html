@@ -44,10 +44,6 @@
 
                         <input type="hidden" name="next" value="{{ next }}"/>
                     </form>
-                    <hr>
-                    {% url 'login_cas' as login_cas %}
-                    <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas }}"
-                       class="btn btn-primary btn-block" role="button">USB-ID</a>
                 </div>
             </div>
         </div>

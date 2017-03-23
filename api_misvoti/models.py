@@ -7,35 +7,13 @@ from django.db import models
 
 ## Modelo para manejar el usuario del sistema
 
-
 class MiVotiUser(AbstractUser):
-    CAS = 'PA'  # Forma de Acceso atraves del CAS
-    INTERNA = 'IN'  # Forma de acceso a traves del login interno de la página
-    FORMAS_ACCESO = (  # Indica las posibles formas de acceso que dispone la página
-        (CAS, 'CAS'),
-        (INTERNA, 'Log interno'),
-    )
-
-    # Indica la forma de acceso usada por el usuario para acceder a su sesión actual
-    # Notar que hay issues cuando hay multilples sesiones por  el mismo usuario
-    # Es usado para cuando el usuario log out de la página saber de que servicio desconectarlo
-    forma_acceso = models.CharField(
-        max_length=2,
-        choices=FORMAS_ACCESO,
-        default=INTERNA,
-    )
 
     # Carnet del usuario
     carnet = models.CharField(max_length=10, blank=True)
 
-    # Indica si se han cargados los datos del ldap
-    estan_cargados_datos_ldap = models.BooleanField(default=False)
-
     # Cedula del usuario
     cedula = models.CharField(max_length=12, blank=True)
-
-    # Tipo de usuario obtenido del ldap
-    tipo = models.CharField(max_length=100, blank=True)
 
     # Id del  Archivo de json en Google Drive
     gdrive_id_json_plan = models.CharField(max_length=50, null=True, editable=False)

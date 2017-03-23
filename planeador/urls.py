@@ -46,6 +46,4 @@ urlpatterns = [
 
     url('^logout/$', views.logout_view, name='logout', ),
 
-    url(r'^login_cas/', views.login_cas, name='login_cas'),
-
 ]

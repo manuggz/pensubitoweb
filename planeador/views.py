@@ -25,7 +25,6 @@ from planeador.forms import CrearNuevoPlanForm
 from planeador.gdrive_namespaces import ID_DRIVE_CARPETA_MIS_VOTI
 from planeador.obtener_datos_plan import obtener_datos_analisis
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
-from planeador.usbldap import obtener_datos_desde_ldap, random_password
 
 
 
@@ -41,8 +40,6 @@ def index_vista(request):
             user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
             if user is not None:
                 login(request, user)
-                user.forma_acceso = MiVotiUser.INTERNA
-                user.save()
                 return redirect('planes')
             else:
                 pass
@@ -55,10 +52,7 @@ def index_vista(request):
 
 # Vista para deslogear a un usuario
 def logout_view(request):
-    forma_acceso_usuario = request.user.forma_acceso
     logout(request)
-    if forma_acceso_usuario == MiVotiUser.CAS:
-        return redirect("http://secure.dst.usb.ve/logout")
     return redirect('home')
 
 
@@ -67,84 +61,6 @@ def logout_view(request):
 def home_vista(request):
     context = {"myhome_activo": "active"}
     return render(request, 'misvoti/home.html', context)
-
-
-## se encarga de logear al usuario que accede a traves del CAS
-## A esta vista se le pasa un link del tipo /login_cas/?ticket=ST-11140-4UfRysbyAPox0Kuwnh93-cas
-# No debería llamarse desde otro lugar
-def login_cas(request):
-    # Obtenemos el ticket del login
-    ticket = request.GET['ticket']
-
-    if not ticket:
-        # Error se necesita el ticket
-        return redirect('home')
-
-    # Obtenemos el carnet del ticket
-    try:
-        # Creamos un nuevo contexto ssl para que no nos de error de verificaciones
-        ssl._create_default_https_context = ssl._create_unverified_context
-
-        # Encodificamos el url de esta vista
-        url_login_cast = quote(request.build_absolute_uri(reverse('login_cas')), safe='')
-
-        # Construimos el url al servicio del dst que nos dará el carnet
-        url = "https://secure.dst.usb.ve/validate?ticket=" + ticket + "&service=" + url_login_cast
-        req = urllib2.Request(url)
-        response = urllib2.urlopen(req)
-        contenido_pagina = response.read()
-    except urllib2.HTTPError as e:
-        # Error en la obtención del carnet
-        return HttpResponseRedirect('/home/')
-
-    if contenido_pagina[0:2] == "no":
-        # contenido_pagina = no
-        # Error en el ticket
-        return HttpResponseRedirect('/home/')
-    else:
-        # contenido_pagina = yes 11-10390
-
-        data = contenido_pagina.split()
-        usbid = data[1]
-
-        try:
-            usuario_existente = MiVotiUser.objects.get(carnet=usbid)
-        except ObjectDoesNotExist:
-            usuario_existente = None
-
-        if usuario_existente:
-            # if not usuario_existente.estan_cargados_datos_ldap:
-            #     us = get_ldap_data(usbid)
-            #     usuario_existente.first_name = us.get('first_name')
-            #     usuario_existente.last_name  = us.get('last_name')
-            #     usuario_existente.email = us.get('email')
-            #     usuario_existente.cedula = us['cedula']
-            #     usuario_existente.telefono = us['phone']
-            #     usuario_existente.tipo = us['tipo']
-            #     usuario_existente.estan_cargados_datos_ldap = True
-
-            usuario_existente.forma_acceso = MiVotiUser.CAS
-            usuario_existente.save()
-
-            login(request, usuario_existente)
-
-        else:
-            clave = random_password()
-            us = obtener_datos_desde_ldap(usbid)
-            nuevo_usuario = get_user_model().objects.create_user(usbid, us.get('email'), clave)
-            nuevo_usuario.first_name = us.get('first_name')
-            nuevo_usuario.last_name = us.get('last_name')
-            nuevo_usuario.cedula = us['cedula']
-            nuevo_usuario.telefono = us['phone']
-            nuevo_usuario.tipo = us['tipo']
-            nuevo_usuario.carnet = usbid
-            # nuevo_usuario.estan_cargados_datos_ldap = True
-            nuevo_usuario.forma_acceso = MiVotiUser.CAS
-            nuevo_usuario.save()
-            login(request, nuevo_usuario)
-
-    # Al finalizar login o registro, redireccionamos a home
-    return redirect('planes')
 
 
 ## Vista para crear un plan
