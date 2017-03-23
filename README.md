@@ -12,7 +12,7 @@ Un Administrador de planes de estudio.
 ## Configurar el entorno
 
 Para tener el entorno configurado siga estos pasos.
-1. Crear entorno de ejecución(Entorno virtual)
+1. Crear entorno de ejecución(Entorno virtual)[opcional]
 2. Instalar Requerimientos
 3. Hacer Migraciones
 4. Instalar Migraciones
@@ -24,7 +24,7 @@ En comandos,
     $ virtualenv venv --no-site-packages
     $ source venv/bin/activate
     $ pip install -r requirements.txt
-    $ python manage.py makemigrations
+    $ python manage.py makemigrations api_misvoti
     $ python manage.py migrate
 
 ¡Listo! , para correr:
@@ -33,9 +33,13 @@ En comandos,
 
 ## A considerar
 
-- Crear una cuenta superusuario para iniciar sesión
-
-
+###Crear una cuenta superusuario para iniciar sesión
 
     $ python manage.py createsuperuser
+
+O puedes iniciar sesión por CAS
+
+### Crear la BD del plan base de Ing. Computación
+
+Acceder a http://127.0.0.1:8000/crear_plan_base_test/
 

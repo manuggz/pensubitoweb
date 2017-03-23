@@ -362,9 +362,9 @@ def ver_plan_vista_principal(request):
 
 
 
-def __test(request):
+def crear_plan_base_test(request):
     cargar_pensum_ods("Ingeniería de Computación",'0800','planeador/static/planeador/pensums/pensum_0800_pa_2013.ods')
 
-    return HttpResponse('¡Testeado!')
+    return HttpResponse('¡Plan Base Creado!')
 
 

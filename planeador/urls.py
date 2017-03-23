@@ -37,7 +37,7 @@ urlpatterns = [
     url(r'^crear_plan/$', views.crear_plan_vista, name='crear_plan'),
 
     # Para probar cualquier cosa
-    url(r'^__test/$', views.__test, name='__test'),
+    url(r'^crear_plan_base_test/$', views.crear_plan_base_test, name='crear_plan_base_test'),
 
     # Para obtener los planes base
     url(r'^planes_base',views.ver_planes_base,name='planes_base'),
