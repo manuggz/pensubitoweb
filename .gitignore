@@ -1,7 +1,3 @@
 venv
 *.pyc
 db.sqlite3
-misvoti/base.py
-misvoti/prod.py
-planeador/static/planeador/others/credentials.cred
-planeador/static/planeador/others/client_secret.json
