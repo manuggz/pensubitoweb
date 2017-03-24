@@ -9,4 +9,4 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MiVotiUser
-        fields = ('username', 'carnet', 'cedula', 'tipo', 'plan_json')
+        fields = ('username', 'carnet', 'cedula', 'plan_json')

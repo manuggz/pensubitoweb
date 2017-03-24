@@ -31,8 +31,8 @@ def obtener_datos_analisis(plan):
 
                         if resultados_anteriores:
                             for resultado in resultados_anteriores:
-                                if int(resultado.nota_final) <= 2 and not resultado.esta_retirada:
-                                    resultado_eliminar = int(resultado.nota_final)
+                                if int(resultado['nota_final']) <= 2 and not resultado['esta_retirada']:
+                                    resultado_eliminar = int(resultado['nota_final'])
 
                         if resultado_eliminar != 0:
                             creds_cont -= cred_materia
