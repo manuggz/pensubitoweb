@@ -113,7 +113,8 @@ class PlanEstudioUsuarioSerializer(serializers.Serializer):
 
         ## Establece el contenido
         gdrive_file.SetContentString(json.dumps(self.validated_data))
-        gdrive_file.Upload()  # Upload the file.
+        # Upload the file.
+        gdrive_file.Upload()
 
         user.gdrive_id_json_plan = gdrive_file['id']
         user.save()

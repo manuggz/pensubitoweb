@@ -1,14 +1,12 @@
-from HTMLParser import HTMLParser
-
-from django.core.exceptions import ObjectDoesNotExist
-
-from api_misvoti.models import MateriaBase,MiVotiUser, RelacionMateriaPensumBase, TrimestrePensum
-
 ##
 # Se ocupa de parsear el expediente
 # Primero parsea el html creando estructuras MateriaDatosModelo y TrimestreDatosModelo
 # Luego se debe llamar a crear_modelos_desde_resultado_parser el cual crea las estructuras en la BD
 # Se hace separado para evitar problemas tales como so ocurre un error en el parser no afecte a la BD
+
+from HTMLParser import HTMLParser
+from django.core.exceptions import ObjectDoesNotExist
+from api_misvoti.models import MateriaBase,MiVotiUser, RelacionMateriaPensumBase, TrimestrePensum
 from planeador.codigo_departamentos import *
 
 

@@ -10,6 +10,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from api_misvoti.administrar_drive_planes import gdrive_obtener_contenido_plan
 from api_misvoti.models import MiVotiUser
 from api_misvoti.permissions import EsElMismo
 from api_misvoti.serializer_plan_estudio import PlanEstudioUsuarioSerializer
@@ -46,23 +47,9 @@ def user_plan(request, username):
 
     if request.method == 'GET':
         # Obtener el plan
-        ruta_local = os.path.join('planes_json_cache', request.user.gdrive_id_json_plan)
-        if os.path.exists(ruta_local):
-
-            archivo = open(ruta_local)
-            dict_plan = json.loads(archivo.read())
-            archivo.close()
-
-        else:
-            archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile(
-                {'id': request.user.gdrive_id_json_plan})
-            archivo_plan_json.GetContentFile(ruta_local)
-
-            dict_plan = json.loads(archivo_plan_json.GetContentString())
-
+        dict_plan = gdrive_obtener_contenido_plan(request.user.gdrive_id_json_plan)
         return Response(dict_plan)
     elif request.method == 'POST':
-
         # Crear un nuevo Plan
         serializer = PlanEstudioUsuarioSerializer(data=request.data)
         if serializer.is_valid():

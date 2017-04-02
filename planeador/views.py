@@ -7,15 +7,14 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render,redirect
 
+from api_misvoti.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
 from api_misvoti.models import *
-from planeador.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
 from planeador.busqueda_bd import refinarBusqueda
 from planeador.cargar_pensum_desde_ods import cargar_pensum_ods
 from planeador.crear_plan_usuario_desde_pensum import llenar_plan_con_pensum_escogido
 from planeador.forms import CrearNuevoPlanForm
 from planeador.obtener_datos_plan import obtener_datos_analisis
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
-
 
 
 def index_vista(request):
