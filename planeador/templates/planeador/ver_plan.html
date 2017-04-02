@@ -244,7 +244,7 @@
                     btn_guardar_cambios.attr("disabled","disabled")
                 },
                 error:function (request, status, error) {
-                    console.log(status,error);
+                    console.log(request,status,error);
                     alertify.error('Ocurrió un error actualizando el plan :(');
                     btn_guardar_cambios.text("Guardar Cambios*");
                 },

@@ -51,14 +51,17 @@ class MateriaUsuarioSerializer(serializers.Serializer):
     horas_teoria = serializers.IntegerField(required=False, min_value=0)
     horas_practica = serializers.IntegerField(required=False, min_value=0)
     horas_laboratorio = serializers.IntegerField(required=False, min_value=0)
-    nombre = serializers.CharField(required=False)
-    codigo = serializers.CharField(required=False)
+    nombre = serializers.CharField(required=False,allow_blank=True)
+    codigo = serializers.CharField(required=False,allow_blank=True)
     tipo = serializers.ChoiceField(RelacionMateriaPensumBase.POSIBLES_TIPOS)
     nota_final = serializers.IntegerField(required=False, min_value=1, max_value=5)
     esta_retirada = serializers.BooleanField(default=False)
 
     ## Es ejecutado automáticamente para validar el código de las materias en el JSON
     def validate_codigo(self, value):
+
+        if value == "": return ""
+
         if pattern_codigo_materia.match(value):
             return value
 

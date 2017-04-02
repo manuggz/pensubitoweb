@@ -98,11 +98,11 @@
 
 
     function resetearDefaultInputs() {
-        select_creditos_en_modal.selectpicker('deselectAll');
-        select_tipo_mat_en_modal.selectpicker('deselectAll');
+        select_creditos_en_modal.selectpicker('val','');
+        select_tipo_mat_en_modal.selectpicker('val','');
         txt_input_nombre_mat_en_modal.val('');
         txt_input_codigo_mat_en_modal.val('');
-        modal_agregar_mat.find("#select_nota_final").selectpicker('deselectAll');
+        modal_agregar_mat.find("#select_nota_final").selectpicker('val','');
     }
 
     modal_agregar_mat.on('show.bs.modal', function (event) {
@@ -116,7 +116,7 @@
         accion = botonTrigger.data('action') || "agregar";
 
         modal_agregar_mat.find(".modal-title").html(
-                "Trimestre :" +
+                "Trimestre: " +
                 convertir_periodo_codigo_a_string(plan_creado_json.trimestres[indice_trimestre].periodo) + " " +
                 plan_creado_json.trimestres[indice_trimestre].anyo
         );
@@ -426,9 +426,5 @@
 
         return resultado;
     }
-{#    $('#form-agregar-mat').on('submit', function(e) { //use on if jQuery 1.7+#}
-{#        e.preventDefault();  //prevent form from submitting#}
-{#        var data = $("#form-agregar-mat:input").serializeArray();#}
-{#        console.log(data); //use the console for debugging, F12 in Chrome, not alerts#}
-{#    });#}
+
 </script>

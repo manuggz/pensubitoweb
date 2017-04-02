@@ -285,7 +285,7 @@ function crear_html_tr_materia(indice_trimestre,indice_materia){
                 html_tr_materia += '<button type="button" onclick="on_click_boton_eliminar_materia(this)" class="btn btn-link" >';
                     html_tr_materia += '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
                 html_tr_materia += '</button> ';
-                html_tr_materia += '<button type="button"  data-toggle="modal" data-target="#modal-materia" class="btn btn-link" >';
+                html_tr_materia += '<button type="button"  data-toggle="modal" data-target="#modal-materia" data-action="editar" class="btn btn-link" >';
                     html_tr_materia += '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>';
                 html_tr_materia += '</button> ';
             html_tr_materia += '</div>';
@@ -425,7 +425,7 @@ function crear_html_panel_trimestre(indice_trimestre){
             html_tabla_trimestre += "</table>";
         html_tabla_trimestre += "</div>";
 
-        html_tabla_trimestre += '<table class="table table-hover">';
+        html_tabla_trimestre += '<table class="table table-hover datos-trimestre"">';
 
             html_tabla_trimestre += "<thead>";
                 html_tabla_trimestre += "<tr>";
