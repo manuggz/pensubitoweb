@@ -30,16 +30,13 @@ urlpatterns = [
     url(r'^planes/$', views.ver_plan_vista_principal, name='planes'),
 
     # Pagina para ver un plan en especifico
-    url(r'^mi_plan/$', views.plan_vista, name='ver_plan'),
+    url(r'^mi_plan/$', views.plan_modificar_trim, name='ver_plan'),
 
     # Pagina para crear un nuevo plan
     url(r'^crear_plan/$', views.crear_plan_vista, name='crear_plan'),
 
     # Para probar cualquier cosa
     url(r'^crear_plan_base_test/$', views.crear_plan_base_test, name='crear_plan_base_test'),
-
-    # Para obtener los planes base
-    url(r'^planes_base', views.ver_planes_base, name='planes_base'),
 
     # Para obtener las materias base o planeadas segun un filtro
     url(r'^materias/', views.materias_vista, name='materias'),

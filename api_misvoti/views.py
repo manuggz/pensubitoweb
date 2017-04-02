@@ -45,6 +45,7 @@ def user_plan(request, username):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
+        # Obtener el plan
         ruta_local = os.path.join('planes_json_cache', request.user.gdrive_id_json_plan)
         if os.path.exists(ruta_local):
 
@@ -62,6 +63,7 @@ def user_plan(request, username):
         return Response(dict_plan)
     elif request.method == 'POST':
 
+        # Crear un nuevo Plan
         serializer = PlanEstudioUsuarioSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(request.user)
@@ -69,6 +71,7 @@ def user_plan(request, username):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
+        # Eliminar el plan
         ruta_local = os.path.join('planes_json_cache', request.user.gdrive_id_json_plan)
 
         if os.path.exists(ruta_local):

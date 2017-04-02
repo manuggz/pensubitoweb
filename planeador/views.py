@@ -1,28 +1,18 @@
 # coding=utf-8
-import json
-import os
-from urllib import quote
-import ssl
-import urllib2
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404
 from django.http import HttpResponse
-from django.http import HttpResponseRedirect
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
-from django.apps import apps
-from django.contrib.auth import get_user_model
-from django.urls import reverse
+from django.shortcuts import render,redirect
 
 from api_misvoti.models import *
+from planeador.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
 from planeador.busqueda_bd import refinarBusqueda
 from planeador.cargar_pensum_desde_ods import cargar_pensum_ods
 from planeador.crear_plan_usuario_desde_pensum import llenar_plan_con_pensum_escogido
 from planeador.forms import CrearNuevoPlanForm
-from planeador.gdrive_namespaces import ID_DRIVE_CARPETA_MIS_VOTI
 from planeador.obtener_datos_plan import obtener_datos_analisis
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 
@@ -80,7 +70,7 @@ def home_vista(request):
     return render(request, 'misvoti/home.html', context)
 
 
-# TODO: Mover al Api el POST por Ajax
+# TODO: Mover al Api el proceso por POST
 @login_required
 def crear_plan_vista(request):
     """
@@ -94,7 +84,9 @@ def crear_plan_vista(request):
     context = {"planes_activo": "active"}
 
     if request.method == 'POST':
+
         form = CrearNuevoPlanForm(request.POST, request.FILES)
+
         context["esta_creado_plan"] = False
 
         if form.is_valid():
@@ -120,9 +112,7 @@ def crear_plan_vista(request):
 
             dict_nuevo_plan = {
                 'nombre':nombre_nuevo_plan,
-                #usuario_creador_fk=request.user,
                 'id_pensum':pensum_escogido.id,
-
             }
 
             #periodo_inicio_usu = form.cleaned_data['periodo_inicio']
@@ -140,14 +130,7 @@ def crear_plan_vista(request):
                 if form.cleaned_data['construir_usando_pb']:
                     llenar_plan_con_pensum_escogido(dict_nuevo_plan,periodo_inicio_usu,anyo_inicio_usu)
 
-            gdrive_file = apps.get_app_config('planeador').g_drive.CreateFile({'title': request.user.username + '_plan', 'parents': [
-                {
-                    "kind": "drive#parentReference",
-                    'id': ID_DRIVE_CARPETA_MIS_VOTI
-                }
-            ]})
-            gdrive_file.SetContentString(json.dumps(dict_nuevo_plan))
-            gdrive_file.Upload()  # Upload the file.
+            gdrive_file = gdrive_crear_nuevo_plan(request.user.username,dict_nuevo_plan)
 
             request.user.gdrive_id_json_plan = gdrive_file['id']
             request.user.save()
@@ -165,62 +148,36 @@ def crear_plan_vista(request):
     return render(request, 'planeador/crear_plan.html', context)
 
 
-###
-# Muestra los datos de un plan creado por el usuario
-# La vista se puede editar
 @login_required
-def plan_vista(request):
-
+def plan_modificar_trim(request):
+    """
+    Muestra los datos de un plan creado por el usuario
+    La vista se puede editar
+    :param request:
+    :return:
+    """
     context = {"planes_activo": "active"}
 
     if not request.user.gdrive_id_json_plan:
-        raise Http404('No has creado un plan aun :(')
+        return redirect('planes')
     else:
 
-        ruta_local = os.path.join('planes_json_cache',request.user.gdrive_id_json_plan)
-        if os.path.exists(ruta_local):
+        # Plan del usuario
+        context["plan"] = gdrive_obtener_contenido_plan(request.user.gdrive_id_json_plan)
 
-            archivo = open(ruta_local)
-            dict_plan = json.loads(archivo.read())
-            archivo.close()
-
-        else:
-            archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile({'id': request.user.gdrive_id_json_plan})
-            archivo_plan_json.GetContentFile(ruta_local)
-
-            dict_plan = json.loads(archivo_plan_json.GetContentString())
-
-
-        context["plan"] = dict_plan
+        # Variable usada para estandarizar el nombre/clave usado para los periodos en el back y front
         context['periodos'] = [(p[0], p[1]) for p in TrimestrePensum.PERIODOS_USB]
+
+        # Variable usada para mostrar un select de años en el front
         context["anyos"] = [(anyo, anyo) for anyo in xrange(1993, 2030)]
 
         return render(request, 'planeador/ver_plan.html', context)
 
 
-###
-# Busca los planes bases que posee el sistema y regresa un JSON
-# TODO: Mover al API!!
-@login_required
-def ver_planes_base(request):
-    respuesta = {"planes": []}
-
-    if request.method == "GET":
-        try:
-            carrera_buscada = CarreraUsb.objects.get(codigo=request.GET["carrera"])
-        except ObjectDoesNotExist:
-            return JsonResponse(respuesta)
-
-        get_nombre_plan = Pensum.get_nombre_tipo_plan
-        respuesta["planes"] = [{"codigo": plan_base_bd.pk,
-                                "nombre": get_nombre_plan(plan_base_bd)}
-                               for plan_base_bd in Pensum.objects.filter(carrera_fk=carrera_buscada)]
-
-    return JsonResponse(respuesta)
 
 ## Busca materias segun filtros dados por el usuario
 # Regresa un JSON con el resultado
-# TODO: Mover al API!!
+# TODO: MOVER AL API!!
 @login_required
 def materias_vista(request):
     context = {}
@@ -235,7 +192,7 @@ def materias_vista(request):
         lista_excluidos = []
         context["materias"] = []
 
-        n_agregados = refinarBusqueda(
+        refinarBusqueda(
             nombre_materia,
             codigo_materia,
             res_exacto,
@@ -247,51 +204,23 @@ def materias_vista(request):
             0
         )
 
-        if n_agregados == max_length:
-            return JsonResponse(context)
-
-        # n_agregados = refinarBusqueda(
-        #     nombre_materia,
-        #     codigo_materia,
-        #     max_length,
-        #     res_exacto,
-        #     (lambda mat_bd: lista_excluidos.count(mat_bd.codigo)),
-        #     (lambda mat_bd: lista_excluidos.append(mat_bd.codigo)),
-        #     MateriaPlaneada.objects.all(),
-        #     context["materias"],
-        #     n_agregados
-        # )
-        #
-        # if n_agregados == max_length:
-        #     return JsonResponse(context)
-
     return JsonResponse(context)
 
 
-## Muestra los planes creados por el usuario
 @login_required
 def ver_plan_vista_principal(request):
+    """
+    Muestra una vista con un resumen de los datos del plan creado por el usuario
+    :param request:
+    :return:
+    """
     context = {"planes_activo": "active"}
 
-    context['plan'] = None
-    context["datos"] = None
-
     if request.user.gdrive_id_json_plan:
-        ruta_local = os.path.join('planes_json_cache',request.user.gdrive_id_json_plan)
-        if os.path.exists(ruta_local):
 
-            archivo = open(ruta_local)
-            dict_plan = json.loads(archivo.read())
-            archivo.close()
+        dict_plan = gdrive_obtener_contenido_plan(request.user.gdrive_id_json_plan)
 
-        else:
-            archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile({'id': request.user.gdrive_id_json_plan})
-            archivo_plan_json.GetContentFile(ruta_local)
-
-            dict_plan = json.loads(archivo_plan_json.GetContentString())
-
-
-        context["plan"] = dict_plan
+        context["plan"]  = dict_plan
         context["datos"] = obtener_datos_analisis(dict_plan)
 
 
@@ -300,6 +229,11 @@ def ver_plan_vista_principal(request):
 
 
 def crear_plan_base_test(request):
+    """
+    Vista de prueba, ejecutar solo una vez cuando se crea la BD _datos_pensum.sqlite3 por primera vez
+    :param request:
+    :return:
+    """
     cargar_pensum_ods("Ingeniería de Computación",'0800','planeador/static/planeador/pensums/pensum_0800_pa_2013.ods')
 
     return HttpResponse('¡Plan Base Creado!')

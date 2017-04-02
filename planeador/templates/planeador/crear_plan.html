@@ -77,20 +77,8 @@
                 e.preventDefault();
                 $("form").ajaxSubmit(options);
             });
-            $("#id_select_{{ form.carrera_plan.html_name }}").change(function () {
-                $.get("{% url 'planes_base' %}",{
-                            carrera:$(this).val()
-                        },
-                        function(data, status) {
-                            if (status == "success") {
-                                alert(data);
-                                console.log(data);
-                            } else {
-                                alert("Ocurrió un error actualizando el plan");
-                            }
-                        });
-                    });
-            });
+
+        });
 
     </script>
 {% endblock %}
