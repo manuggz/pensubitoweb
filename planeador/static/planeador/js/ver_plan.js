@@ -11,7 +11,11 @@ var fieldset = $("fieldset");
 var btn_guardar_cambios = $("#btn-guardar-cambios");
 
 
-// Redondea un numero ejem: 123.123453 a 4 cífras significativas a lo más. ejem: 123.1235
+/**
+ * Redondea un numero ejem: 123.123453 a 4 cífras significativas a lo más. ejem: 123.1235
+ * @param numero
+ * @returns {number}
+ */
 function redondear(numero){
     return Math.round((numero + 0.00001)*10000)/10000;
 }

@@ -28,9 +28,15 @@ from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resu
 
 
 
-# Vista para los usuarios no registrados
 def index_vista(request):
+    """
+    Función llamada cuando el usuario accede al Home sin estar registrado/autenticado
+    En caso de estar registrado y autenticado, es redirigido a su pagina de inicio
+    :param request:
+    :return:
+    """
     context = {}
+
     if request.user.is_authenticated():
         return redirect('planes')
 
@@ -52,24 +58,39 @@ def index_vista(request):
 
 # Vista para deslogear a un usuario
 def logout_view(request):
+    """
+    Vista para deslogear a un usuario.
+    Cierra la conexión del usuario y lo redirige a la vista para los usuarios no autenticados
+    :param request:
+    :return:
+    """
     logout(request)
     return redirect('home')
 
 
-# Home para los usuarios registrados que iniciaron sesion
 @login_required
 def home_vista(request):
+    """
+    Home para los usuarios registrados que iniciaron sesion
+    :param request:
+    :return:
+    """
+    #Esta variable, dice a la plantilla que la sección "my home" de la barra lateral debe estar seleccionada
     context = {"myhome_activo": "active"}
     return render(request, 'misvoti/home.html', context)
 
 
-## Vista para crear un plan
-# Si recibe un GET muestra un formulario en el cual el usuario ingresará los datos del nuevo plan
-# Si recibe un POST crea el plan y regresa un Json diciendo si lo creó
 # TODO: Mover al Api el POST por Ajax
 @login_required
 def crear_plan_vista(request):
+    """
+    Vista para crear un plan
+    Si recibe un GET muestra un formulario en el cual el usuario ingresará los datos del nuevo plan
+    Si recibe un POST crea el plan y regresa un Json diciendo si lo creó
 
+    :param request:
+    :return:
+    """
     context = {"planes_activo": "active"}
 
     if request.method == 'POST':
