@@ -23,8 +23,10 @@ def gdrive_obtener_contenido_plan(gdrive_id):
     else:
         archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile({'id': gdrive_id})
 
+        # Obtiene el contenido del archivo del GD y lo guarda en la ruta: ruta_local, para cachearlo
         archivo_plan_json.GetContentFile(ruta_local)
 
+        # Obtiene el contenido del archivo del GD y lo guarda en la variable dict_plan
         dict_plan = json.loads(archivo_plan_json.GetContentString())
 
     return dict_plan

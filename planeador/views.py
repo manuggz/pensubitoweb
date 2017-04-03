@@ -82,6 +82,9 @@ def crear_plan_vista(request):
     """
     context = {"planes_activo": "active"}
 
+    if request.user.gdrive_id_json_plan:
+        return redirect('ver_plan')
+
     if request.method == 'POST':
 
         form = CrearNuevoPlanForm(request.POST, request.FILES)

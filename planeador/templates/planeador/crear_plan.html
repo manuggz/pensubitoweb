@@ -21,7 +21,6 @@
                     setTimeout("redirigir_plan_creado('" + responseJson.nombre_plan + "')", 500);
                 }else{
                     btn_crear_plan.text("Crear Plan");
-                    alertify.error("¡Ocurrió un error creando el plan!",3)
                     html_errors = "";
                     for (var name in responseJson.errors) {
                         html_errors = "<ul>";
@@ -37,6 +36,7 @@
                                 $("#div-alert-container-" + name).append(div_errores[name]);
                             }
                             $("#div-container-errors-" + name).html(html_errors);
+                            alertify.error(name + ":" + html_errors)
                         }else{
                             div_errores[name].alert('close');
                         }
@@ -87,7 +87,7 @@
     <div class="row">
         <div class="col-lg-12">
             <h1 class="page-header">
-                Crear Nuevo Plan
+                Crear Plan
             </h1>
             <ol class="breadcrumb">
                 <li>
@@ -121,7 +121,7 @@
 
                     <div class="panel panel-primary">
                       <div class="panel-heading">
-                        <h3 class="panel-title">¿De cual plan se tomaran las materias?</h3>
+                        <h3 class="panel-title">¿De cual pensum se tomaran las materias?</h3>
                       </div>
                       <div class="panel-body">
                         <div class="form-group">
@@ -141,7 +141,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="control-label" for="id_select_{{ form.plan_utilizar.html_name }}">Plan de estudio</label>
+                            <label class="control-label" for="id_select_{{ form.plan_utilizar.html_name }}">Pensum</label>
                             <select class="form-control form-component form-component"  name="{{ form.plan_utilizar.html_name }}" id="id_select_{{ form.plan_utilizar.html_name }}">
                                 {% for x,y in form.fields.plan_utilizar.choices %}
                                     <option value="{{ x }}" {% if form.fields.plan_utilizar.value == x %} selected="selected" {% endif %}>{{ y }}</option>
@@ -168,7 +168,7 @@
                             <div class="checkbox">
                               <label>
                                 <input type="checkbox" class="form-component"  {% if form.construir_usando_pb.initial %} checked {% endif %}name="{{ form.construir_usando_pb.html_name }}" id="{{ form.construir_usando_pb.id_for_label }}">
-                                ¡Crea todos los trimestres de acuerdo al plan!
+                                ¡Crea todos los trimestres de acuerdo al pensum!
                               </label>
                             </div>
                         </div>

@@ -1,56 +1,469 @@
-{% extends 'misvoti/base.html' %}
-{% block content %}
-    <!-- Page Heading -->
-    <div class="row">
-        <div class="col-lg-12">
-            <h1 class="page-header">
-                ¡Comienza a planear tu progreso!
-            </h1>
-            <ol class="breadcrumb">
-                <li class="active">
-                    <i class="fa fa-dashboard"></i> Iniciar sesión
-                </li>
-            </ol>
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {#<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">#}
+    <meta name="description" content="Planeador de trimestres de la Universidad Simón Bolívar">
+    <meta name="author" content="Manuel González">
+
+    <title>MisVoti - Controla tu Indice</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'misvoti/css/sb-admin.css' %}" rel="stylesheet">
+
+
+    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script src="{% static 'misvoti/js/csrftokens.js' %}"></script>
+
+    <style>
+        @import url(http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700);
+
+        body {
+            margin:40px;
+            font-family: 'Roboto Condensed', sans-serif;
+            background: #16A085;
+
+        }
+
+        .head {
+            color: #ECF0F1;
+        }
+
+        .board {
+            width: 100%;
+            height: auto;
+            margin: 20px auto;
+            background: #fefefe;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .board .nav-tabs {
+            position: relative;
+            margin: 40px auto;
+            margin-bottom: 0;
+            box-sizing: border-box;
+        }
+
+        .liner {
+            height: 2px;
+            background: #ddd;
+            position: absolute;
+            width: 80%;
+            margin: 0 auto;
+            left: 0;
+            right: 0;
+            top: 50%;
+            z-index: 1;
+        }
+
+        .nav-tabs > li {
+            width: 25%;
+        }
+
+        .nav-tabs > li:after {
+            content: " ";
+            position: absolute;
+            opacity: 0;
+            margin: 0 auto;
+            bottom: 0px;
+            border: 10px solid transparent;
+            border-bottom-color: #aaa;
+            transition: left 1s;
+        }
+
+        .nav-tabs > li.active:after {
+            left: calc(50% - 10px);
+            opacity: 1;
+        }
+
+        .nav-tabs > li[rel-index="-1"]:after {
+            left: calc(50% + 100% - 10px);
+        }
+
+        .nav-tabs > li[rel-index="-2"]:after {
+            left: calc(50% + 200% - 10px);
+        }
+
+        .nav-tabs > li[rel-index="-3"]:after {
+            left: calc(50% + 300% - 10px);
+        }
+
+        .nav-tabs > li[rel-index="1"]:after {
+            left: calc(50% - 100% - 10px);
+        }
+
+        .nav-tabs > li[rel-index="2"]:after {
+            left: calc(50% - 200% - 10px);
+        }
+
+        .nav-tabs > li[rel-index="3"]:after {
+            left: calc(50% - 300% - 10px);
+        }
+
+        .nav-tabs > li a {
+            width: 70px;
+            height: 70px;
+            line-height: 70px;
+            margin: 20px auto;
+            border-radius: 100%;
+            padding: 0;
+        }
+
+        .nav-tabs > li a:hover{
+            background: transparent;
+        }
+
+        .nav-tabs > li span {
+            width: 70px;
+            height: 70px;
+            line-height: 70px;
+            display: inline-block;
+            border-radius: 100px;
+            background: white;
+            z-index: 2;
+            position: absolute;
+            left: 0;
+            text-align: center;
+            font-size: 25px;
+        }
+
+        .nav-tabs > li:nth-of-type(1) span {
+            color: #3e5e9a;
+            border: 2px solid #3e5e9a;
+        }
+
+        .nav-tabs > li:nth-of-type(1).active span {
+            color: #fff;
+            background: #3e5e9a;
+        }
+
+        .nav-tabs > li:nth-of-type(2) span {
+            color: #f1685e;
+            border: 2px solid #f1685e;
+        }
+
+        .nav-tabs > li:nth-of-type(2).active span {
+            color: #fff;
+            background: #f1685e;
+        }
+
+        .nav-tabs > li:nth-of-type(3) span {
+            color: #febe29;
+            border: 2px solid #febe29;
+        }
+
+        .nav-tabs > li:nth-of-type(3).active span {
+            color: #fff;
+            background: #febe29;
+        }
+
+        .nav-tabs > li:nth-of-type(4) span {
+            color: #25c225;
+            border: 2px solid #25c225;
+        }
+
+        .nav-tabs > li:nth-of-type(4).active span {
+            color: #fff;
+            background: #25c225;
+        }
+
+        .nav-tabs > li > a.disabled {
+            opacity: 1;
+        }
+
+        .nav-tabs > li > a.disabled span {
+            border-color: #ddd;
+            color: #aaa;
+        }
+
+        div#step-1 {
+            background: #fff;
+        }
+        div#step-2 {
+            background: #fff;
+        }
+        div#step-3 {
+            background: #fff;
+        }
+
+        div[role="tabpanel"]:after {
+            content: "";
+            display: block;
+            clear: both;
+        }
+    </style>
+</head>
+
+<body >
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{% url 'home' %}">Mis Voti</a>
+            <p class="navbar-text">¡Planea tus trimestres!</p>
         </div>
-    </div>
-    <!-- /.row -->
 
-    <div class="row">
-        <div class="col-sm-9 col-md-6 ">
-            <div class="login-panel panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Ingrese sus datos</h3>
+        {% if user.is_authenticated %}
+            <ul class="nav navbar-right top-nav">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i
+                            class="fa fa-user"></i> {{ request.user.username }} <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="{% url 'logout' %}"><i class="fa fa-fw fa-power-off"></i> Log Out</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        {% else %}
+            <!--<p class="bg-info" style="text-align:center;">Por favor inicie sesión.</p>-->
+        {% endif %}
+
+        <!-- /.navbar-collapse -->
+    </nav>
+
+        <!-- Page Heading -->
+{% comment %}
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">
+                    ¡Comienza a planear tu progreso!
+                </h1>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <div class="row">
+            <div class="col-sm-9 col-md-6 ">
+                <div class="login-panel panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Ingrese sus datos</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form method="post" action="{% url 'home' %}" class="form-signin" role="form">
+                            {% csrf_token %}
+
+                            <label for="{{ form.username.id_for_label }}" class="sr-only">{{ form.username.label }}</label>
+                            <input type="text" id="{{ form.username.id_for_label }}" maxlength="254" name="username"
+                                   class="form-control" placeholder="{{ form.username.label }}" required autofocus>
+
+                            <label for="{{ form.password.id_for_label }}" class="sr-only">{{ form.password.label }}</label>
+                            <input type="password" style="margin-top:5px" id="{{ form.password.id_for_label }}"
+                                   name="password" class="form-control" placeholder="{{ form.password.label }}" required>
+
+                            {% if form.errors %}
+                                <p class="bg-danger" style="margin-top:10px;padding:5px">Username o contraseña incorrecta.
+                                    Revise e intente de nuevo.</p>
+                            {% endif %}
+
+                            <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top:5px">Iniciar
+                                sesión
+                            </button>
+
+                            <input type="hidden" name="next" value="{{ next }}"/>
+                        </form>
+                    </div>
                 </div>
-                <div class="panel-body">
-                    <form method="post" action="{% url 'home' %}" class="form-signin" role="form">
-                        {% csrf_token %}
+            </div>
+{% endcomment %}
+    <div class="head">
+        <h1></h1>
+    </div>
 
-                        <label for="{{ form.username.id_for_label }}" class="sr-only">{{ form.username.label }}</label>
-                        <input type="text" id="{{ form.username.id_for_label }}" maxlength="254" name="username"
-                               class="form-control" placeholder="{{ form.username.label }}" required autofocus>
+    <div class="container">
+        <div class="row">
+            <div class="board">
+                <ul class="nav nav-tabs">
+                    <div class="liner"></div>
+                    <li rel-index="0" class="active">
+                        <a href="#step-1" class="btn" aria-controls="step-1" role="tab" data-toggle="tab">
+                            <span><i class="glyphicon glyphicon-user"></i></span>
+                        </a>
+                    </li>
+                    <li rel-index="1">
+                        <a href="#step-2" class="btn disabled" aria-controls="step-2" role="tab" data-toggle="tab">
+                            <span><i class="glyphicon glyphicon-book"></i></span>
+                        </a>
+                    </li>
+                    <li rel-index="2">
+                        <a href="#step-3" class="btn disabled" aria-controls="step-3" role="tab" data-toggle="tab">
+                            <span><i class="glyphicon glyphicon-plus"></i></span>
+                        </a>
+                    </li>
+                    <li rel-index="3">
+                        <a href="#step-4" class="btn disabled" aria-controls="step-4" role="tab" data-toggle="tab">
+                            <span><i class="glyphicon glyphicon-ok"></i></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="step-1">
 
-                        <label for="{{ form.password.id_for_label }}" class="sr-only">{{ form.password.label }}</label>
-                        <input type="password" style="margin-top:5px" id="{{ form.password.id_for_label }}"
-                               name="password" class="form-control" placeholder="{{ form.password.label }}" required>
-
-                        {% if form.errors %}
-                            <p class="bg-danger" style="margin-top:10px;padding:5px">Username o contraseña incorrecta.
-                                Revise e intente de nuevo.</p>
-                        {% endif %}
-
-                        <button class="btn btn-lg btn-primary btn-block" type="submit" style="margin-top:5px">Iniciar
-                            sesión
-                        </button>
-
-                        <input type="hidden" name="next" value="{{ next }}"/>
-                    </form>
+                    <div class="col-md-12">
+                        <h3>Cuentame de ti</h3>
+                          <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Nombre</label>
+                                    <input  maxlength="100" type="text" required="required" class="form-control" placeholder="Introduce tu Nombre"  />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Apellido</label>
+                                    <input  maxlength="10" type="text" required="required" class="form-control" placeholder="Introduce tu Apellido"  />
+                                </div>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Correo</label>
+                                    <input maxlength="100" type="email"  class="form-control" placeholder="nombre@mail.com" />
+                                </div>
+                            </div>
+                          </div>
+                        <h3>Datos de Conexión</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Nombre de Usuario</label>
+                                    <input  maxlength="100" type="text" required="required" class="form-control" placeholder="Ejemplo: tunombre"  />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Contraseña</label>
+                                    <input  maxlength="100" type="password" required="required" class="form-control" placeholder="Introduce una contraseña"  />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Confirmar Contraseña</label>
+                                    <input  maxlength="100" type="password" required="required" class="form-control" placeholder="Repite la contraseña"  />
+                                </div>
+                            </div>
+                        </div>
+{% comment %}                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="anyo_inicio">¿En qué año comenzaste o comenzarás tus estudios?</label>
+                                <select id="anyo_inicio" name="anyo_inicio" class="form-control" required="required">
+                                </select>
+                                <script>
+                                    var current_year = new Date().getFullYear();
+                                    for(var i=1900; i < 2050;i++){
+                                        $("#anyo_inicio").append("<option " + ((i==current_year)?'selected':'') + " >" + i  + "</option>");
+                                    }
+                                </script>
+                            </div>
+                        </div>{% endcomment %}
+                        <button id="step-1-next" class="btn btn-lg btn-primary nextBtn pull-right" style="margin: 5px">Siguiente</button>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="step-2">
+                    <div class="col-md-12">
+                        <h3>Cuales son tus Datos Académicos</h3>
+                          <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label" for="es_nuevo_ingreso">¿Eres nuevo Ingreso?</label>
+                                    <input data-toggle="toggle" name="es_nuevo_ingreso" id="es_nuevo_ingreso" data-on="Sí lo soy." data-off="No, soy viejo." type="checkbox" data-width="150px">
+                                </div>
+                            </div>
+                          </div>
+                        <button id="step-2-next" class="btn btn-lg btn-primary nextBtn pull-right">Siguiente</button>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="step-3">
+                    <div class="col-md-12">
+                        <button id="step-3-next" class="btn btn-lg btn-primary nextBtn pull-right">Siguiente</button>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="step-4">
+                    <div class="col-md-12">
+                        <button id="step-4-next" class="btn btn-lg btn-primary pull-right">Continue</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    {% comment %}
-    {{ request.get_host }}
-{{ request.build_absolute_uri }}--{{ object.get_absolute_url}}--
-{% endcomment %}
-    <!-- /.row -->
-{% endblock %}
+
+    <script>
+        $(function() {
+            // Nav Tab stuff
+
+
+
+            $('.nav-tabs > li > a').click(function() {
+                if($(this).hasClass('disabled')) {
+                    return false;
+                } else {
+                    var linkIndex = $(this).parent().index() - 1;
+                    $('.nav-tabs > li').each(function(index, item) {
+                        $(this).attr('rel-index', index - linkIndex);
+                    });
+                }
+            });
+            $('#step-1-next').click(function() {
+                // Check values here
+                var isValid = true;
+
+                if(isValid) {
+                    $('.nav-tabs > li:nth-of-type(2) > a').removeClass('disabled').click();
+                }
+            });
+            $('#step-2-next').click(function() {
+                // Check values here
+                var isValid = true;
+
+                if(isValid) {
+                    $('.nav-tabs > li:nth-of-type(3) > a').removeClass('disabled').click();
+                }
+            });
+            $('#step-3-next').click(function() {
+                // Check values here
+                var isValid = true;
+
+                if(isValid) {
+                    $('.nav-tabs > li:nth-of-type(4) > a').removeClass('disabled').click();
+                }
+            });
+        });
+    </script>
+        <!-- /.container-fluid -->
+
+<!-- /#wrapper -->
+
+</body>
+
+</html>
