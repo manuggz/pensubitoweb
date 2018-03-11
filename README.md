@@ -1,4 +1,4 @@
-# MisVoti
+# Pensubito
 
 Un Administrador de planes de estudio.
 
@@ -16,16 +16,19 @@ Para tener el entorno configurado siga estos pasos.
 2. Instalar Requerimientos
 3. Hacer Migraciones
 4. Instalar Migraciones
+5. Instalar dependencias YARN
 
 En comandos,
 
-    $ git clone https://github.com/manuggz/misvoti.git
-    $ cd misvoti
+    $ git clone https://github.com/manuggz/pensubitoweb.git
+    $ cd pensubitoweb
     $ virtualenv venv --no-site-packages
     [LINUX] $ source venv/bin/activate
     [WINDOW]> venv\Scripts\activate
     $ pip install -r requirements.txt
     $ python manage.py migrate
+    $ cd misvoti
+    $ yarn
 
 ¡Listo! , para correr:
 
