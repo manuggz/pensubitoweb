@@ -16,45 +16,17 @@ from planeador.forms import CrearNuevoPlanForm
 from planeador.obtener_datos_plan import obtener_datos_analisis
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 
-
+@login_required
 def index_vista(request):
     """
-    Función llamada cuando el usuario accede al Home sin estar registrado/autenticado
-    En caso de estar registrado y autenticado, es redirigido a su pagina de inicio
+    Home Vista que solo redirige a la vista ver_plan
     :param request:
     :return:
     """
-    context = {}
 
-    if request.user.is_authenticated():
-        return redirect('planes')
-
-    if request.method == "POST":
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
-            if user is not None:
-                login(request, user)
-                return redirect('planes')
-            else:
-                pass
-    else:
-        form = AuthenticationForm()
-
-    context["form"] = form
-    return render(request, 'misvoti/index.html', context)
+    return redirect('ver_plan')
 
 
-# Vista para deslogear a un usuario
-def logout_view(request):
-    """
-    Vista para deslogear a un usuario.
-    Cierra la conexión del usuario y lo redirige a la vista para los usuarios no autenticados
-    :param request:
-    :return:
-    """
-    logout(request)
-    return redirect('home')
 
 
 @login_required
@@ -158,7 +130,7 @@ def plan_modificar_trim(request):
     context = {"planes_activo": "active"}
 
     if not request.user.gdrive_id_json_plan:
-        return redirect('planes')
+        return render(request, 'planeador/page-sin-plan.html', context)
     else:
 
         # Plan del usuario

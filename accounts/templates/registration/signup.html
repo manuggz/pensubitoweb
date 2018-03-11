@@ -1,0 +1,63 @@
+{% extends "registration/base.html" %}
+
+{% block content %}
+
+    <form method="post" action="{% url 'crear_cuenta' %}" class="form-signin">
+
+    {% csrf_token %}
+
+    <h2 class="form-signin-heading">Datos de usuario:</h2>
+
+    {% if form.errors %}
+
+        <!--<p class="bg-danger" style="margin-top:10px;padding:5px">El formulario tiene errores.</p>-->
+    {% endif %}
+
+    <div class="form-group">
+        <label for="{{form.username.id_for_label}}" class="sr-only">{{form.username.label}}</label>
+        <input data-toggle="tooltip" data-placement="right" title="{{form.username.help_text}}" type="text" id="{{form.username.id_for_label}}" maxlength="30" name="username" class="form-control" placeholder="{{form.username.label}}" required
+
+        {% if form.username.value %}
+               value="{{form.username.value}}" >
+        {%else%}
+               autofocus>
+        {%endif%}
+
+        {% for error in form.username.errors %}
+            <li class="bg-danger"><strong>{{ error|escape }}</strong></li>
+        {% endfor %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{form.password1.id_for_label}}" class="sr-only">{{form.password1.label}}</label>
+        <input type="password"  id="{{form.password1.id_for_label}}" name="password1" class="form-control" placeholder="{{form.password1.label}}" required
+        {% if form.password1.value %}
+               value="{{form.password1.value}}" >
+        {%else%}
+               >
+        {%endif%}
+
+        {% for error in form.password1.errors %}
+            <li class="bg-danger"><strong>{{ error|escape }}</strong></li>
+        {% endfor %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{form.password2.id_for_label}}" class="sr-only">{{form.password2.label}}</label>
+        <input type="password"  id="{{form.password2.id_for_label}}" name="password2" class="form-control" placeholder="{{form.password2.label}}" required
+        {% if form.password2.value %}
+               value="{{form.password2.value}}" >
+        {%else%}
+            >
+        {%endif%}
+
+        {% for error in form.password2.errors %}
+            <li class="bg-danger"><strong>{{ error|escape }}</strong></li>
+        {% endfor %}
+
+    </div>
+
+    <button class="btn btn-lg btn-primary btn-block" type="submit" >Iniciar sesión</button>
+</form>
+<p style="text-align:center"><a href="{% url 'login'%}?next=http://127.0.0.1:8000/chat">¿Ya tienes una cuenta?</a></p>
+{% endblock %}

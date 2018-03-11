@@ -44,9 +44,11 @@ INSTALLED_APPS = [
     # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-in-development
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'django_extensions',
     'misvoti',
     'planeador.apps.PlaneadorConfig',
     'api_misvoti',
+    'accounts',
     'rest_framework',
 ]
 REST_FRAMEWORK = {
@@ -86,8 +88,8 @@ TEMPLATES = [
     },
 ]
 
-LOGIN_REDIRECT_URL = "misvoti:index"
-LOGIN_URL = "home"
+LOGIN_REDIRECT_URL = "ver_plan"
+#LOGIN_URL = "accounts/profile/"
 
 WSGI_APPLICATION = 'misvoti.wsgi.application'
 
@@ -153,6 +155,7 @@ STATIC_URL = '/static/'
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, 'static'),
+    os.path.join(PROJECT_ROOT, 'node_modules'),
 ]
 
 # Simplified static file serving.

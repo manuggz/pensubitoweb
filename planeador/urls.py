@@ -14,7 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, include
 
 from planeador import views
 
@@ -24,13 +24,16 @@ urlpatterns = [
     url(r'^$', views.index_vista, name='home'),
 
     ## Home para los usuarios registrados que inicien sesión
-    url(r'^home/', views.home_vista, name='myhome'),
+    #url(r'^home/', views.home_vista, name='myhome'),
 
     # Pagina para ver los planes
-    url(r'^planes/$', views.ver_plan_vista_principal, name='planes'),
+    #url(r'^planes/$', views.ver_plan_vista_principal, name='planes'),
 
     # Pagina para ver un plan en especifico
     url(r'^mi_plan/$', views.plan_modificar_trim, name='ver_plan'),
+
+    # Pagina para ver un plan en especifico
+    url(r'^modificar_plan/$', views.plan_modificar_trim, name='modificar_plan'),
 
     # Pagina para crear un nuevo plan
     url(r'^crear_plan/$', views.crear_plan_vista, name='crear_plan'),
@@ -41,6 +44,5 @@ urlpatterns = [
     # Para obtener las materias base o planeadas segun un filtro
     url(r'^materias/', views.materias_vista, name='materias'),
 
-    url('^logout/$', views.logout_view, name='logout', ),
-
+    #url('^', include('django.contrib.auth.urls')),
 ]

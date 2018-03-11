@@ -1,0 +1,16 @@
+{
+  "name": "misvoti",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/manuggz/misvoti.git",
+  "author": "Manuel Gonzalez <manuelggonzalezm@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "admin-lte": "^2.4.2",
+    "alertifyjs": "^1.11.0",
+    "animate.css": "^3.6.1",
+    "bootstrap-select": "^1.12.4",
+    "hamburgers": "^0.9.3",
+    "jquery-form": "^4.2.2"
+  }
+}
