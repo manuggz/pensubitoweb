@@ -29,17 +29,6 @@ def index_vista(request):
 
 
 
-@login_required
-def home_vista(request):
-    """
-    Home para los usuarios registrados que iniciaron sesion
-    :param request:
-    :return:
-    """
-    #Esta variable, dice a la plantilla que la sección "my home" de la barra lateral debe estar seleccionada
-    context = {"myhome_activo": "active"}
-    return render(request, 'misvoti/home.html', context)
-
 
 # TODO: Mover al Api el proceso por POST
 @login_required
@@ -116,7 +105,7 @@ def crear_plan_vista(request):
     else:
         context["form"] = CrearNuevoPlanForm(user=request.user)
 
-    return render(request, 'planeador/crear_plan.html', context)
+    return render(request, 'planeador/page-crear-plan.html', context)
 
 
 @login_required
@@ -142,7 +131,7 @@ def plan_modificar_trim(request):
         # Variable usada para mostrar un select de años en el front
         context["anyos"] = [(anyo, anyo) for anyo in xrange(1993, 2030)]
 
-        return render(request, 'planeador/ver_plan.html', context)
+        return render(request, 'planeador/page-modificar-plan.html', context)
 
 
 
