@@ -9,48 +9,72 @@
 $(function () {
 
     'use strict';
-    var modal_agregar_mat = $("#modal-materia");
-    var select_creditos_en_modal = modal_agregar_mat.find("#select_creditos");
-    var txt_input_codigo_mat_en_modal = modal_agregar_mat.find("#input_codigo_mat");
-    var txt_input_nombre_mat_en_modal = modal_agregar_mat.find("#input_nombre_materia");
-    var select_tipo_mat_en_modal = modal_agregar_mat.find("#select_tipo_materia");
+    /* Referencia al modal de la materia*/
+    const $modal_agregar_mat = $("#modal-materia");
 
-    var dowpdown_opciones_codigos = $("datalist[id='codigos']");
-    var dowpdown_opciones_materias_nombres = $("datalist[id='nombres_mat']");
+    /* Referencia al Select para el nro de creditos de la materia*/
+    const $select_creditos_en_modal = $modal_agregar_mat.find("#select_creditos");
+    /*Referencia al Text Input donde introducir el código de la materia*/
+    const $txt_input_codigo_mat_en_modal = $modal_agregar_mat.find("#input_codigo_mat");
+    /*Referencia al Text Input donde introducir el nombre de la materia*/
+    const $txt_input_nombre_mat_en_modal = $modal_agregar_mat.find("#input_nombre_materia");
+    /*Referencia al Select para seleccionar el tipo de la materia*/
+    const $select_tipo_mat_en_modal = $modal_agregar_mat.find("#select_tipo_materia");
 
-    var btn_accion = modal_agregar_mat.find("#btn-accion-materia");
+    /**
+     * Los dropdown son listas que se muestran debajo de algunos Text Input con opciones
+     * de autocompletación del campo.
+     * */
+    /*Dropdown para mostrar codigos de materias debajo del Text Input Código*/
+    const $dowpdown_opciones_codigos = $("datalist[id='codigos']");
+    /*Dropdown para mostrar nombres de materias debajo del Text Input Nombre*/
+    const $dowpdown_opciones_materias_nombres = $("datalist[id='nombres_mat']");
 
-    var indice_trimestre;
-    var indice_materia;
+    /*Boton principal del Modal, puede ser "Agregar Materia" | "Guardar Cambios"*/
+    /*La acción del botón es indicada en la carga del modal*/
+    const $btn_accion = $modal_agregar_mat.find("#btn-accion-materia");
 
-    var materia_json;
+    /**
+     * Los trimestres del plan actual son guardados en un array:
+     *      modificar_plan_params.plan_creado_json.trimestres
+     * Esta variable indice_trimestre indica el index del trimestre al que pertenece la materia que se está editando o al trimestre
+     * que pertenecera la nueva materia.
+     * */
+    let indice_trimestre;
+    /**
+     * Las materias para el trimestre actual son guardadas en un array:
+     *      modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].materias
+     * Esta variable indice_materia  indica el index de la materia que se está editando o el futuro index de la nueva materia.
+     */
+    let indice_materia;
 
-    var box;
-    var tr_trimestre;
-    var accion;
+    let $trimestre_box;
+    let tr_trimestre;
+    let accion;
 
-    var errores_en_campos = false;
+    let errores_en_campos = false;
 
 
     function resetearDefaultInputs() {
-        select_creditos_en_modal.selectpicker('val', '');
-        select_tipo_mat_en_modal.selectpicker('val', '');
-        txt_input_nombre_mat_en_modal.val('');
-        txt_input_codigo_mat_en_modal.val('');
-        modal_agregar_mat.find("#select_nota_final").selectpicker('val', '');
+        $select_creditos_en_modal.selectpicker('val', '');
+        $select_tipo_mat_en_modal.selectpicker('val', '');
+        $txt_input_nombre_mat_en_modal.val('');
+        $txt_input_codigo_mat_en_modal.val('');
+        $modal_agregar_mat.find("#select_nota_final").selectpicker('val', '');
     }
 
-    modal_agregar_mat.on('show.bs.modal', function (event) {
+    $modal_agregar_mat.on('show.bs.modal', function (event) {
 
-        var botonTrigger = $(event.relatedTarget);
+        const botonTrigger = $(event.relatedTarget);
 
-        box = botonTrigger.closest("div.box");
         tr_trimestre = botonTrigger.closest('tr');
-        indice_trimestre = parseInt(box.data("trimestre-codigo"));
+
+        $trimestre_box = botonTrigger.closest("div.box");
+        indice_trimestre = parseInt($trimestre_box.data("trimestre-codigo"));
 
         accion = botonTrigger.data('action') || "agregar";
 
-        modal_agregar_mat.find(".modal-title").html(
+        $modal_agregar_mat.find(".modal-title").html(
             "Trimestre: " +
             convertir_periodo_codigo_a_string(modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].periodo) + " " +
             modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].anyo
@@ -58,51 +82,50 @@ $(function () {
 
         limpiarMensajesErrorCampos();
 
-        if (accion == "agregar") {
+        if (accion === "agregar") {
 
             indice_materia = modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].materias.length;
-            materia_json = {};
 
             resetearDefaultInputs();
 
-            btn_accion.html("¡Agregar Materia!");
-        } else if (accion == "editar") {
+            $btn_accion.html("¡Agregar Materia!");
+        } else if (accion === "editar") {
 
             indice_materia = parseInt(tr_trimestre.data('materia-codigo'));
-            materia_json = modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].materias[indice_materia];
+            let materia_json = modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].materias[indice_materia];
 
-            select_creditos_en_modal.selectpicker('val', materia_json.creditos);
-            select_tipo_mat_en_modal.selectpicker('val', materia_json.tipo);
-            txt_input_nombre_mat_en_modal.val(materia_json.nombre);
-            txt_input_codigo_mat_en_modal.val(materia_json.codigo);
-            if (materia_json.esta_retirada != undefined) {
+            $select_creditos_en_modal.selectpicker('val', materia_json.creditos);
+            $select_tipo_mat_en_modal.selectpicker('val', materia_json.tipo);
+            $txt_input_nombre_mat_en_modal.val(materia_json.nombre);
+            $txt_input_codigo_mat_en_modal.val(materia_json.codigo);
+            if (materia_json.esta_retirada !== undefined) {
                 if (!materia_json.esta_retirada) {
-                    modal_agregar_mat.find("#select_nota_final").selectpicker('val', materia_json.nota_final);
+                    $modal_agregar_mat.find("#select_nota_final").selectpicker('val', materia_json.nota_final);
                 } else {
-                    modal_agregar_mat.find("#select_nota_final").selectpicker('val', 'R');
+                    $modal_agregar_mat.find("#select_nota_final").selectpicker('val', 'R');
                 }
             } else {
-                modal_agregar_mat.find("#select_nota_final").selectpicker('deselectAll');
+                $modal_agregar_mat.find("#select_nota_final").selectpicker('deselectAll');
             }
 
-            btn_accion.html("¡Guardar Cambios!");
+            $btn_accion.html("¡Guardar Cambios!");
         } else {
             console.log("Error abriendo Modal Materia: accion=", accion, " desconocida!");
             event.preventDefault();
         }
 
-        btn_accion[0].className = "btn btn-primary";
+        $btn_accion[0].className = "btn btn-primary";
 
     });
 
 
-    btn_accion.click(function (event) {
+    $btn_accion.click(function (event) {
 
         errores_en_campos = false;
 
         campos_validar.each(function (index, element) {
             limpiarErrorCampo(index, element);
-            var jqCampo = $(this);
+            const jqCampo = $(this);
             validarCampo(jqCampo);
         });
 
@@ -110,37 +133,37 @@ $(function () {
             event.preventDefault();
             return;
         }
-        btn_accion[0].className = "btn btn-success";
+        $btn_accion[0].className = "btn btn-success";
 
+        let materia_json = {};
+        materia_json.codigo = $txt_input_codigo_mat_en_modal.val();
+        materia_json.nombre = $txt_input_nombre_mat_en_modal.val();
+        materia_json.creditos = parseInt($select_creditos_en_modal.val());
+        materia_json.tipo = $select_tipo_mat_en_modal.val();
 
-        materia_json.codigo = txt_input_codigo_mat_en_modal.val();
-        materia_json.nombre = txt_input_nombre_mat_en_modal.val();
-        materia_json.creditos = parseInt(select_creditos_en_modal.val());
-        materia_json.tipo = select_tipo_mat_en_modal.val();
+        const val_nota = $modal_agregar_mat.find("#select_nota_final").val();
 
-        var val_nota = modal_agregar_mat.find("#select_nota_final").val();
-
-        materia_json.esta_retirada = val_nota == 'R';
+        materia_json.esta_retirada = val_nota === 'R';
         if (!materia_json.esta_retirada) {
             materia_json.nota_final = parseInt(val_nota);
         }
 
-        modal_agregar_mat.modal("hide");
+        $modal_agregar_mat.modal("hide");
 
         //var n_materias = modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].materias.length;
         modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].materias[indice_materia] = materia_json;
 
-        if (accion == "agregar") {
-            var nuevo_tr_mat_jquer = $(crear_html_tr_materia(indice_trimestre, indice_materia)).hide();
+        if (accion === "agregar") {
+            const nuevo_tr_mat_jquer = $(crear_html_tr_materia(indice_trimestre, indice_materia)).hide();
             nuevo_tr_mat_jquer.find(".selectpicker").selectpicker('refresh');
 
-            box.find("tbody.materias-trimestres").append(nuevo_tr_mat_jquer);
+            $trimestre_box.find("tbody.materias-trimestres").append(nuevo_tr_mat_jquer);
 
             nuevo_tr_mat_jquer.show('slow');
         } else {
-            var tds = tr_trimestre.find("td");
+            const tds = tr_trimestre.find("td");
 
-            var codigo_td = $(tds[0]);
+            const codigo_td = $(tds[0]);
 
             if (materia_json.codigo) {
                 codigo_td.html(materia_json.codigo);
@@ -148,7 +171,7 @@ $(function () {
                 codigo_td.html("<abbr title='Sin Definir '>Sin.Definir.</abbr> </td>");
             }
 
-            var nombre_td = $(tds[1]);
+            const nombre_td = $(tds[1]);
 
             if (materia_json.nombre) {
                 nombre_td.html(materia_json.nombre);
@@ -173,22 +196,22 @@ $(function () {
         btn_guardar_cambios.removeAttr("disabled");
 
     });
-    txt_input_codigo_mat_en_modal.on('input', function (e) {
+    $txt_input_codigo_mat_en_modal.on('input', function (e) {
         $.get(modal_materia_js_params.url_ajax_get_materias, {
-                codigo: txt_input_codigo_mat_en_modal.val(),
+                codigo: $txt_input_codigo_mat_en_modal.val(),
                 max_length: 5,
             },
             function (data, status) {
-                if (status == "success") {
-                    if (data.materias.length == 1 && data.materias[0].codigo == txt_input_codigo_mat_en_modal.val()) {
-                        select_creditos_en_modal.selectpicker('val', data.materias[0].creditos);
-                        txt_input_nombre_mat_en_modal.val(data.materias[0].nombre);
+                if (status === "success") {
+                    if (data.materias.length === 1 && data.materias[0].codigo === $txt_input_codigo_mat_en_modal.val()) {
+                        $select_creditos_en_modal.selectpicker('val', data.materias[0].creditos);
+                        $txt_input_nombre_mat_en_modal.val(data.materias[0].nombre);
                     } else {
-                        var html_dropdown = '';
-                        for (var i in data.materias) {
+                        let html_dropdown = '';
+                        for (let i in data.materias) {
                             html_dropdown += '<option value="' + data.materias[i].codigo + '">' + data.materias[i].codigo + " - " + data.materias[i].nombre + '</option>';
                         }
-                        dowpdown_opciones_codigos.html(html_dropdown);
+                        $dowpdown_opciones_codigos.html(html_dropdown);
                     }
                 } else {
                     console.log("Ocurrió un error obteniendo materias");
@@ -196,23 +219,23 @@ $(function () {
             }
         );
     });
-    txt_input_nombre_mat_en_modal.on('input', function (e) {
+    $txt_input_nombre_mat_en_modal.on('input', function (e) {
         $.get(modal_materia_js_params.url_ajax_get_materias, {
-                nombre: txt_input_nombre_mat_en_modal.val(),
+                nombre: $txt_input_nombre_mat_en_modal.val(),
                 max_length: 5,
             },
             function (data, status) {
-                if (status == "success") {
-                    if (data.materias.length == 1 && data.materias[0].nombre == txt_input_nombre_mat_en_modal.val()) {
-                        select_creditos_en_modal.selectpicker('val', data.materias[0].creditos);
-                        txt_input_codigo_mat_en_modal.val(data.materias[0].codigo);
+                if (status === "success") {
+                    if (data.materias.length === 1 && data.materias[0].nombre === $txt_input_nombre_mat_en_modal.val()) {
+                        $select_creditos_en_modal.selectpicker('val', data.materias[0].creditos);
+                        $txt_input_codigo_mat_en_modal.val(data.materias[0].codigo);
                     } else {
-                        var html_dropdown = '';
-                        for (var i in data.materias) {
+                        let html_dropdown = '';
+                        for (let i in data.materias) {
                             html_dropdown += '<option value="' + data.materias[i].nombre + '">' + data.materias[i].codigo + " - " + data.materias[i].nombre + '</option>';
 
                         }
-                        dowpdown_opciones_materias_nombres.html(html_dropdown);
+                        $dowpdown_opciones_materias_nombres.html(html_dropdown);
                     }
                 } else {
                     console.log("Ocurrió un error obteniendo materias");
@@ -222,7 +245,7 @@ $(function () {
     });
 
 
-    var form_validar = $("form[data-togle='validator']");
+    const form_validar = $("form[data-togle='validator']");
     var campos_validar = form_validar.find("input,select");
 
     function limpiarErrorCampo(index, campo) {
@@ -281,13 +304,13 @@ $(function () {
             }
         }
 
-        if (jqCampo.prop('required') && jqCampo.val() == "") {
+        if (jqCampo.prop('required') && jqCampo.val() === "") {
             state = "error";
             agregarErrorCampo(jqCampo, '¡Este campo es obligatorio!');
         }
 
         if (jqIcono.length > 0) {
-            if (state == "error") {
+            if (state === "error") {
                 jqIcono[0].className += " glyphicon-remove";
             } else {
                 jqIcono[0].className += " glyphicon-ok";
@@ -298,7 +321,7 @@ $(function () {
         container[0].className += " has-" + state;
         if (state == "error") {
             errores_en_campos = true;
-            btn_accion[0].className = "btn btn-danger";
+            $btn_accion[0].className = "btn btn-danger";
         }
 
     }
@@ -325,7 +348,7 @@ $(function () {
 
     campos_validar.on('input', function (event) {
         limpiarErrorCampo(null, this);
-        btn_accion[0].className = "btn btn-primary";
+        $btn_accion[0].className = "btn btn-primary";
     });
 
     function agregarErrorCampo(jqCampo, mensaje) {
@@ -334,7 +357,7 @@ $(function () {
 
     campos_validar.change(function (event) {
 
-        btn_accion[0].className = "btn btn-primary";
+        $btn_accion[0].className = "btn btn-primary";
         limpiarErrorCampo(null, this);
         var jqCampo = $(this);
         validarCampo(jqCampo);
