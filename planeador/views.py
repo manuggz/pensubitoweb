@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render,redirect
 
-from api_misvoti.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
+from api_misvoti.gdrive.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
 from api_misvoti.models import *
 from planeador.busqueda_bd import refinarBusqueda
 from planeador.cargar_pensum_desde_ods import cargar_pensum_ods
@@ -111,8 +111,7 @@ def crear_plan_vista(request):
 @login_required
 def plan_modificar_trim(request):
     """
-    Muestra los datos de un plan creado por el usuario
-    La vista se puede editar
+    Vista donde el usuario puede editar su plan de estudios
     :param request:
     :return:
     """

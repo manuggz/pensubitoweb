@@ -1,7 +1,7 @@
 /**
  * Created by manuggz on 04/03/17.
  */
-
+/*global modificar_plan_params */
 
 // Enlaza el DOM de la tabla en la que se mostrará el plan
 var div_datos_trimestres_html = $("#div-trimestres");
@@ -22,7 +22,7 @@ function redondear(numero){
 
 
 // Actualiza los indices(indice periodo e Indice acumulado) que se le muestra al usuario
-// Básicamente recorre el JSON(plan_creado_json) donde se guardan los datos de los trimestres
+// Básicamente recorre el JSON(modificar_plan_params.plan_creado_json) donde se guardan los datos de los trimestres
 // A medida que lo va recorriendo va calculando y actualizando los datos que se le muestran al usuario
 function actualizar_datos_plan_creado(){
     // Nota: Recordar que el índice se calcula
@@ -55,13 +55,13 @@ function actualizar_datos_plan_creado(){
     var indice_acumulado_anterior = 0;
     // Recorremos todos los trimestres
     // i tomará valores desde 0 hasta total(trimestres cursados)
-    for(var i in plan_creado_json.trimestres) {
+    for(var i in modificar_plan_params.plan_creado_json.trimestres) {
         // Suma de nota(i)*creditosmateria(i) del trimestre actual del bucle
         // Se usa para calcular el indice del periodo/trimestre actual
         var sum_nota_creds_trimact = 0;
         // Total de los creditos que cuentan para el trimestre actual
         var cred_cont_trimact = 0;
-        var trimestre_json = plan_creado_json.trimestres[i];
+        var trimestre_json = modificar_plan_params.plan_creado_json.trimestres[i];
 
         // Recorremos todas las materias inscritas para el trimestre i
         for (var j in trimestre_json.materias) {
@@ -88,14 +88,14 @@ function actualizar_datos_plan_creado(){
                     // Recorremos todos los trimestres anteriores
                     for (var l = 0; l < i; l++) {
                         // Recorremos las materias para el trimestre l
-                        for (var m in plan_creado_json.trimestres[l].materias) {
+                        for (var m in modificar_plan_params.plan_creado_json.trimestres[l].materias) {
                             // Si es la misma materia (comparamos el código)
-                            if (plan_creado_json.trimestres[l].materias[m].codigo == materia_planeada.codigo) {
+                            if (modificar_plan_params.plan_creado_json.trimestres[l].materias[m].codigo == materia_planeada.codigo) {
 
                                 // Si la materia está reprobada y no está retirada
                                 // Significa que debemos anular esta nota
-                                if (plan_creado_json.trimestres[l].materias[m].nota_final <= 2 && !plan_creado_json.trimestres[l].materias[m].esta_retirada) {
-                                    nota_reprobada_anterior = plan_creado_json.trimestres[l].materias[m].nota_final;
+                                if (modificar_plan_params.plan_creado_json.trimestres[l].materias[m].nota_final <= 2 && !modificar_plan_params.plan_creado_json.trimestres[l].materias[m].esta_retirada) {
+                                    nota_reprobada_anterior = modificar_plan_params.plan_creado_json.trimestres[l].materias[m].nota_final;
                                 }
                             }
                         }
@@ -156,12 +156,12 @@ function actualizar_datos_plan_creado(){
 
             var diferencia = Math.abs(indice_acumulado_actual - indice_acumulado_anterior);
             if (diferencia < 0.0001) {
-                html_indice_acumulado += "<img src='" + path_image_flecha_same + "' style='width:15px;height:15px;'/>"
+                html_indice_acumulado += "<img src='" + modificar_plan_params.path_image_flecha_same + "' style='width:15px;height:15px;'/>"
             } else if (indice_acumulado_actual > indice_acumulado_anterior) {
-                html_indice_acumulado += "<img src='" + path_image_flecha_up + "' style='width:15px;height:15px;'/>";
+                html_indice_acumulado += "<img src='" + modificar_plan_params.path_image_flecha_up + "' style='width:15px;height:15px;'/>";
                 html_indice_acumulado += "( +" + redondear(diferencia) + ")"
             } else {
-                html_indice_acumulado += "<img src='" + path_image_flecha_down + "' style='width:15px;height:15px;'/>";
+                html_indice_acumulado += "<img src='" + modificar_plan_params.path_image_flecha_down + "' style='width:15px;height:15px;'/>";
                 html_indice_acumulado += "( -" + redondear(diferencia) + ")"
             }
 
@@ -183,14 +183,14 @@ function on_change_select_nota_final(sel_obj){
     // por lo que lo primero es encontrar el más cernano tr del elemento
     var select = $(sel_obj);
     var tr_con_datos = select.closest( "tr" );
-    var panel_con_datos = tr_con_datos.closest( "div.panel" );
+    var box_con_datos = tr_con_datos.closest( "div.box" );
 
     // Obtenemos los datos de la materia y trimestre a la cual pertenece
-    var i_trimestre_cambiado = parseInt(panel_con_datos.data("trimestre-codigo"));
+    var i_trimestre_cambiado = parseInt(box_con_datos.data("trimestre-codigo"));
     var j_materia_cambiada   = parseInt(tr_con_datos.data("materia-codigo"));
 
     //var posicion_materia = posicion_ij_materia(i_trimestre_cambiado,j_materia_cambiada);
-    var trimestre_json = plan_creado_json.trimestres[i_trimestre_cambiado];
+    var trimestre_json = modificar_plan_params.plan_creado_json.trimestres[i_trimestre_cambiado];
     var materia_json = trimestre_json.materias[j_materia_cambiada];
 
     if(select.val() != "R"){
@@ -220,7 +220,7 @@ function on_change_select_nota_final(sel_obj){
  */
 function crear_html_tr_materia(indice_trimestre,indice_materia){
 
-    var trimestre_json = plan_creado_json.trimestres[indice_trimestre];
+    var trimestre_json = modificar_plan_params.plan_creado_json.trimestres[indice_trimestre];
     var materia_json = trimestre_json.materias[indice_materia];
 
     // Contendrá el html del <tr></tr> resultante
@@ -296,9 +296,9 @@ function crear_html_tr_materia(indice_trimestre,indice_materia){
 }
 function convertir_tipo_materia_codigo_a_string(codigo) {
 
-    for(var i in tipos_materia){
-        if(tipos_materia[i][0] == codigo){
-            return tipos_materia[i][1]
+    for(var i in modificar_plan_params.tipos_materia){
+        if(modificar_plan_params.tipos_materia[i][0] == codigo){
+            return modificar_plan_params.tipos_materia[i][1]
         }
     }
     return 'Tipo desconocido - ' + codigo;
@@ -319,12 +319,12 @@ function convertir_periodo_codigo_a_string(codigo) {
 function on_click_boton_eliminar_materia(boton_jsobj) {
     var button = $(boton_jsobj);
     var tr_materia =  button.closest( "tr" );
-    var panel_trimestre_jsobj = tr_materia.closest( "div.panel" );
-    var i_trimestre_materia_eliminar = parseInt(panel_trimestre_jsobj.data("trimestre-codigo"));
+    var box_trimestre_jsobj = tr_materia.closest( "div.box" );
+    var i_trimestre_materia_eliminar = parseInt(box_trimestre_jsobj.data("trimestre-codigo"));
     var j_materia_eliminar   = parseInt(tr_materia.data("materia-codigo"));
 
     //var indices = posicion_ij_materia(i_trimestre_materia_eliminar,j_materia_eliminar);
-    var trimestre_json = plan_creado_json.trimestres[i_trimestre_materia_eliminar];
+    var trimestre_json = modificar_plan_params.plan_creado_json.trimestres[i_trimestre_materia_eliminar];
     var materia_json = trimestre_json.materias[j_materia_eliminar];
 
     alertify.confirm(
@@ -334,7 +334,7 @@ function on_click_boton_eliminar_materia(boton_jsobj) {
             // Ocultamos el tr de la materia
             tr_materia.hide('slow', function(){ tr_materia.remove(); });
             // Eliminamos la materia del array
-            plan_creado_json.trimestres[i_trimestre_materia_eliminar].materias.splice(j_materia_eliminar,1);
+            modificar_plan_params.plan_creado_json.trimestres[i_trimestre_materia_eliminar].materias.splice(j_materia_eliminar,1);
             // Actualizamos los datos del plan que se le muestran al usuario
             actualizar_datos_plan_creado();
             // Capacitamos al usuario para poder guardar los cambios realizados al plan
@@ -349,19 +349,19 @@ function on_click_boton_eliminar_materia(boton_jsobj) {
 
 function on_click_boton_eliminar_trimestre(boton_jsobj) {
     var button = $(boton_jsobj); // Button that triggered the modal
-    var panel_trimestre = button.closest( "div.panel" );
-    var i_trimestre = parseInt(panel_trimestre.data("trimestre-codigo"));
+    var box_trimestre = button.closest( "div.box" );
+    var i_trimestre = parseInt(box_trimestre.data("trimestre-codigo"));
 
-    var trimestre_elim_json = plan_creado_json.trimestres[i_trimestre];
+    var trimestre_elim_json = modificar_plan_params.plan_creado_json.trimestres[i_trimestre];
 
     alertify.confirm(
         'Periodo: ' +  convertir_periodo_codigo_a_string(trimestre_elim_json.periodo) + " " + trimestre_elim_json.anyo,
         '¿ Eliminar el trimestre y sus materias ?',
         function(){
             // Ocultamos la tabla con las materias
-            panel_trimestre.hide('slow', function(){ panel_trimestre.remove(); });
+            box_trimestre.hide('slow', function(){ box_trimestre.remove(); });
             // Eliminamos el trimestre
-            plan_creado_json.trimestres.splice(i_trimestre,1);
+            modificar_plan_params.plan_creado_json.trimestres.splice(i_trimestre,1);
             // Actualizamos los datos del plan
             actualizar_datos_plan_creado();
             // Capacitamos al usuario para guardar los datos
@@ -382,9 +382,9 @@ function on_click_boton_eliminar_trimestre(boton_jsobj) {
  * @param indice_trimestre Indice del trimestre en el json al cual se le creará la tabla
  * @returns {string} HTML de la tabla -  <table></table>
  */
-function crear_html_panel_trimestre(indice_trimestre){
+function crear_html_box_trimestre(indice_trimestre){
 
-    var trimestre_json =  plan_creado_json.trimestres[indice_trimestre];
+    var trimestre_json =  modificar_plan_params.plan_creado_json.trimestres[indice_trimestre];
 
     var html_tabla_trimestre = "<div class='panel panel-success' data-trimestre-codigo='" + indice_trimestre +  "'>";
 

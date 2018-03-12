@@ -36,6 +36,7 @@
     <!-- Bootstrap Select CSS -->
     <link href="{% static 'bootstrap-select/dist/css/bootstrap-select.min.css' %}" rel="stylesheet">
 
+    <link href="{% static 'admin-lte/plugins/pace/pace.min.css' %}" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -53,7 +54,7 @@
         href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
 </head>
 
-<body class="hold-transition skin-green sidebar-mini">
+<body class="hold-transition skin-green fixed  sidebar-mini">
 
 <div class="wrapper">
 
@@ -172,6 +173,8 @@
 
     <!-- Bootstrap Select JavaScript -->
     <script src="{% static 'bootstrap-select/dist/js/bootstrap-select.min.js' %}"></script>
+
+    <script src="{% static 'admin-lte/plugins/pace/pace.min.js' %}" ></script>
 {% block final_pagina_scripts %}
 {% endblock %}
 

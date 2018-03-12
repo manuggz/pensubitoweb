@@ -7,6 +7,8 @@ from planeador.gdrive_namespaces import ID_DRIVE_CARPETA_MIS_VOTI
 
 def gdrive_obtener_contenido_plan(gdrive_id):
     """
+    Obtiene los datos de un plan creado por el usuario
+    De una ruta local o de Google Drive
     :type gdrive_id: Google Drive Id
     :param gdrive_id: Id del archivo en la carpeta del Google Drive
     :return: Diccionario con los datos del plan. {'nombre':string,'trimestres':{...}}
