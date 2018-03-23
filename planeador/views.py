@@ -1,4 +1,6 @@
 # coding=utf-8
+import urllib
+
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
@@ -205,6 +207,52 @@ def materias_vista(request):
 
     return JsonResponse(context)
 
+
+def test(request):
+    import requests,ssl
+    import urllib3
+
+    from BeautifulSoup import BeautifulSoup
+
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    s = requests.Session()
+
+    ## Accedemos a la página de expediente
+    response = s.get("https://expediente.dii.usb.ve",verify=False)
+
+    parsed_html = BeautifulSoup(response.content)
+    code_input_form = parsed_html.body.find(
+        'input',
+        attrs={
+            'name':'lt',
+            'type': 'hidden',
+        }
+    ).get('value')
+
+    ## test
+    url_cas = response.url
+    cookies = response.cookies
+
+
+    print "URL = %s" % url_cas
+    print "cookies = %s" % cookies
+
+    log_in_data = {}
+    log_in_data['username'] = '11-10390'
+    log_in_data['password'] = 'linking750'
+    log_in_data['_eventId'] = 'submit'
+    log_in_data['lt'] = code_input_form
+
+    response = s.post(url_cas,log_in_data,verify=False)
+
+    print response.content
+    print response.headers
+    print response.url
+
+    response = s.get('https://expediente.dii.usb.ve/login.do')
+    response = s.get('https://expediente.dii.usb.ve/informeAcademico.do')
+
+    return HttpResponse(response.content)
 
 @login_required
 def ver_plan_vista_principal(request):

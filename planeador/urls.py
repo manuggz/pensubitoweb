@@ -41,6 +41,9 @@ urlpatterns = [
     # Para obtener las materias base o planeadas segun un filtro
     url(r'^materias/', views.materias_vista, name='materias'),
 
+    # test
+    url(r'^test/', views.test, name='test'),
+
     url('^logout/$', views.logout_view, name='logout', ),
 
 ]

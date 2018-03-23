@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'misvoti',
+    'django_extensions',
     'planeador.apps.PlaneadorConfig',
     'api_misvoti',
     'rest_framework',
