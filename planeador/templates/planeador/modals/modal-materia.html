@@ -20,13 +20,20 @@
                         <option value="EL" >Electiva Libre</option>
                         <option value= "EA">Electiva de Area</option>
                     </select>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group has-feedback">
                     <label class="control-label" for="input_codigo_mat">Código:</label>
-                    <input list="codigos" class="form-control" data-validator-function = "validar_codigo" id="input_codigo_mat" name="txt_input_codigo_mat" placeholder="Formato: 'XX-YYYY'">
+                    <input list="codigos" class="form-control" data-validator-function = "validarCodigo" id="input_codigo_mat" name="txt_input_codigo_mat" placeholder="Formato: 'XX-YYYY'">
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <datalist id="codigos">
                     </datalist>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
                 </div>
 
                 <div class="form-group">
@@ -42,6 +49,9 @@
                         <optgroup label="¿Está Retirada?">
                             <option title="Retirada" value='R'> Retirada </option>
                         </optgroup>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
                     </select>
                 </div>
                  <div class="form-group">
@@ -53,13 +63,19 @@
                         <option>4</option>
                         <option>5</option>
                     </select>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group has-feedback">
                     <label class="control-label" for="input_nombre_materia"  data-toggle="tooltip" data-placement="right" title="Tooltip on right">Nombre:</label>
                     <input list="nombres_mat" class="form-control" id="input_nombre_materia" name="txt_input_nombre_mat" placeholder="Nombre">
-
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <datalist id="nombres_mat">
                     </datalist>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
                 </div>
 
             </form>
