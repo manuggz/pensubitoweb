@@ -54,7 +54,7 @@ class Pensum(models.Model):
         (NO_DEFINIDO, 'No definido')
     )
 
-    carrera = models.ForeignKey(CarreraUsb)
+    carrera = models.ForeignKey(CarreraUsb,on_delete=models.CASCADE)
     tipo = models.CharField(
         max_length=2,
         choices=TIPO_PLAN,

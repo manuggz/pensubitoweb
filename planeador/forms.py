@@ -36,14 +36,14 @@ class CrearNuevoPlanForm(forms.Form):
                                                 Pensum.objects.filter(carrera=carreras_bd.first())]
 
         # self.fields['periodo_inicio'].choices = [(p[0],p[1]) for p in    TrimestrePlaneado.PERIODOS_USB[:-1]]
-        self.fields['anyo_inicio'].choices = [(anyo, anyo) for anyo in xrange(1990, 2020)]
+        self.fields['anyo_inicio'].choices = [(anyo, anyo) for anyo in range(1990, 2020)]
 
         self.fields['anyo_inicio'].value = datetime.datetime.now().year
 
         if self.user != None:
             if self.user.carnet:
                 anyo_carnet = int(self.user.carnet[:2])
-                print anyo_carnet
+                print (anyo_carnet)
                 if anyo_carnet >= 0 and anyo_carnet <= 90:
                     self.fields['anyo_inicio'].value = int("{0}{1}".format(20, anyo_carnet))
                 else:

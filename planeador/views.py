@@ -128,7 +128,7 @@ def plan_modificar_trim(request):
         context['periodos'] = [(p[0], p[1]) for p in TrimestrePensum.PERIODOS_USB]
 
         # Variable usada para mostrar un select de años en el front
-        context["anyos"] = [(anyo, anyo) for anyo in xrange(1993, 2030)]
+        context["anyos"] = [(anyo, anyo) for anyo in range(1993, 2030)]
 
         return render(request, 'planeador/page-modificar-plan.html', context)
 

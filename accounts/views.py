@@ -30,7 +30,7 @@ def crear_cuenta(request):
 def login_check(request):
     # Todos los usuarios autenticados tienen permiso de chatear
     # Por lo que no hace falta que se autentique con otra cuenta
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return redirect('home')
 
     return auth_views.login(request)
