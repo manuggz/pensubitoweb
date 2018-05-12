@@ -1,15 +1,18 @@
 # coding=utf-8
-import urllib
+import ssl
+from urllib import request
+from urllib.parse import quote
 
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render,redirect
+from django.urls import reverse
 
-from api_misvoti.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
+from api_misvoti.gdrive.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
 from api_misvoti.models import *
 from planeador.busqueda_bd import refinarBusqueda
 from planeador.cargar_pensum_desde_ods import cargar_pensum_ods
@@ -17,58 +20,43 @@ from planeador.crear_plan_usuario_desde_pensum import llenar_plan_con_pensum_esc
 from planeador.forms import CrearNuevoPlanForm
 from planeador.obtener_datos_plan import obtener_datos_analisis
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
-
-
-def index_vista(request):
-    """
-    Función llamada cuando el usuario accede al Home sin estar registrado/autenticado
-    En caso de estar registrado y autenticado, es redirigido a su pagina de inicio
-    :param request:
-    :return:
-    """
-    context = {}
-
-    if request.user.is_authenticated():
-        return redirect('planes')
-
-    if request.method == "POST":
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
-            if user is not None:
-                login(request, user)
-                return redirect('planes')
-            else:
-                pass
-    else:
-        form = AuthenticationForm()
-
-    context["form"] = form
-    return render(request, 'misvoti/index.html', context)
-
-
-# Vista para deslogear a un usuario
-def logout_view(request):
-    """
-    Vista para deslogear a un usuario.
-    Cierra la conexión del usuario y lo redirige a la vista para los usuarios no autenticados
-    :param request:
-    :return:
-    """
-    logout(request)
-    return redirect('home')
-
+from planeador.usbldap import obtener_datos_desde_ldap, random_password
 
 @login_required
-def home_vista(request):
+def index_vista(request):
     """
-    Home para los usuarios registrados que iniciaron sesion
+    Home Vista que solo redirige a la vista ver_plan
     :param request:
     :return:
     """
-    #Esta variable, dice a la plantilla que la sección "my home" de la barra lateral debe estar seleccionada
-    context = {"myhome_activo": "active"}
-    return render(request, 'misvoti/home.html', context)
+
+    return redirect('ver_plan')
+
+# Vista para los usuarios no registrados
+#def index_vista(request):
+#    context = {}
+#    if request.user.is_authenticated():
+#        return redirect('planes')
+#
+#    if request.method == "POST":
+#        form = AuthenticationForm(data=request.POST)
+#        if form.is_valid():
+#            user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
+#            if user is not None:
+#                login(request, user)
+#                user.forma_acceso = MiVotiUser.INTERNA
+#                user.save()
+#                return redirect('planes')
+#            else:
+#                pass
+#    else:
+#        form = AuthenticationForm()
+#
+#    context["form"] = form
+#    return render(request, 'misvoti/index.html', context)
+
+
+
 
 
 # TODO: Mover al Api el proceso por POST
@@ -146,21 +134,20 @@ def crear_plan_vista(request):
     else:
         context["form"] = CrearNuevoPlanForm(user=request.user)
 
-    return render(request, 'planeador/crear_plan.html', context)
+    return render(request, 'planeador/page-crear-plan.html', context)
 
 
 @login_required
 def plan_modificar_trim(request):
     """
-    Muestra los datos de un plan creado por el usuario
-    La vista se puede editar
+    Vista donde el usuario puede editar su plan de estudios
     :param request:
     :return:
     """
     context = {"planes_activo": "active"}
 
     if not request.user.gdrive_id_json_plan:
-        return redirect('planes')
+        return render(request, 'planeador/page-sin-plan.html', context)
     else:
 
         # Plan del usuario
@@ -170,9 +157,9 @@ def plan_modificar_trim(request):
         context['periodos'] = [(p[0], p[1]) for p in TrimestrePensum.PERIODOS_USB]
 
         # Variable usada para mostrar un select de años en el front
-        context["anyos"] = [(anyo, anyo) for anyo in xrange(1993, 2030)]
+        context["anyos"] = [(anyo, anyo) for anyo in range(1993, 2030)]
 
-        return render(request, 'planeador/ver_plan.html', context)
+        return render(request, 'planeador/page-modificar-plan.html', context)
 
 
 

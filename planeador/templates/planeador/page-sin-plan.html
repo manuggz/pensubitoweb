@@ -1,0 +1,17 @@
+{% extends 'misvoti/base.html' %}
+{% block content %}
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <div class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="jumbotron">
+                      <h1>¡No has creado tu plan todavía!</h1>
+                      <p>¡Comienza a llevar el control de tu progreso y planear tus trimestres con nosotros!</p>
+                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan' %}" role="button">¡Crear Plan!</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

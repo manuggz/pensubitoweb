@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Planeador de trimestres de la Universidad Simón Bolívar">
+    <meta name="author" content="Manuel González">
+
+    <!--===============================================================================================-->
+	<link rel="icon" type="image/png" href="{% static 'misvoti/images/icons/favicon.ico' %}"/>
+
+    <title>Pensubito - Control de estudios</title>
+    <link rel="stylesheet" href={% static 'bootstrap/dist/css/bootstrap.min.css' %}>
+    <link rel="stylesheet" href={% static 'bootstrap/dist/css/bootstrap-theme.min.css' %}>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="{% static 'animate.css/animate.min.css' %}">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="{% static 'hamburgers/dist/hamburgers.min.css' %}">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="{% static 'registration/css/util.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'registration/css/main.css' %}">
+<!--===============================================================================================-->
+</head>
+<body>
+	<div class="limiter">
+		<div class="container-login100">
+			<div class="wrap-login100 p-t-85 p-b-20">
+				<form class="login100-form validate-form" method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+					<span class="login100-form-title">
+						Hey, bienvenido
+					</span>
+                    {% if form.errors %}
+                        <p>Your username and password didn't match. Please try again.</p>
+                    {% endif %}
+                    {% if next %}
+                        {% if user.is_authenticated %}
+                        <p>Your account doesn't have access to this page. To proceed,
+                        please login with an account that has access.</p>
+                        {% else %}
+                        <p>Please login to see this page.</p>
+                        {% endif %}
+                    {% endif %}
+					<div class="wrap-input100 validate-input m-t-50 m-b-35" data-validate = "Enter username">
+						<input class="input100" type="text" name="username" value="{{ form.username.value |default_if_none:"" }}">
+						<span class="focus-input100" data-placeholder="Nombre de usuario"></span>
+					</div>
+
+					<div class="wrap-input100 validate-input m-b-50" data-validate="Enter password">
+						<input class="input100" type="password" name="password">
+						<span class="focus-input100" data-placeholder="Contraseña"></span>
+					</div>
+
+					<div class="container-login100-form-btn">
+						<button class="login100-form-btn">
+							Iniciar sesión
+						</button>
+					</div>
+
+                    {% url 'login_cas' as login_cas %}
+                    <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas }}"
+                       class="btn btn-primary btn-block" role="button">USB-ID</a>
+					<ul class="login-more p-t-50">
+						<li class="m-b-8">
+							<span class="txt1">
+								Olvidaste tu
+							</span>
+
+							<a href="{% url 'password_reset' %}" class="txt2">
+								Nombre de usuario / Contraseña?
+							</a>
+						</li>
+
+						<li>
+							<span class="txt1">
+								No tienes una cuenta todavía?
+							</span>
+
+							<a href="{% url 'crear_cuenta' %}" class="txt2">
+								Registrate
+							</a>
+						</li>
+					</ul>
+				</form>
+			</div>
+		</div>
+	</div>
+
+<!--===============================================================================================-->
+    <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+<!--===============================================================================================-->
+    <script src="{% static 'registration/js/main.js' %}"></script>
+
+</body>
+</html>

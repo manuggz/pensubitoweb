@@ -165,36 +165,36 @@ def cargar_pensum_ods(nombre_carrera,codigo_carrera,ruta_pensum_ods):
 
     try:
         carrera_usb = CarreraUsb.objects.get(codigo=codigo_carrera)
-        print "Warning! La carrera existia."
+        print("Warning! La carrera existia.")
     except ObjectDoesNotExist:
         carrera_usb = CarreraUsb(
             nombre=nombre_carrera,
             codigo=codigo_carrera,
         )
         carrera_usb.save()
-        print "Info! Creada la carrera."
+        print("Info! Creada la carrera.")
 
     try:
         pensum_bd = Pensum.objects.get(
             carrera=carrera_usb,
             tipo=Pensum.PASANTIA_LARGA
         )
-        print "Warning! El plan ya existia"
+        print("Warning! El plan ya existia")
     except ObjectDoesNotExist:
         pensum_bd = Pensum(
             carrera=carrera_usb,
             tipo=Pensum.PASANTIA_LARGA,
         )
         pensum_bd.save()
-        print "Info! Creado el Plan."
+        print("Info! Creado el Plan.")
 
     cargarMaterias(getSheet(doc, 'materias_obligatorias_datos'))
-    print "Cargadas Materias!"
+    print ("Cargadas Materias!")
     cargarOrdenMaterias(getSheet(doc, 'orden_materias'), pensum_bd)
-    print "Cargado Orden!"
+    print ("Cargado Orden!")
     cargarPrerequisitos(getSheet(doc, 'prerequisitos'), pensum_bd)
-    print "Cargados Prerrequisitos!"
+    print ("Cargados Prerrequisitos!")
     cargarCorrequisitos(getSheet(doc, 'correquisitos'), pensum_bd)
-    print "Cargados Correquisitos!"
+    print ("Cargados Correquisitos!")
     cargarOpcionales(getSheet(doc, 'opcionales'), pensum_bd)
-    print "Cargados Opcionales!"
+    print ("Cargados Opcionales!")

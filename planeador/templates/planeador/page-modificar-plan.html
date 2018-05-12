@@ -1,0 +1,229 @@
+{% extends 'misvoti/base.html' %}
+{% load as_json %}
+{% load gen_indice_for %}
+{% load static %}
+{% block antes_fin_head %}
+    <link href="{% static 'planeador/css/ver_plan.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+          <h1>
+            Modificar Plan
+            <small>Modifica el plan {{ plan.nombre }}</small>
+          </h1>
+          <ol class="breadcrumb">
+            <li>
+                <i class="fa fa-table"></i>  <a href="{% url 'ver_plan' %}">Mi plan</a>
+            </li>
+            <li class="active">
+                <i class="fa fa-table"></i> {{ plan.nombre }}
+            </li>
+          </ol>
+        </section>
+
+        <!-- Main content -->
+        <section class="content container-fluid">
+            <div class="col-md-12">
+                <h2>Nombre: {{ plan.nombre }}</h2>
+                <fieldset>
+                    <div class="btn-group" role="group" aria-label="...">
+                      <button type="button" class="btn btn-primary" disabled="disabled" id = "btn-guardar-cambios">Guardar Cambios</button>
+
+                      <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Más Opciones
+                          <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li><a href="#">Eliminar</a></li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {# Box para un trimestre particular #}
+                    <div style="margin-top:30px;" id="div-trimestres">
+                        {% for trimestre in plan.trimestres %}
+                        {% gen_indice_for 'for_trimestre' as i_trimestre %}
+                            {# Box para un trimestre particular #}
+                            <div class='box box-primary' data-trimestre-codigo="{{ i_trimestre }}">
+                                <div class="box-header" >
+                                    <h3 class="box-title" >
+                                        {% if trimestre.periodo == "SD" %}
+                                           Septiembre - Diciembre
+                                        {% elif trimestre.periodo == "EM" %}
+                                           Enero - Marzo
+                                        {% elif trimestre.periodo == "AJ" %}
+                                           Abril - Julio
+                                        {% elif trimestre.periodo == "JA" %}
+                                           Julio - Agosto
+                                        {% else%}
+                                           {{ trimestre.periodo }}
+                                        {% endif %}
+                                        {{ trimestre.anyo }}
+                                    </h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip" title="Collapse">
+                                          <i class="fa fa-minus"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove" onclick="on_click_boton_eliminar_trimestre(this)" data-toggle="tooltip" title="Remove">
+                                          <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                 </div>
+                                 <div class="box-body" >
+                                     <table class="table table-hover datos-trimestre">
+                                             <tr>
+                                                 <th>Indice del Trimestre</th>
+                                                 <td align='center' id='td-indice-periodo-{{ i_trimestre }}' >
+                                                     NC
+                                                 </td>
+                                             </tr>
+                                             <tr>
+                                                 <th >Indice Acumulado</th>
+                                                 <td align='center' id='td-indice-acumulado-{{ i_trimestre }}' >
+                                                     NC
+                                                 </td>
+                                             </tr>
+
+                                     </table>
+                                     <table class="table table-hover">
+                                         <thead>
+                                             <tr>
+                                                 <th>Código</th>
+                                                 <th >Nombre</th>
+                                                 <th >Tipo</th>
+                                                 <th>Creditos</th>
+                                                 <th>Nota obtenida o ¿Retirada?</th>
+                                                 <th></th>
+                                             </tr>
+                                         </thead>
+
+                                         <tbody class="materias-trimestres">
+                                            {% for materia in trimestre.materias %}
+                                            {% gen_indice_for 'for_materia' as j_materia %}
+                                                <tr data-materia-codigo = "{{ j_materia }}">
+                                                    {% if materia.codigo %}
+                                                        <td> {{ materia.codigo }} </td>
+                                                    {% else %}
+                                                        <td><abbr title='Sin Definir '>Sin.Defi.</abbr> </td>
+                                                    {% endif %}
+
+                                                    {% if materia.nombre %}
+                                                        <td> {{ materia.nombre }} </td>
+                                                    {% else %}
+                                                        <td><abbr title='Sin Definir '>Sin.Defi.</abbr> </td>
+                                                    {% endif %}
+
+                                                   <td>
+                                                       {% if materia.tipo == "GE" %}
+                                                           General
+                                                       {% elif materia.tipo == "EL" %}
+                                                           Electiva libre
+                                                       {% elif materia.tipo == "EA" %}
+                                                           Electiva Area
+                                                       {% elif materia.tipo == "RG" %}
+                                                           Regular
+                                                       {% elif materia.tipo == "EX" %}
+                                                           Extraplan
+                                                       {% else %}
+                                                           {{materia.tipo}}
+                                                       {% endif %}
+                                                    </td>
+
+                                                    <td> {{ materia.creditos }} </td>
+
+                                                    <td>
+                                                       <select class="selectpicker  show-tick show-menu-arrow"  title="Escoja una opción." onchange="on_change_select_nota_final(this)">
+                                                            <optgroup label="Posibles Notas">
+                                                                <option {% if materia.nota_final == 1 %} selected {% endif %}>  1 </option>
+                                                                <option {% if materia.nota_final == 2 %} selected {% endif %}>  2 </option>
+                                                                <option {% if materia.nota_final == 3 %} selected {% endif %}>  3 </option>
+                                                                <option {% if materia.nota_final == 4 %} selected {% endif %}>  4 </option>
+                                                                <option {% if materia.nota_final == 5 %} selected {% endif %}>  5 </option>
+                                                            </optgroup>
+                                                            <optgroup label="¿Está retirada?">
+                                                               <option title="Retirada"  {% if materia.esta_retirada %} selected {% endif %} value='R'> Retirada </option>
+                                                            </optgroup>
+                                                        </select>
+                                                    </td>
+                                                   <td align="right" style="padding:0px;">
+                                                       <div class="input-group-btn">
+                                                           <button type="button" onclick="onClickBotonEliminarMateria(this)" class="btn btn-link" >
+                                                               <span class="fa fa-times" aria-hidden="true"></span>
+                                                           </button>
+                                                           <button type="button"  data-toggle="modal" data-target="#modal-materia"  data-action="editar" class="btn btn-link" >
+                                                               <span class="fa fa-pencil" aria-hidden="true"></span>
+                                                           </button>
+                                                       </div>
+                                                    </td>
+
+                                                </tr>
+
+                                            {% endfor %}
+                                         </tbody>
+                                     </table>
+
+                                 </div>
+
+                                 <div class="box-footer">
+                                     <button type="button" data-toggle="modal" data-target="#modal-materia" class="btn btn-link">
+                                         <span class="fa fa-plus"  style="margin-left: 4px"></span>
+                                     </button>
+                                 </div>
+
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
+                    <a class="btn btn-app" data-toggle="modal" data-target="#modal-agregar-trim">
+                        <i class="fa fa-plus"></i> ¡Agregar Trimestre!
+                    </a>
+                </fieldset>
+            </div>
+        </section>
+    </div>
+    <!-- /#page-wrapper -->
+    <!-- /.row -->
+
+    {% include 'planeador/modals/modal-materia.html' %}
+    {% include 'planeador/modals/modal-agregar-trimestre.html' %}
+
+{% endblock %}
+
+{% block final_pagina_scripts %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.9/validator.min.js"></script>
+
+    <script>
+        {# Parametros globales #}
+        window.modificar_plan_params = {
+            path_image_gear:"{% static 'misvoti/images/gears.svg' %}",
+            path_image_flecha_up:"{% static 'misvoti/images/ic_trending_up_black_24px.svg' %}",
+            path_image_flecha_same:"{% static 'misvoti/images/ic_trending_flat_black_24px.svg' %}",
+            path_image_flecha_down:"{% static 'misvoti/images/ic_trending_down_black_24px.svg' %}",
+
+            tipos_materia:[['GE','General'],['EL','Electiva libre'],['EA','Electiva de Area'],['RG','Regular'],['EX','Extraplan']],
+            plan_creado_json:{{ plan | as_json}},
+            url_api_plan_details : "{% url 'api:userplan-detail' request.user.username %}",
+        }
+    </script>
+    <script src="{% static 'planeador/js/page-modificar-plan.js' %}"></script>
+
+    <script>
+        {# Parametros para el script  modal-materia-js.js #}
+        window.modal_materia_js_params = {
+            url_ajax_get_materias:'{%  url 'materias' %}' {#  url donde obtener datos de materias del sistema #}
+        }
+    </script>
+    <script src="{% static 'planeador/js/modal-materia-js.js' %}"></script>
+
+    <script src="{% static 'planeador/js/modal-trimestre-js.js' %}"></script>
+
+
+{% endblock %}

@@ -1,0 +1,90 @@
+<!-- Modal de Agregar/Modificar materia -->
+
+<div class="modal fade sucess" tabindex="-1"  id="modal-materia" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+        <div class="modal-header ">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title"></h4>
+        </div>
+        <div class="modal-body">
+            <form data-togle="validator">
+
+                 <div class="form-group">
+                    <label class="control-label" for="select_tipo_materia">Tipo de Materia:</label>
+
+                    <select class="selectpicker show-tick show-menu-arrow"  title="Tipo de la Materia" name="select_tipo_materia" id="select_tipo_materia" data-width="100%" required>
+                        <option value="RG" >Regular</option>
+                        <option value="EX" >Extraplan</option>
+                        <option value="GE" >General</option>
+                        <option value="EL" >Electiva Libre</option>
+                        <option value= "EA">Electiva de Area</option>
+                    </select>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
+                </div>
+
+                <div class="form-group has-feedback">
+                    <label class="control-label" for="input_codigo_mat">Código:</label>
+                    <input list="codigos" class="form-control" data-validator-function = "validarCodigo" id="input_codigo_mat" name="txt_input_codigo_mat" placeholder="Formato: 'XX-YYYY'">
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                    <datalist id="codigos">
+                    </datalist>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label" for="select_nota_final">Nota Obtenida o ¿Retirada?:</label>
+                    <select class="selectpicker  show-tick show-menu-arrow"  title="Escoja una opción."  name="select_nota_final" id="select_nota_final" data-width="100%">
+                        <optgroup label="Posibles Notas">
+                            <option >1</option>
+                            <option >2</option>
+                            <option>3</option>
+                            <option >4</option>
+                            <option>5</option>
+                        </optgroup>
+                        <optgroup label="¿Está Retirada?">
+                            <option title="Retirada" value='R'> Retirada </option>
+                        </optgroup>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label class="control-label" for="select_creditos">Creditos:</label>
+                    <select class="selectpicker  show-tick show-menu-arrow"  title="Escoja los creditos."  name="select_cred" id="select_creditos"  required data-width="100%">
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        <option>4</option>
+                        <option>5</option>
+                    </select>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
+                </div>
+                <div class="form-group has-feedback">
+                    <label class="control-label" for="input_nombre_materia"  data-toggle="tooltip" data-placement="right" title="Tooltip on right">Nombre:</label>
+                    <input list="nombres_mat" class="form-control" id="input_nombre_materia" name="txt_input_nombre_mat" placeholder="Nombre">
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                    <datalist id="nombres_mat">
+                    </datalist>
+                     <div class = 'help-block validate-errors'>
+                         <ul></ul>
+                     </div>
+                </div>
+
+            </form>
+       </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" id="btn-accion-materia">Agregar</button>
+        </div>
+    </div>
+  </div>
+</div>
+

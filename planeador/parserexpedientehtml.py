@@ -3,8 +3,8 @@
 # Primero parsea el html creando estructuras MateriaDatosModelo y TrimestreDatosModelo
 # Luego se debe llamar a crear_modelos_desde_resultado_parser el cual crea las estructuras en la BD
 # Se hace separado para evitar problemas tales como so ocurre un error en el parser no afecte a la BD
+from html.parser import HTMLParser
 
-from HTMLParser import HTMLParser
 from django.core.exceptions import ObjectDoesNotExist
 from api_misvoti.models import MateriaBase,MiVotiUser, RelacionMateriaPensumBase, TrimestrePensum
 from planeador.codigo_departamentos import *
@@ -105,7 +105,7 @@ class MyHTMLParser(HTMLParser):
             self.materia.codigo = data
             self.es_codigo_materia = False
         elif self.es_nombre_materia:
-            self.materia.nombre = unicode(data.strip(), 'ISO-8859-1').title()
+            self.materia.nombre = data.strip().decode('ISO-8859-1').title()
             self.es_nombre_materia = False
         elif self.es_creditos_materia:
             self.materia.creditos = data

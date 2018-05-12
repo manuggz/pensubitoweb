@@ -11,6 +11,7 @@ user_urls = [
     url(r'^$', UserList.as_view(), name='user-list')
 ]
 
+app_name = "api"
 urlpatterns = (
     url(r'^users/', include(user_urls)),
 )
