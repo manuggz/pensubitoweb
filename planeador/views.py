@@ -1,11 +1,16 @@
 # coding=utf-8
-from django.contrib.auth import login, authenticate, logout
+import ssl
+from urllib import request
+from urllib.parse import quote
+
+from django.contrib.auth import login, authenticate, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render,redirect
+from django.urls import reverse
 
 from api_misvoti.gdrive.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
 from api_misvoti.models import *
@@ -15,6 +20,7 @@ from planeador.crear_plan_usuario_desde_pensum import llenar_plan_con_pensum_esc
 from planeador.forms import CrearNuevoPlanForm
 from planeador.obtener_datos_plan import obtener_datos_analisis
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
+from planeador.usbldap import obtener_datos_desde_ldap, random_password
 
 @login_required
 def index_vista(request):
@@ -25,6 +31,29 @@ def index_vista(request):
     """
 
     return redirect('ver_plan')
+
+# Vista para los usuarios no registrados
+#def index_vista(request):
+#    context = {}
+#    if request.user.is_authenticated():
+#        return redirect('planes')
+#
+#    if request.method == "POST":
+#        form = AuthenticationForm(data=request.POST)
+#        if form.is_valid():
+#            user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
+#            if user is not None:
+#                login(request, user)
+#                user.forma_acceso = MiVotiUser.INTERNA
+#                user.save()
+#                return redirect('planes')
+#            else:
+#                pass
+#    else:
+#        form = AuthenticationForm()
+#
+#    context["form"] = form
+#    return render(request, 'misvoti/index.html', context)
 
 
 

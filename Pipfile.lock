@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "664646c68ceea988b7854a344044ea6ec56e8866bd8b0e6b80069436ebd3cd17"
+            "sha256": "fe0498fe5f647e2613d7ef0a448123142c4e0df34819aa0fb2321158573b7686"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -199,6 +199,9 @@
             ],
             "index": "pypi",
             "version": "==2.2.0"
+        },
+        "python-ldap": {
+            "path": "C:/Users/manuggz/Downloads/python_ldap-3.0.0-cp36-cp36m-win_amd64.whl"
         },
         "pytz": {
             "hashes": [

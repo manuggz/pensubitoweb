@@ -46,7 +46,7 @@
                         {% endif %}
                     {% endif %}
 					<div class="wrap-input100 validate-input m-t-50 m-b-35" data-validate = "Enter username">
-						<input class="input100" type="text" name="username" value="{{ form.username.value }}">
+						<input class="input100" type="text" name="username" value="{{ form.username.value |default_if_none:"" }}">
 						<span class="focus-input100" data-placeholder="Nombre de usuario"></span>
 					</div>
 
@@ -61,6 +61,9 @@
 						</button>
 					</div>
 
+                    {% url 'login_cas' as login_cas %}
+                    <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas }}"
+                       class="btn btn-primary btn-block" role="button">USB-ID</a>
 					<ul class="login-more p-t-50">
 						<li class="m-b-8">
 							<span class="txt1">
@@ -77,7 +80,7 @@
 								No tienes una cuenta todavía?
 							</span>
 
-							<a href="{% url 'password_reset' %}" class="txt2">
+							<a href="{% url 'crear_cuenta' %}" class="txt2">
 								Registrate
 							</a>
 						</li>
