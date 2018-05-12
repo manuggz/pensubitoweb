@@ -47,7 +47,9 @@ class MiVotiUser(AbstractUser):
 
 ## Representa una carrera de la USB
 class CarreraUsb(models.Model):
+    # Nombre, ex : Ingeniería de computación
     nombre = models.CharField(max_length=100)
+    #Código ex 0800
     codigo = models.CharField(max_length=10, primary_key=True)
 
     def __str__(self):

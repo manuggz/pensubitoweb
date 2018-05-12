@@ -105,7 +105,8 @@ class MyHTMLParser(HTMLParser):
             self.materia.codigo = data
             self.es_codigo_materia = False
         elif self.es_nombre_materia:
-            self.materia.nombre = data.strip().decode('ISO-8859-1').title()
+            #self.materia.nombre = data.strip().decode('ISO-8859-1').title()
+            self.materia.nombre = data.strip().title()
             self.es_nombre_materia = False
         elif self.es_creditos_materia:
             self.materia.creditos = data
@@ -125,8 +126,12 @@ class MyHTMLParser(HTMLParser):
 
 def parser_html(archivo_subido):
     parser = MyHTMLParser()
-    parser.feed(archivo_subido.read())
-
+    try:
+        # En caso de que archivo_subido sea un archivo
+        parser.feed(archivo_subido.read())
+    except AttributeError:
+        # Suponemos es un string
+        parser.feed(archivo_subido)
     return parser.trimestres
 
 

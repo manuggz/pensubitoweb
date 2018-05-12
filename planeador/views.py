@@ -2,6 +2,11 @@
 import ssl
 from urllib import request
 from urllib.parse import quote
+import requests, ssl
+import urllib3
+
+from bs4 import BeautifulSoup
+from bs4.builder import HTMLTreeBuilder
 
 from django.contrib.auth import login, authenticate, logout, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -9,7 +14,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.http import JsonResponse
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from api_misvoti.gdrive.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
@@ -22,6 +27,7 @@ from planeador.obtener_datos_plan import obtener_datos_analisis
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 from planeador.usbldap import obtener_datos_desde_ldap, random_password
 
+
 @login_required
 def index_vista(request):
     """
@@ -32,8 +38,9 @@ def index_vista(request):
 
     return redirect('ver_plan')
 
+
 # Vista para los usuarios no registrados
-#def index_vista(request):
+# def index_vista(request):
 #    context = {}
 #    if request.user.is_authenticated():
 #        return redirect('planes')
@@ -100,11 +107,11 @@ def crear_plan_vista(request):
                 return JsonResponse(context)
 
             dict_nuevo_plan = {
-                'nombre':nombre_nuevo_plan,
-                'id_pensum':pensum_escogido.id,
+                'nombre': nombre_nuevo_plan,
+                'id_pensum': pensum_escogido.id,
             }
 
-            #periodo_inicio_usu = form.cleaned_data['periodo_inicio']
+            # periodo_inicio_usu = form.cleaned_data['periodo_inicio']
             periodo_inicio_usu = ''
             anyo_inicio_usu = form.cleaned_data['anyo_inicio']
 
@@ -117,9 +124,9 @@ def crear_plan_vista(request):
                 )
             else:
                 if form.cleaned_data['construir_usando_pb']:
-                    llenar_plan_con_pensum_escogido(dict_nuevo_plan,periodo_inicio_usu,anyo_inicio_usu)
+                    llenar_plan_con_pensum_escogido(dict_nuevo_plan, periodo_inicio_usu, anyo_inicio_usu)
 
-            gdrive_file = gdrive_crear_nuevo_plan(request.user.username,dict_nuevo_plan)
+            gdrive_file = gdrive_crear_nuevo_plan(request.user.username, dict_nuevo_plan)
 
             request.user.gdrive_id_json_plan = gdrive_file['id']
             request.user.save()
@@ -162,7 +169,6 @@ def plan_modificar_trim(request):
         return render(request, 'planeador/page-modificar-plan.html', context)
 
 
-
 ## Busca materias segun filtros dados por el usuario
 # Regresa un JSON con el resultado
 # TODO: MOVER AL API!!
@@ -196,22 +202,22 @@ def materias_vista(request):
 
 
 def test(request):
-    import requests,ssl
-    import urllib3
-
-    from BeautifulSoup import BeautifulSoup
+    # Params
+    usbid = '11-10390'
+    caspassword = 'linking750'
+    caspassword = 'linking750'
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     s = requests.Session()
 
     ## Accedemos a la página de expediente
-    response = s.get("https://expediente.dii.usb.ve",verify=False)
+    response = s.get("https://expediente.dii.usb.ve", verify=False)
 
     parsed_html = BeautifulSoup(response.content)
     code_input_form = parsed_html.body.find(
         'input',
         attrs={
-            'name':'lt',
+            'name': 'lt',
             'type': 'hidden',
         }
     ).get('value')
@@ -220,26 +226,47 @@ def test(request):
     url_cas = response.url
     cookies = response.cookies
 
+    print("URL = %s" % url_cas)
+    print("cookies = %s" % cookies)
 
-    print "URL = %s" % url_cas
-    print "cookies = %s" % cookies
+    log_in_data = {'username': usbid, 'password': caspassword, '_eventId': 'submit', 'lt': code_input_form}
 
-    log_in_data = {}
-    log_in_data['username'] = '11-10390'
-    log_in_data['password'] = 'linking750'
-    log_in_data['_eventId'] = 'submit'
-    log_in_data['lt'] = code_input_form
+    response = s.post(url_cas, log_in_data, verify=False)
 
-    response = s.post(url_cas,log_in_data,verify=False)
-
-    print response.content
-    print response.headers
-    print response.url
+    print(response.content)
+    print(response.headers)
+    print(response.url)
 
     response = s.get('https://expediente.dii.usb.ve/login.do')
     response = s.get('https://expediente.dii.usb.ve/informeAcademico.do')
 
-    return HttpResponse(response.content)
+    nombre_nuevo_plan = "mi expediente"  # TODO: Cambiar nombre para cada expediente
+
+    carrera_plan_bd = CarreraUsb.objects.get(codigo="0800")  # TODO: Leer la carrera del ldap
+
+    pensum_escogido = Pensum.objects.get(
+        carrera=carrera_plan_bd,
+        tipo=Pensum.PASANTIA_LARGA  # Código del tipo de pensum
+    )
+
+    dict_nuevo_plan = {
+        'nombre': nombre_nuevo_plan,
+        'id_pensum': pensum_escogido.id,
+    }
+
+    # Parseamos el html
+    crear_modelos_desde_resultado_parser(
+        dict_nuevo_plan,
+        parser_html(response.text),
+    )
+
+    gdrive_file = gdrive_crear_nuevo_plan(request.user.username, dict_nuevo_plan)
+
+    request.user.gdrive_id_json_plan = gdrive_file['id']
+    request.user.save()
+
+    return redirect("home")
+
 
 @login_required
 def ver_plan_vista_principal(request):
@@ -251,15 +278,12 @@ def ver_plan_vista_principal(request):
     context = {"planes_activo": "active"}
 
     if request.user.gdrive_id_json_plan:
-
         dict_plan = gdrive_obtener_contenido_plan(request.user.gdrive_id_json_plan)
 
-        context["plan"]  = dict_plan
+        context["plan"] = dict_plan
         context["datos"] = obtener_datos_analisis(dict_plan)
 
-
     return render(request, 'planeador/vista_principal_plan.html', context)
-
 
 
 def crear_plan_base_test(request):
@@ -268,8 +292,6 @@ def crear_plan_base_test(request):
     :param request:
     :return:
     """
-    cargar_pensum_ods("Ingeniería de Computación",'0800','planeador/static/planeador/pensums/pensum_0800_pa_2013.ods')
+    cargar_pensum_ods("Ingeniería de Computación", '0800', 'planeador/static/planeador/pensums/pensum_0800_pa_2013.ods')
 
     return HttpResponse('¡Plan Base Creado!')
-
-

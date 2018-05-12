@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'misvoti',
-    'django_extensions',
     'planeador.apps.PlaneadorConfig',
     'api_misvoti',
     'accounts',
