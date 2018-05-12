@@ -27,9 +27,9 @@ rsa = "==3.4.2"
 typing = "==3.6.4"
 uritemplate = "==3.0.0"
 whitenoise = "*"
-python-ldap = {path = "C:/Users/manuggz/Downloads/python_ldap-3.0.0-cp36-cp36m-win_amd64.whl"}
 requests = "*"
 "beautifulsoup4" = "*"
+python-ldap = "*"
 
 [requires]
 python_version = "3.6"
