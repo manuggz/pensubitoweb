@@ -217,7 +217,7 @@ def crear_plan_desde_expe_url(request):
 
     else:
 
-        if False and request.user.usbid and request.user.password_cas :
+        if request.user.usbid and request.user.password_cas :
             content_page_expediente = get_expediente_page_content(request.user.usbid,request.user.password_cas)
 
             if content_page_expediente != '':
