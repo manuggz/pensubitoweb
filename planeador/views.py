@@ -23,6 +23,7 @@ from api_misvoti.models import *
 from planeador.busqueda_bd import refinarBusqueda
 from planeador.cargar_pensum_desde_ods import cargar_pensum_ods
 from planeador.crear_plan_usuario_desde_pensum import llenar_plan_con_pensum_escogido
+from planeador.decorators import only_allow_https
 from planeador.expediente_dii_com_scraper import get_expediente_page_content
 from planeador.forms import CrearNuevoPlanForm, CrearNuevoPlanExpedienteDescargado, DatosAccesoCASForm
 from planeador.obtener_datos_plan import obtener_datos_analisis
@@ -143,6 +144,7 @@ def crear_plan_base_vista(request):
 
 
 @login_required()
+@only_allow_https
 def crear_plan_desde_expe_url(request):
     """
     Vista para crear un plan accediendo a la página del expediente del usuario
@@ -255,6 +257,7 @@ def crear_plan_desde_expe_url(request):
 
     return render(request, 'planeador/page-crear-plan-expe-url.html', context)
 
+@only_allow_https
 @login_required
 def crear_plan_desde_expe_descar(request):
     """
@@ -322,6 +325,7 @@ def crear_plan_desde_expe_descar(request):
 
 
 @login_required
+@only_allow_https
 def plan_modificar_trim(request):
     """
     Vista donde el usuario puede editar su plan de estudios

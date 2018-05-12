@@ -13,6 +13,8 @@ from django.contrib.auth import views as auth_views
 from django.urls import reverse
 
 from api_misvoti.models import MiVotiUser
+from misvoti import settings
+from planeador.decorators import only_allow_https
 from planeador.usbldap import random_password, obtener_datos_desde_ldap
 
 
@@ -29,6 +31,8 @@ def crear_cuenta(request):
 
             user_autenticado = authenticate(username=user.username, password=form.cleaned_data['password1'])
             login(request, user_autenticado)
+            user.forma_acceso = MiVotiUser.INTERNA
+            user.save()
             return redirect('home')
 
     else:
@@ -66,18 +70,13 @@ def login_cas(request):
         return redirect('home')
 
     if contenido_pagina[0:2] == "no":
-        print("error")
-        print(contenido_pagina)
         # contenido_pagina = no
         # Error en el ticket
         return redirect('home')
     else:
-        print("we cool")
-        print("contenido_pagina",contenido_pagina)
         # contenido_pagina = yes 11-10390
 
         data = contenido_pagina.split()
-        print("data",data)
         usbid = data[1]
 
         try:
@@ -119,7 +118,9 @@ def login_cas(request):
     # Al finalizar login o registro, redireccionamos a home
     return redirect('home')
 
+@only_allow_https
 def login_check(request):
+
     # Todos los usuarios autenticados tienen permiso de chatear
     # Por lo que no hace falta que se autentique con otra cuenta
     if request.user.is_authenticated:
