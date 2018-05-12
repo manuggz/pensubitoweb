@@ -128,7 +128,7 @@ def parser_html(archivo_subido):
     parser = MyHTMLParser()
     try:
         # En caso de que archivo_subido sea un archivo
-        parser.feed(archivo_subido.read())
+        parser.feed(archivo_subido.read().decode('ISO-8859-1'))
     except AttributeError:
         # Suponemos es un string
         parser.feed(archivo_subido)

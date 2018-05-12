@@ -41,9 +41,9 @@ class CrearNuevoPlanForm(forms.Form):
         self.fields['anyo_inicio'].value = datetime.datetime.now().year
 
         if self.user != None:
-            if self.user.carnet:
-                anyo_carnet = int(self.user.carnet[:2])
-                print (anyo_carnet)
+            if self.user.usbid:
+                anyo_carnet = int(self.user.usbid[:2])
+                print(anyo_carnet)
                 if anyo_carnet >= 0 and anyo_carnet <= 90:
                     self.fields['anyo_inicio'].value = int("{0}{1}".format(20, anyo_carnet))
                 else:
@@ -52,3 +52,24 @@ class CrearNuevoPlanForm(forms.Form):
         self.fields['construir_usando_pb'].initial = True
 
         # self.fields['carrera_plan'].value = self.fields['carrera_plan'].choices[0][0]
+
+
+class DatosAccesoCASForm(forms.Form):
+    usbid = CharField(label="USBID", help_text="Usbid de acceso.")
+
+    password_cas = CharField(label=u'Password',help_text="Contraseña del CAS.")
+
+    remember_cas_pass = BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(DatosAccesoCASForm, self).__init__(*args, **kwargs)
+
+        if self.user != None:
+            if self.user.usbid:
+                self.fields['usbid'].value = self.user.usbid
+
+        self.fields['remember_cas_pass'].initial = True
+
+class CrearNuevoPlanExpedienteDescargado(forms.Form):
+    archivo_html_expediente = forms.FileField(required=False, help_text="Archivo HTML de la página expediente.usb.ve.")

@@ -35,17 +35,21 @@ urlpatterns = [
     # Pagina para ver un plan en especifico
     url(r'^modificar_plan/$', views.plan_modificar_trim, name='modificar_plan'),
 
-    # Pagina para crear un nuevo plan
-    url(r'^crear_plan/$', views.crear_plan_vista, name='crear_plan'),
+    # Pagina para crear un nuevo plan sin trimestres
+    url(r'^crear_plan_vacio/$', views.crear_plan_vacio_vista, name='crear_plan_vacio'),
+    # Pagina para crear un nuevo plan base
+    url(r'^crear_plan_base/$', views.crear_plan_base_vista, name='crear_plan_base'),
+    # Pagina para crear un nuevo plan desde el archivo HTML descargado del expediente
+    url(r'^crear_plan_desde_expe_descar/$', views.crear_plan_desde_expe_descar, name='crear_plan_desde_expe_descar'),
+    # Pagina para crear un nuevo plan accediendo a la página del expediente.dii del usuario
+    url(r'^crear_plan_desde_expe_url/$', views.crear_plan_desde_expe_url, name='crear_plan_desde_expe_url'),
 
-    # Para probar cualquier cosa
+
+    # Crea el pensum base de computación pasantia
     url(r'^crear_plan_base_test/$', views.crear_plan_base_test, name='crear_plan_base_test'),
 
     # Para obtener las materias base o planeadas segun un filtro
     url(r'^materias/', views.materias_vista, name='materias'),
-
-    # crear_plan_from_expediente_url
-    url(r'^crear_plan_from_expediente_url/', views.crear_plan_from_expediente_url, name='crear_plan_from_expediente_url'),
 
     #url('^', include('django.contrib.auth.urls')),
 ]

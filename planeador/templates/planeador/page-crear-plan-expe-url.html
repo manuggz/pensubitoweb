@@ -1,0 +1,55 @@
+{% extends 'misvoti/base.html' %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Datos de acceso al CAS
+      </h1>
+      <ol class="breadcrumb">
+        <li>
+            <i class="fa fa-table"></i>  <a href="{% url 'ver_plan' %}">Mi plan</a>
+        </li>
+        <li class="active">
+            <i class="fa fa-table"></i> Crear
+        </li>
+      </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+        <div class="row">
+            <div class="col-lg-6">
+                <fieldset >
+                    <form role="form" enctype="multipart/form-data" method="post">
+                        {% csrf_token %}
+                        {{ form.errors }}
+                        <div class="form-group">
+                            <label class="control-label" for="{{ form.usbid.id_for_label }}">Usbid</label>
+                            <input type="text" class="form-control form-component" id="{{ form.usbid.id_for_label }}" name="{{ form.usbid.html_name }}" value="{{ form.usbid.value |default_if_none:'' }}" placeholder="Ex: 11-10390">
+                            {{ form.usbid.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label" for="{{ form.password_cas.id_for_label }}">Contraseña de CAS</label>
+                            <input type="password" class="form-control form-component" id="{{ form.password_cas.id_for_label }}" name="{{ form.password_cas.html_name }}">
+                            {{ form.password_cas.errors }}
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" class="form-component"  {% if form.remember_cas_pass.initial %} checked {% endif %}name="{{ form.remember_cas_pass.html_name }}" id="{{ form.remember_cas_pass.id_for_label }}">
+                                Guardar mis datos de acceso al CAS
+                              </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 10px">Crear Plan</button>
+                    </form>
+                </fieldset>
+            </div>
+        </div>
+    </section>
+</div>
+    <!-- /.row -->
+{% endblock %}

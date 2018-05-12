@@ -1,5 +1,7 @@
 import json
 import os
+
+import httplib2
 from django.apps import apps
 from planeador.gdrive_namespaces import ID_DRIVE_CARPETA_MIS_VOTI
 
@@ -47,6 +49,8 @@ def gdrive_crear_nuevo_plan(prefijo_archivo,dict_nuevo_plan):
             }
         ]})
     gdrive_file.SetContentString(json.dumps(dict_nuevo_plan))
-    gdrive_file.Upload()  # Upload the file.
-
+    try:
+        gdrive_file.Upload()  # Upload the file.
+    except httplib2.ServerNotFoundError:
+        return None
     return gdrive_file

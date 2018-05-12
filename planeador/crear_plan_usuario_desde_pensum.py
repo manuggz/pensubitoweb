@@ -2,7 +2,7 @@ from api_misvoti.models import *
 
 
 
-def llenar_plan_con_pensum_escogido(dict_nuevo_plan, periodo_inicio, anyo_inicio):
+def llenar_plan_con_pensum_escogido(dict_nuevo_plan, anyo_inicio):
 
 
     orden_periodos = {

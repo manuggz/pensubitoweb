@@ -23,7 +23,8 @@ from api_misvoti.models import *
 from planeador.busqueda_bd import refinarBusqueda
 from planeador.cargar_pensum_desde_ods import cargar_pensum_ods
 from planeador.crear_plan_usuario_desde_pensum import llenar_plan_con_pensum_escogido
-from planeador.forms import CrearNuevoPlanForm
+from planeador.expediente_dii_com_scraper import get_expediente_page_content
+from planeador.forms import CrearNuevoPlanForm, CrearNuevoPlanExpedienteDescargado, DatosAccesoCASForm
 from planeador.obtener_datos_plan import obtener_datos_analisis
 from planeador.parserexpedientehtml import parser_html, crear_modelos_desde_resultado_parser
 from planeador.usbldap import obtener_datos_desde_ldap, random_password
@@ -63,58 +64,236 @@ def index_vista(request):
 #    context["form"] = form
 #    return render(request, 'misvoti/index.html', context)
 
-
-
-
-
-# TODO: Mover al Api el proceso por POST
-@login_required
-def crear_plan_vista(request):
+@login_required()
+def crear_plan_vacio_vista(request):
     """
-    Vista para crear un plan
-    Si recibe un GET muestra un formulario en el cual el usuario ingresará los datos del nuevo plan
-    Si recibe un POST crea el plan y regresa un Json diciendo si lo creó
+    Vista para crear un plan guiandose por los trimestres del pensum
 
+    :param request:
+    :return:
+    """
+    user = request.user
+    nombre_nuevo_plan = "mi plan"
+
+    try:
+        carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
+    except ObjectDoesNotExist:
+        return HttpResponse(status=400)
+
+    try:
+        pensum_escogido = Pensum.objects.get(
+            carrera=carrera_plan_bd,
+            tipo=user.tipo_pensum
+        )
+    except ObjectDoesNotExist:
+        return HttpResponse(status=400)
+
+    dict_nuevo_plan = {
+        'nombre': nombre_nuevo_plan,
+        'id_pensum': pensum_escogido.id,
+    }
+
+    gdrive_file = gdrive_crear_nuevo_plan(user.username, dict_nuevo_plan)
+    if gdrive_file:
+        user.gdrive_id_json_plan = gdrive_file['id']
+        user.save()
+
+    return redirect('home')
+
+
+@login_required()
+def crear_plan_base_vista(request):
+    """
+    Vista para crear un plan guiandose por los trimestres del pensum
+
+    :param request:
+    :return:
+    """
+    user = request.user
+    nombre_nuevo_plan = "mi plan"
+
+    try:
+        carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
+    except ObjectDoesNotExist:
+        return HttpResponse(status=400)
+
+    try:
+        pensum_escogido = Pensum.objects.get(
+            carrera=carrera_plan_bd,
+            tipo=user.tipo_pensum
+        )
+    except ObjectDoesNotExist:
+        return HttpResponse(status=400)
+
+    dict_nuevo_plan = {
+        'nombre': nombre_nuevo_plan,
+        'id_pensum': pensum_escogido.id,
+    }
+
+    anyo_inicio_usu = user.anyo_inicio
+
+    llenar_plan_con_pensum_escogido(dict_nuevo_plan, anyo_inicio_usu)
+
+    gdrive_file = gdrive_crear_nuevo_plan(user.username, dict_nuevo_plan)
+
+    user.gdrive_id_json_plan = gdrive_file['id']
+    user.save()
+
+    return redirect('home')
+
+
+@login_required()
+def crear_plan_desde_expe_url(request):
+    """
+    Vista para crear un plan accediendo a la página del expediente del usuario
     :param request:
     :return:
     """
     context = {"planes_activo": "active"}
 
+    user = request.user
+
     if request.method == 'POST':
 
-        form = CrearNuevoPlanForm(request.POST, request.FILES)
-
-        context["esta_creado_plan"] = False
+        form = DatosAccesoCASForm(request.POST)
+        context["form"] = form
 
         if form.is_valid():
 
-            nombre_nuevo_plan = form.cleaned_data["nombre_plan"]
-            context["nombre_plan"] = nombre_nuevo_plan
-            context["errors"] = {"nombre_plan": [], "carrera_plan": [], 'plan_utilizar': []}
+            nombre_nuevo_plan = "mi expediente"
 
             try:
-                carrera_plan_bd = CarreraUsb.objects.get(codigo=form.cleaned_data["carrera_plan"])
+                carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
             except ObjectDoesNotExist:
-                context["errors"]["carrera_plan"].append("¡La carrera seleccionada no existe!")
-                return JsonResponse(context)
+                return HttpResponse(status=400)
 
             try:
                 pensum_escogido = Pensum.objects.get(
                     carrera=carrera_plan_bd,
-                    tipo=form.cleaned_data["plan_utilizar"]
+                    tipo=user.tipo_pensum
                 )
             except ObjectDoesNotExist:
-                context["errors"]["plan_utilizar"].append("¡El pensum seleccionado no existe!")
-                return JsonResponse(context)
+                return HttpResponse(status=400)
 
             dict_nuevo_plan = {
                 'nombre': nombre_nuevo_plan,
                 'id_pensum': pensum_escogido.id,
             }
 
-            # periodo_inicio_usu = form.cleaned_data['periodo_inicio']
-            periodo_inicio_usu = ''
-            anyo_inicio_usu = form.cleaned_data['anyo_inicio']
+            usbid = form.cleaned_data['usbid']
+            caspassword = form.cleaned_data['password_cas']
+            remember_cas_pass = form.cleaned_data['remember_cas_pass']
+
+            content_page_expediente = get_expediente_page_content(usbid,caspassword)
+
+            if content_page_expediente == None:
+                form.add_error(None,"Datos de acceso no pueden estar vacios.")
+                return render(request, 'planeador/page-crear-plan-expe-url.html', context)
+
+            if content_page_expediente == False:
+                form.add_error(None,"Datos de acceso errones.")
+                return render(request, 'planeador/page-crear-plan-expe-url.html', context)
+
+            if content_page_expediente != '':
+                # Parseamos el html
+                crear_modelos_desde_resultado_parser(
+                    dict_nuevo_plan,
+                    parser_html(content_page_expediente),
+                )
+
+                gdrive_file = gdrive_crear_nuevo_plan(request.user.username, dict_nuevo_plan)
+
+                request.user.gdrive_id_json_plan = gdrive_file['id']
+                request.user.save()
+
+                if remember_cas_pass:
+                    user.usbid = usbid
+                    user.password_cas = caspassword
+                    user.save()
+
+                return redirect('home')
+
+        return render(request, 'planeador/page-crear-plan-expe-url.html', context)
+
+    else:
+
+        if False and request.user.usbid and request.user.password_cas :
+            content_page_expediente = get_expediente_page_content(request.user.usbid,request.user.password_cas)
+
+            if content_page_expediente != '':
+                try:
+                    carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
+                except ObjectDoesNotExist:
+                    return HttpResponse(status=400)
+
+                try:
+                    pensum_escogido = Pensum.objects.get(
+                        carrera=carrera_plan_bd,
+                        tipo=user.tipo_pensum
+                    )
+                except ObjectDoesNotExist:
+                    return HttpResponse(status=400)
+
+                dict_nuevo_plan = {
+                    'nombre': "mi expediente",
+                    'id_pensum': pensum_escogido.id,
+                }
+
+                # Parseamos el html
+                crear_modelos_desde_resultado_parser(
+                    dict_nuevo_plan,
+                    parser_html(content_page_expediente),
+                )
+
+                gdrive_file = gdrive_crear_nuevo_plan(request.user.username, dict_nuevo_plan)
+
+                request.user.gdrive_id_json_plan = gdrive_file['id']
+                request.user.save()
+                return redirect('home')
+
+        context["form"] = DatosAccesoCASForm(user=request.user)
+
+    return render(request, 'planeador/page-crear-plan-expe-url.html', context)
+
+@login_required
+def crear_plan_desde_expe_descar(request):
+    """
+    Vista para crear un plan desde un expediente descargado
+    :param request:
+    :return:
+    """
+    context = {"planes_activo": "active"}
+
+    user = request.user
+
+    if request.method == 'POST':
+
+        form = CrearNuevoPlanExpedienteDescargado(request.POST, request.FILES)
+
+        context["esta_creado_plan"] = False
+
+        if form.is_valid():
+
+            nombre_nuevo_plan = "mi expediente"
+            context["nombre_plan"] = nombre_nuevo_plan
+
+            try:
+                carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
+            except ObjectDoesNotExist:
+                return HttpResponse(status=400)
+
+            try:
+                pensum_escogido = Pensum.objects.get(
+                    carrera=carrera_plan_bd,
+                    tipo=user.tipo_pensum
+                )
+            except ObjectDoesNotExist:
+                return HttpResponse(status=400)
+
+            dict_nuevo_plan = {
+                'nombre': nombre_nuevo_plan,
+                'id_pensum': pensum_escogido.id,
+            }
 
             if form.cleaned_data["archivo_html_expediente"]:
 
@@ -123,9 +302,6 @@ def crear_plan_vista(request):
                     dict_nuevo_plan,
                     parser_html(request.FILES['archivo_html_expediente']),
                 )
-            else:
-                if form.cleaned_data['construir_usando_pb']:
-                    llenar_plan_con_pensum_escogido(dict_nuevo_plan, periodo_inicio_usu, anyo_inicio_usu)
 
             gdrive_file = gdrive_crear_nuevo_plan(request.user.username, dict_nuevo_plan)
 
@@ -136,13 +312,13 @@ def crear_plan_vista(request):
         else:
             context["errors"] = form.errors
 
-        # Redireccionamos a la pagina para modificar el expediente
         return JsonResponse(context)
 
     else:
-        context["form"] = CrearNuevoPlanForm(user=request.user)
+        context["form"] = CrearNuevoPlanExpedienteDescargado()
 
-    return render(request, 'planeador/page-crear-plan.html', context)
+    return render(request, 'planeador/page-crear-plan-expe-descar.html', context)
+
 
 
 @login_required
@@ -202,88 +378,6 @@ def materias_vista(request):
     return JsonResponse(context)
 
 
-@require_http_methods(["POST"])
-def crear_plan_from_expediente_url(request):
-
-    user_id = request.POST.get('user_id')
-    caspassword = request.POST.get('caspassword')
-
-    try:
-        user = MiVotiUser.objects.get(id=user_id)
-    except ObjectDoesNotExist:
-        return HttpResponse(status=400)  # We need a password to continue
-
-    usbid = user.usbid
-
-    if not caspassword:
-        caspassword = user.password_cas
-        if not caspassword:
-            return HttpResponse(status=400)  # We need a password to continue
-
-    if not user.codigo_carrera:
-        return HttpResponse(status=400)  # We need the user to select his career
-
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    s = requests.Session()
-
-    ## Accedemos a la página de expediente
-    response = s.get("https://expediente.dii.usb.ve", verify=False)
-
-    ## Lee la página del CAS
-    parsed_html = BeautifulSoup(response.content,"html.parser")
-
-    # Get a secret code
-    code_input_form = parsed_html.body.find(
-        'input',
-        attrs={
-            'name': 'lt',
-            'type': 'hidden',
-        }
-    ).get('value')
-
-    url_cas = response.url
-    #cookies = response.cookies
-
-    log_in_data = {'username': usbid, 'password': caspassword, '_eventId': 'submit', 'lt': code_input_form}
-
-    #Send the cas form filled
-    response = s.post(url_cas, log_in_data, verify=False)
-
-    # Se logea en expediente
-    response = s.get('https://expediente.dii.usb.ve/login.do')
-
-    if not user.codigo_carrera:
-        #response = s.get('http://expediente.dii.usb.ve/datosPersonales.do')
-        #parsed_html = BeautifulSoup(response.content, "html.parser")
-        # parsear_carrera()
-        pass
-
-    response = s.get('https://expediente.dii.usb.ve/informeAcademico.do')
-
-    nombre_nuevo_plan = "mi expediente"  # TODO: Cambiar nombre para cada expediente
-
-    pensum_escogido = Pensum.objects.get(
-        carrera=CarreraUsb.objects.get(codigo=user.codigo_carrera),# TODO: Leer la carrera del ldap
-        tipo=Pensum.PASANTIA_LARGA  # Código del tipo de pensum # TODO: Default a PROYECTO_GRADO
-    )
-
-    dict_nuevo_plan = {
-        'nombre': nombre_nuevo_plan,
-        'id_pensum': pensum_escogido.id,
-    }
-
-    # Parseamos el html
-    crear_modelos_desde_resultado_parser(
-        dict_nuevo_plan,
-        parser_html(response.text),
-    )
-
-    gdrive_file = gdrive_crear_nuevo_plan(request.user.username, dict_nuevo_plan)
-
-    request.user.gdrive_id_json_plan = gdrive_file['id']
-    request.user.save()
-
-    return JsonResponse({'created':True})
 
 
 @login_required

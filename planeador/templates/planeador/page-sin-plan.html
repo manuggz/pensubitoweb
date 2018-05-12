@@ -8,7 +8,10 @@
                     <div class="jumbotron">
                       <h1>¡No has creado tu plan todavía!</h1>
                       <p>¡Comienza a llevar el control de tu progreso y planear tus trimestres con nosotros!</p>
-                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan' %}" role="button">¡Crear Plan!</a></p>
+                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan_vacio' %}" role="button">¡Crear plan vacio!</a></p>
+                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan_base' %}" role="button">¡Crear plan según el pensum!</a></p>
+                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan_desde_expe_descar' %}" role="button">¡Crear plan desde mi expediente descargado!</a></p>
+                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan_desde_expe_url' %}" role="button">¡Crear plan accediendo a mi expediente.dii.usb.ve!</a></p>
                     </div>
                 </div>
             </div>

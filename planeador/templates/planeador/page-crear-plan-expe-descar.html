@@ -1,0 +1,140 @@
+{% extends 'misvoti/base.html' %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Crear Nuevo Plan
+      </h1>
+      <ol class="breadcrumb">
+        <li>
+            <i class="fa fa-table"></i>  <a href="{% url 'ver_plan' %}">Mi plan</a>
+        </li>
+        <li class="active">
+            <i class="fa fa-table"></i> Crear
+        </li>
+      </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+        <div class="row">
+            <div class="col-lg-6">
+                <fieldset >
+                    <form role="form" enctype="multipart/form-data" method="post">
+                        {% csrf_token %}
+                        <div class="panel panel-info">
+                          <div class="panel-heading">
+                            <h3 class="panel-title">¡Utilizar datos de mi expediente!</h3>
+                          </div>
+                          <div class="panel-body">
+                            <div class="form-group">
+                                <label class="control-label" for="{{ form.archivo_html_expediente.id_for_label }}">Archivo HTML</label>
+                                <input type="file" class="form-control form-component"  name="{{ form.archivo_html_expediente.html_name }}" id="{{ form.archivo_html_expediente.id_for_label }}"  style="padding-bottom: 40px !important;" accept="text/html">
+                            </div>
+                            <div id="div-alert-container-{{ form.archivo_html_expediente.html_name }}">
+                                <div class="alert alert-danger alert-dismissible fade in" role="alert" id="div-alert-errors-{{ form.archivo_html_expediente.html_name }}">
+                                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                         <span aria-hidden="true">×</span>
+                                     </button>
+                                    <div id="div-container-errors-{{ form.archivo_html_expediente.html_name }}"></div>
+                                </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 10px">Crear Plan</button>
+                    </form>
+                </fieldset>
+            </div>
+        </div>
+    </section>
+</div>
+    <!-- /.row -->
+{% endblock %}
+
+{%  block final_pagina_scripts %}
+    <script>
+
+        var btn_crear_plan = null;
+        var fieldset_form = null;
+        var msg_creando_plan;
+
+        function preAjaxSubmit(formData, jqForm, options) {
+            fieldset_form.attr("disabled","disabled");
+            return true;
+        }
+
+        function postAjaxSubmit(responseJson, statusText, xhr, $form)  {
+
+            if(statusText == "success"){
+                if(responseJson.esta_creado_plan) {
+                    alertify.success("¡El plan ha sido creado!")
+                    btn_crear_plan.text("¡El plan ha sido creado!");
+                    setTimeout("redirigir_plan_creado('" + responseJson.nombre_plan + "')", 500);
+                }else{
+                    btn_crear_plan.text("Crear Plan");
+                    alertify.error("¡Ocurrió un error creando el plan!",3)
+                    html_errors = "";
+                    for (var name in responseJson.errors) {
+                        html_errors = "<ul>";
+                        tiene_errores = false
+                        for(var error in responseJson.errors[name]){
+                            html_errors += "<li>" + responseJson.errors[name][error] + "</li>";
+                            tiene_errores = true
+                        }
+                        html_errors += "</ul>";
+                        if(tiene_errores) {
+                            if (!jQuery.contains(document, div_errores[name])) {
+                                div_errores[name].addClass("in");
+                                $("#div-alert-container-" + name).append(div_errores[name]);
+                            }
+                            $("#div-container-errors-" + name).html(html_errors);
+                        }else{
+                            div_errores[name].alert('close');
+                        }
+                    }
+
+                    fieldset_form.removeAttr("disabled");
+                }
+            }else{
+                btn_crear_plan.text("Crear Plan");
+                fieldset_form.removeAttr("disabled");
+            }
+            msg_creando_plan.dismiss()
+        }
+
+        function redirigir_plan_creado(nombre_plan) {
+            window.location.replace("{% url 'ver_plan'%}");
+        }
+        $(document).ready(function(){
+
+            btn_crear_plan = $("button.btn-primary");
+            fieldset_form = $("fieldset");
+
+            div_errores = {};
+            {% for field in form%}
+                div_errores.{{ field.html_name }} = $("#div-alert-errors-" + "{{ field.html_name }}");
+                div_errores.{{ field.html_name }}.alert('close');
+            {% endfor %}
+
+            $("form").submit(function (e) {
+                msg_creando_plan = alertify.notify('Creando plan <img src="{% static 'misvoti/images/gears.svg' %}" style="width: 40px;height:40px;">','custom',0,null);
+                btn_crear_plan.text("Creando Plan...");
+                var options = {
+                    beforeSubmit:  preAjaxSubmit,  // pre-submit callback
+                    success:       postAjaxSubmit,  // post-submit callback
+                    dataType:  'json',        // 'xml', 'script', or 'json' (expected server response type)
+                };
+
+                e.preventDefault();
+                $("form").ajaxSubmit(options);
+            });
+
+        });
+
+    </script>
+{% endblock %}
+

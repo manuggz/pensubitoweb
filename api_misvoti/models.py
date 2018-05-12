@@ -6,6 +6,9 @@ from django.db import models
 
 
 ## Modelo para manejar el usuario del sistema
+from django.utils.timezone import now
+
+from planeador.constants import TIPO_PLAN, NO_DEFINIDO, PROYECTO_GRADO, PASANTIA_LARGA
 
 
 class MiVotiUser(AbstractUser):
@@ -39,7 +42,14 @@ class MiVotiUser(AbstractUser):
 
     # Carrera del estudiante TODO: No toma en cuenta cambios de carrera
     # solo el código de la carrera debido a que CarreraUsb es guardado en otra BD por problemas con Heroku
-    codigo_carrera = models.CharField(max_length=10, blank=True,null=True)
+    codigo_carrera = models.CharField(max_length=10, blank=True,null=True,default='0800')
+
+    # Tipo de pensum que el usuario va a cursar
+    tipo_pensum = models.CharField(max_length=2,choices=TIPO_PLAN,default=PASANTIA_LARGA)
+
+    # Anyo en el que el usuario iniciará sus estudios
+    anyo_inicio = models.CharField(max_length=4,blank=False,null=False,default=now().year)
+
 
     # Password del usuario para el CASS # TODO: Guardar como hash
     password_cas = models.CharField(max_length=128, blank=True, null=True)
@@ -75,16 +85,6 @@ class CarreraUsb(models.Model):
 # Notar que no se guarda más información referente al plan solo que este existe
 # Sus detalles se guardarán en otro lugar
 class Pensum(models.Model):
-    PASANTIA_LARGA = 'PA'
-    PROYECTO_GRADO = 'PG'
-    NO_DEFINIDO = 'ND'
-
-    TIPO_PLAN = (
-        (PASANTIA_LARGA, 'Pasantia Larga'),
-        (PROYECTO_GRADO, 'Proyecto de grado a dedicación exclusiva'),
-        (NO_DEFINIDO, 'No definido')
-    )
-
     carrera = models.ForeignKey(CarreraUsb,on_delete=models.CASCADE)
     tipo = models.CharField(
         max_length=2,
