@@ -508,6 +508,50 @@ $(function () {
 
     });
 
+    $("a[data-accion='eliminar-plan']").click(function (e) {
+
+        var button = $(this);
+        var nombre_plan = button.data('plan-nombre');
+        var id_plan = button.data('plan-id');
+
+        alertify.confirm(
+                'Plan: ' + nombre_plan,
+                '¿ Eliminar plan ?',
+                function(){
+
+                    var n_puntos = 1;
+
+                    var msg_eliminando = alertify.message('Eliminando plan: ' + nombre_plan + '.',0, function(){ clearInterval(interval);});
+
+                     var interval = setInterval(function(){
+                         n_puntos = (n_puntos + 1) % 4;
+                        msg_eliminando.setContent('Eliminando plan: ' + nombre_plan + ".".repeat(n_puntos));
+                     },500);
+
+                    $.ajax({
+                        url:modificar_plan_params.url_api_plan_details,
+                        type: 'DELETE',
+                        success: function(data,status,request) {
+                            alertify.success('¡Eliminado plan: ' + nombre_plan + "!");
+                            msg_eliminando.dismiss();
+                            setTimeout("location.reload()", 500);
+                        },
+                        error:function (request, status, error) {
+                            msg_eliminando.dismiss();
+                            console.log(status,error);
+                            alertify.error('Ocurrió un error eliminando el plan: ' + nombre_plan)
+                        },
+                        contentType:'application/json; indent=4;charset=UTF-8',
+                        dataType:'json',
+                    });
+
+                },
+                null
+        ).setting({
+            'labels':{ok:'¡Sí!', cancel:'¡No!'}
+        });
+    });
+
     window.crearHtmlBoxTrimestre = crearHtmlBoxTrimestre;
     window.crearHtmlTrMateria = crearHtmlTrMateria;
     window.convertirPeriodoCodigoAString = convertirPeriodoCodigoAString;
