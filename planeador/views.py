@@ -12,10 +12,11 @@ from django.contrib.auth import login, authenticate, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 
 from api_misvoti.gdrive.administrar_drive_planes import gdrive_obtener_contenido_plan, gdrive_crear_nuevo_plan
 from api_misvoti.models import *
@@ -201,11 +202,26 @@ def materias_vista(request):
     return JsonResponse(context)
 
 
-def test(request):
-    # Params
-    usbid = '11-10390'
-    caspassword = 'linking750'
-    caspassword = 'linking750'
+@require_http_methods(["POST"])
+def crear_plan_from_expediente_url(request):
+
+    user_id = request.POST.get('user_id')
+    caspassword = request.POST.get('caspassword')
+
+    try:
+        user = MiVotiUser.objects.get(id=user_id)
+    except ObjectDoesNotExist:
+        return HttpResponse(status=400)  # We need a password to continue
+
+    usbid = user.usbid
+
+    if not caspassword:
+        caspassword = user.password_cas
+        if not caspassword:
+            return HttpResponse(status=400)  # We need a password to continue
+
+    if not user.codigo_carrera:
+        return HttpResponse(status=400)  # We need the user to select his career
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     s = requests.Session()
@@ -213,7 +229,10 @@ def test(request):
     ## Accedemos a la página de expediente
     response = s.get("https://expediente.dii.usb.ve", verify=False)
 
-    parsed_html = BeautifulSoup(response.content)
+    ## Lee la página del CAS
+    parsed_html = BeautifulSoup(response.content,"html.parser")
+
+    # Get a secret code
     code_input_form = parsed_html.body.find(
         'input',
         attrs={
@@ -222,31 +241,30 @@ def test(request):
         }
     ).get('value')
 
-    ## test
     url_cas = response.url
-    cookies = response.cookies
-
-    print("URL = %s" % url_cas)
-    print("cookies = %s" % cookies)
+    #cookies = response.cookies
 
     log_in_data = {'username': usbid, 'password': caspassword, '_eventId': 'submit', 'lt': code_input_form}
 
+    #Send the cas form filled
     response = s.post(url_cas, log_in_data, verify=False)
 
-    print(response.content)
-    print(response.headers)
-    print(response.url)
-
+    # Se logea en expediente
     response = s.get('https://expediente.dii.usb.ve/login.do')
+
+    if not user.codigo_carrera:
+        #response = s.get('http://expediente.dii.usb.ve/datosPersonales.do')
+        #parsed_html = BeautifulSoup(response.content, "html.parser")
+        # parsear_carrera()
+        pass
+
     response = s.get('https://expediente.dii.usb.ve/informeAcademico.do')
 
     nombre_nuevo_plan = "mi expediente"  # TODO: Cambiar nombre para cada expediente
 
-    carrera_plan_bd = CarreraUsb.objects.get(codigo="0800")  # TODO: Leer la carrera del ldap
-
     pensum_escogido = Pensum.objects.get(
-        carrera=carrera_plan_bd,
-        tipo=Pensum.PASANTIA_LARGA  # Código del tipo de pensum
+        carrera=CarreraUsb.objects.get(codigo=user.codigo_carrera),# TODO: Leer la carrera del ldap
+        tipo=Pensum.PASANTIA_LARGA  # Código del tipo de pensum # TODO: Default a PROYECTO_GRADO
     )
 
     dict_nuevo_plan = {
@@ -265,7 +283,7 @@ def test(request):
     request.user.gdrive_id_json_plan = gdrive_file['id']
     request.user.save()
 
-    return redirect("home")
+    return JsonResponse({'created':True})
 
 
 @login_required

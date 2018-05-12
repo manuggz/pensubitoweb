@@ -47,7 +47,7 @@ def login_cas(request):
         # Error se necesita el ticket
         return redirect('home')
 
-    # Obtenemos el carnet del ticket
+    # Obtenemos el usbid del ticket
     try:
         # Creamos un nuevo contexto ssl para que no nos de error de verificaciones
         ssl._create_default_https_context = ssl._create_unverified_context
@@ -55,14 +55,14 @@ def login_cas(request):
         # Encodificamos el url de esta vista
         url_login_cast = quote(request.build_absolute_uri(reverse('login_cas')), safe='')
 
-        # Construimos el url al servicio del dst que nos dará el carnet
+        # Construimos el url al servicio del dst que nos dará el usbid
         url = "https://secure.dst.usb.ve/validate?ticket=" + ticket + "&service=" + url_login_cast
         req = Request(url)
         response = urlopen(req)
         contenido_pagina = response.read().decode('utf-8')
     except HTTPError as e:
         print(e)
-        # Error en la obtención del carnet
+        # Error en la obtención del usbid
         return redirect('home')
 
     if contenido_pagina[0:2] == "no":

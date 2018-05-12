@@ -44,8 +44,8 @@ urlpatterns = [
     # Para obtener las materias base o planeadas segun un filtro
     url(r'^materias/', views.materias_vista, name='materias'),
 
-    # test
-    url(r'^test/', views.test, name='test'),
+    # crear_plan_from_expediente_url
+    url(r'^crear_plan_from_expediente_url/', views.crear_plan_from_expediente_url, name='crear_plan_from_expediente_url'),
 
     #url('^', include('django.contrib.auth.urls')),
 ]

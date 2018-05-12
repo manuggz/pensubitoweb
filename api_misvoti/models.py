@@ -26,7 +26,7 @@ class MiVotiUser(AbstractUser):
     )
 
     # Carnet del usuario
-    carnet = models.CharField(max_length=10, blank=True)
+    usbid = models.CharField(max_length=10, blank=True)
 
     # Indica si se han cargados los datos del ldap
     estan_cargados_datos_ldap = models.BooleanField(default=False)
@@ -36,6 +36,13 @@ class MiVotiUser(AbstractUser):
 
     # Tipo de usuario obtenido del ldap
     tipo = models.CharField(max_length=100, blank=True)
+
+    # Carrera del estudiante TODO: No toma en cuenta cambios de carrera
+    # solo el código de la carrera debido a que CarreraUsb es guardado en otra BD por problemas con Heroku
+    codigo_carrera = models.CharField(max_length=10, blank=True,null=True)
+
+    # Password del usuario para el CASS # TODO: Guardar como hash
+    password_cas = models.CharField(max_length=128, blank=True, null=True)
 
     # Id del  Archivo de json en Google Drive
     gdrive_id_json_plan = models.CharField(max_length=50, null=True, editable=False)
