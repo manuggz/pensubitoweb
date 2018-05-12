@@ -80,7 +80,7 @@ def login_cas(request):
         usbid = data[1]
 
         try:
-            usuario_existente = MiVotiUser.objects.get(carnet=usbid)
+            usuario_existente = MiVotiUser.objects.get(usbid=usbid)
         except ObjectDoesNotExist:
             usuario_existente = None
 
@@ -109,7 +109,7 @@ def login_cas(request):
             nuevo_usuario.cedula = us['cedula']
             nuevo_usuario.telefono = us['phone']
             nuevo_usuario.tipo = us.get('tipo')
-            nuevo_usuario.carnet = usbid
+            nuevo_usuario.usbid = usbid
             # nuevo_usuario.estan_cargados_datos_ldap = True
             nuevo_usuario.forma_acceso = MiVotiUser.CAS
             nuevo_usuario.save()
