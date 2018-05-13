@@ -10,4 +10,5 @@ slapd
 python-tox
 lcov
 python-ldap
+python3-ldap
 valgrind
