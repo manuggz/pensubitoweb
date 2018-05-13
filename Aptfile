@@ -9,4 +9,5 @@ python2.7-dev
 slapd
 python-tox
 lcov
+python-ldap
 valgrind
