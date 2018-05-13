@@ -2,3 +2,11 @@ libsasl2-dev
 python-dev
 libldap2-dev
 libssl-dev
+ldap-utils
+build-essential
+python3-dev
+python2.7-dev
+slapd
+python-tox
+lcov
+valgrind
