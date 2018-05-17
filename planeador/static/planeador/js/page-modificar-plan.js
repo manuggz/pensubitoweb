@@ -331,8 +331,8 @@ $(function () {
         var materia_json = trimestre_json.materias[j_materia_eliminar];
 
         alertify.confirm(
-            'Materia: ' + materia_json.codigo,
-            '¿ Eliminar : "' + materia_json.nombre + '" ?',
+            'Materia ' + convertirTipoMateriaCodigoAString(materia_json.tipo) + (materia_json.codigo?' ' + materia_json.codigo:''),
+            '¿ Eliminar ' + (materia_json.nombre?materia_json.nombre:'esta materia') + ' ?',
             function () {
                 // Ocultamos el tr de la materia
                 tr_materia.hide('slow', function () {
