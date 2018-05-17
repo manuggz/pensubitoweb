@@ -100,7 +100,7 @@ def crear_plan_vacio_vista(request):
     if gdrive_file:
         user.gdrive_id_json_plan = gdrive_file['id']
         user.save()
-
+    messages.success(request,"¡Creado plan sin trimestres!")
     return redirect('home')
 
 
@@ -142,6 +142,7 @@ def crear_plan_base_vista(request):
     user.gdrive_id_json_plan = gdrive_file['id']
     user.save()
 
+    messages.success(request,"¡Creado plan de acuerdo al pensum de tu carrera!")
     return redirect('home')
 
 
@@ -186,16 +187,17 @@ def crear_plan_desde_expe_url(request):
 
             usbid = form.cleaned_data['usbid']
             caspassword = form.cleaned_data['password_cas']
+
+            if not usbid or not caspassword:
+                form.add_error(None,"Datos de acceso no pueden estar vacios.")
+                return render(request, 'planeador/page-crear-plan-expe-url.html', context)
+
             remember_cas_pass = form.cleaned_data['remember_cas_pass']
 
             content_page_expediente = get_expediente_page_content(usbid,caspassword)
 
-            if content_page_expediente == None:
-                form.add_error(None,"Datos de acceso no pueden estar vacios.")
-                return render(request, 'planeador/page-crear-plan-expe-url.html', context)
-
             if content_page_expediente == False:
-                form.add_error(None,"Datos de acceso errones.")
+                form.add_error(None,"Error accediendo al expediente. Posibles datos de acceso errones.")
                 return render(request, 'planeador/page-crear-plan-expe-url.html', context)
 
             if content_page_expediente != '':
@@ -215,6 +217,7 @@ def crear_plan_desde_expe_url(request):
                     user.password_cas = caspassword
                     user.save()
 
+                messages.success(request, "¡Creado plan de acuerdo a tu expediente!")
                 return redirect('home')
 
         return render(request, 'planeador/page-crear-plan-expe-url.html', context)
@@ -253,9 +256,9 @@ def crear_plan_desde_expe_url(request):
 
                 request.user.gdrive_id_json_plan = gdrive_file['id']
                 request.user.save()
+                messages.success(request, "¡Creado plan de acuerdo a tu expediente!")
                 return redirect('home')
-
-            if content_page_expediente is None:
+            else:
                 messages.error(request,'Error conectandose  a la página del expediente')
                 return redirect('home')
 
@@ -317,6 +320,7 @@ def crear_plan_desde_expe_descar(request):
             request.user.gdrive_id_json_plan = gdrive_file['id']
             request.user.save()
 
+            messages.success(request, "¡Creado plan de acuerdo a tu archivo de expediente cargado!")
             context["esta_creado_plan"] = True
         else:
             context["errors"] = form.errors
