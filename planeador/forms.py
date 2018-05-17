@@ -65,11 +65,11 @@ class DatosAccesoCASForm(forms.Form):
         self.user = kwargs.pop('user', None)
         super(DatosAccesoCASForm, self).__init__(*args, **kwargs)
 
-        if self.user != None:
+        if self.user is not None:
             if self.user.usbid:
                 self.fields['usbid'].value = self.user.usbid
 
         self.fields['remember_cas_pass'].initial = True
 
 class CrearNuevoPlanExpedienteDescargado(forms.Form):
-    archivo_html_expediente = forms.FileField(required=False, help_text="Archivo HTML de la página expediente.usb.ve.")
+    archivo_html_expediente = forms.FileField(required=True, help_text="Archivo HTML de la página expediente.usb.ve.")
