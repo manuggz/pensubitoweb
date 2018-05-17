@@ -133,15 +133,15 @@ $(function () {
             // los datos para el trimestre <código trimestre>
 
             if (isNaN(sum_nota_creds_trimact) || sum_nota_creds_trimact === 0) {
-                $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html("<abbr title='Nota no calculable'>N.C.</abbr>");
+                $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html("Nota no calculable");
             } else {
                 $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html(
                     redondear(sum_nota_creds_trimact / cred_cont_trimact)
                 );
             }
 
-            if (isNaN(sum_nota_creds_acum)) {
-                $div_datos_trimestres_html.find("#td-indice-acumulado-" + i).html("<abbr title='Nota no calculable'>N.C.</abbr>");
+            if (isNaN(sum_nota_creds_acum) || sum_nota_creds_acum === 0) {
+                $div_datos_trimestres_html.find("#td-indice-acumulado-" + i).html("Nota no calculable");
             } else {
 
                 indice_acumulado_actual = redondear(sum_nota_creds_acum / creds_cont);
