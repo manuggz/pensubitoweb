@@ -246,7 +246,7 @@ $(function () {
         if (materia_json.codigo) {
             html_tr_materia += "<td>" + materia_json.codigo + "</td>";
         } else {
-            html_tr_materia += "<td><abbr title='Sin Definir '>Sin.Defi.</abbr> </td>";
+            html_tr_materia += "<td>Sin definir</td>";
         }
 
         // Nombre de la materia
@@ -254,7 +254,7 @@ $(function () {
             // El hidden-xs hace que se oculte este td en pantallas pequeñas
             html_tr_materia += "<td>" + materia_json.nombre + "</td>";
         } else {
-            html_tr_materia += "<td><abbr title='Sin Definir '>Sin.Defi.</abbr> </td>";
+            html_tr_materia += "<td>Sin definir</td>";
         }
 
         html_tr_materia += "<td >";

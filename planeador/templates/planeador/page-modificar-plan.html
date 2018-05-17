@@ -78,13 +78,13 @@
                                              <tr>
                                                  <th>Indice del Trimestre</th>
                                                  <td align='center' id='td-indice-periodo-{{ i_trimestre }}' >
-                                                     NC
+                                                     Nota no calculable
                                                  </td>
                                              </tr>
                                              <tr>
                                                  <th >Indice Acumulado</th>
                                                  <td align='center' id='td-indice-acumulado-{{ i_trimestre }}' >
-                                                     NC
+                                                     Nota no calculable
                                                  </td>
                                              </tr>
 
@@ -108,13 +108,13 @@
                                                     {% if materia.codigo %}
                                                         <td> {{ materia.codigo }} </td>
                                                     {% else %}
-                                                        <td><abbr title='Sin Definir '>Sin.Defi.</abbr> </td>
+                                                        <td>Sin definir</td>
                                                     {% endif %}
 
                                                     {% if materia.nombre %}
                                                         <td> {{ materia.nombre }} </td>
                                                     {% else %}
-                                                        <td><abbr title='Sin Definir '>Sin.Defi.</abbr> </td>
+                                                        <td>Sin definir</td>
                                                     {% endif %}
 
                                                    <td>
