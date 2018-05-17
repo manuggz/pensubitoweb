@@ -135,9 +135,17 @@ $(function () {
             if (isNaN(sum_nota_creds_trimact) || sum_nota_creds_trimact === 0) {
                 $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html("Nota no calculable");
             } else {
-                $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html(
-                    redondear(sum_nota_creds_trimact / cred_cont_trimact)
-                );
+                let indice_trimestre_red = redondear(sum_nota_creds_trimact / cred_cont_trimact);
+                var html_indice_trimestre = "";
+                if (indice_trimestre_red > 4.0) {
+                    html_indice_trimestre += "<strong style='color: darkgreen;'>" + indice_trimestre_red + "</strong>"
+                } else if (indice_trimestre_red < 2.9) {
+                    html_indice_trimestre += "<strong style='color: darkred;'>" + indice_trimestre_red + "</strong>"
+                } else {
+                    html_indice_trimestre += indice_trimestre_red
+                }
+
+                $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html(html_indice_trimestre);
             }
 
             if (isNaN(sum_nota_creds_acum) || sum_nota_creds_acum === 0) {
@@ -160,10 +168,10 @@ $(function () {
                     html_indice_acumulado += "<img src='" + modificar_plan_params.path_image_flecha_same + "' style='width:15px;height:15px;'/>"
                 } else if (indice_acumulado_actual > indice_acumulado_anterior) {
                     html_indice_acumulado += "<img src='" + modificar_plan_params.path_image_flecha_up + "' style='width:15px;height:15px;'/>";
-                    html_indice_acumulado += "( +" + redondear(diferencia) + ")"
+                    html_indice_acumulado += "(<strong style='color: limegreen;'>+" + redondear(diferencia) + "</strong>)"
                 } else {
                     html_indice_acumulado += "<img src='" + modificar_plan_params.path_image_flecha_down + "' style='width:15px;height:15px;'/>";
-                    html_indice_acumulado += "( -" + redondear(diferencia) + ")"
+                    html_indice_acumulado += "(<strong style='color: indianred;'>-" +  redondear(diferencia) + "</strong>)"
                 }
 
 
