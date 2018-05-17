@@ -352,7 +352,7 @@ $(function () {
         });
     }
 
-    function on_click_boton_eliminar_trimestre(boton_jsobj) {
+    function onClickBotonEliminarTrimestre(boton_jsobj) {
         var button = $(boton_jsobj); // Button that triggered the modal
         var box_trimestre = button.closest("div.box");
         var i_trimestre = parseInt(box_trimestre.data("trimestre-codigo"));
@@ -406,7 +406,7 @@ $(function () {
                     html_tabla_trimestre += '<button type="button"  data-widget="collapse" class="btn btn-box-tool" data-toggle="tooltip" title="Collapse">';
                         html_tabla_trimestre += '<span class="fa fa-minus"></span>';
                     html_tabla_trimestre += '</button> ';
-                    html_tabla_trimestre += '<button type="button"  data-widget="remove" onclick="on_click_boton_eliminar_trimestre(this)" class="btn btn-box-tool" data-toggle="tooltip" title="Remove">';
+                    html_tabla_trimestre += '<button type="button"  data-widget="remove" onclick="onClickBotonEliminarTrimestre(this)" class="btn btn-box-tool" data-toggle="tooltip" title="Remove">';
                         html_tabla_trimestre += '<span class="fa fa-times"></span>';
                     html_tabla_trimestre += '</button> ';
                 html_tabla_trimestre += "</div>";
@@ -558,5 +558,6 @@ $(function () {
     window.actualizarDatosPlanCreado = actualizarDatosPlanCreado;
     window.convertirTipoMateriaCodigoAString = convertirTipoMateriaCodigoAString;
     window.onClickBotonEliminarMateria = onClickBotonEliminarMateria;
+    window.onClickBotonEliminarTrimestre = onClickBotonEliminarTrimestre
     window.onChangeSelectNotaFinalMateria = onChangeSelectNotaFinalMateria;
 });
