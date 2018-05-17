@@ -353,6 +353,7 @@ $(function () {
     }
 
     function onClickBotonEliminarTrimestre(boton_jsobj) {
+
         var button = $(boton_jsobj); // Button that triggered the modal
         var box_trimestre = button.closest("div.box");
         var i_trimestre = parseInt(box_trimestre.data("trimestre-codigo"));
