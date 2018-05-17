@@ -132,7 +132,7 @@ $(function () {
             // Notar que se ha usado la notación #td-indice-<codigo trimestre> para referenciar el td que muestra
             // los datos para el trimestre <código trimestre>
 
-            if (isNaN(sum_nota_creds_trimact)) {
+            if (isNaN(sum_nota_creds_trimact) || sum_nota_creds_trimact === 0) {
                 $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html("<abbr title='Nota no calculable'>N.C.</abbr>");
             } else {
                 $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html(
@@ -419,13 +419,13 @@ $(function () {
                 html_tabla_trimestre += '<table class="table table-hover datos-trimestre">';
                     html_tabla_trimestre += "<tr>";
                     html_tabla_trimestre += "<th>Indice del Trimestre</th>";
-                    html_tabla_trimestre += "<td align='center' id='td-indice-periodo-" + trimestre_json.codigo + "' >";
+                    html_tabla_trimestre += "<td align='center' id='td-indice-periodo-" + indice_trimestre + "' >";
                     html_tabla_trimestre += "NC";
                     html_tabla_trimestre += "</td>";
                     html_tabla_trimestre += "</tr>";
                     html_tabla_trimestre += "<tr>";
                     html_tabla_trimestre += "<th >Indice Acumulado</th>";
-                    html_tabla_trimestre += "<td align='center' id='td-indice-acumulado-" + trimestre_json.codigo + "' >";
+                    html_tabla_trimestre += "<td align='center' id='td-indice-acumulado-" + indice_trimestre + "' >";
                     html_tabla_trimestre += "NC";
                     html_tabla_trimestre += "</td>";
                     html_tabla_trimestre += "</tr>";
@@ -559,6 +559,6 @@ $(function () {
     window.actualizarDatosPlanCreado = actualizarDatosPlanCreado;
     window.convertirTipoMateriaCodigoAString = convertirTipoMateriaCodigoAString;
     window.onClickBotonEliminarMateria = onClickBotonEliminarMateria;
-    window.onClickBotonEliminarTrimestre = onClickBotonEliminarTrimestre
+    window.onClickBotonEliminarTrimestre = onClickBotonEliminarTrimestre;
     window.onChangeSelectNotaFinalMateria = onChangeSelectNotaFinalMateria;
 });
