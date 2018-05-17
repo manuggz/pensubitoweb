@@ -52,6 +52,18 @@
     <!-- Google Font -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-69898030-5"></script>
+<script>
+    {% if request.user and not request.user.is_staff %}
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-69898030-5');
+    {% endif %}
+</script>
 </head>
 
 <body class="hold-transition skin-blue fixed  sidebar-mini">
