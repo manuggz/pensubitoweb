@@ -1,6 +1,8 @@
 import requests
 import urllib3
 from bs4 import BeautifulSoup
+from urllib3 import HTTPSConnectionPool
+from urllib3.exceptions import NewConnectionError
 
 
 def get_expediente_page_content(usbid, password_cas):
@@ -18,7 +20,18 @@ def get_expediente_page_content(usbid, password_cas):
     s = requests.Session()
 
     ## Accedemos a la página de expediente
-    response = s.get("https://expediente.dii.usb.ve", verify=False)
+    try:
+        response = s.get("https://expediente.dii.usb.ve", verify=False)
+    except NewConnectionError:
+        return  None
+    except requests.exceptions.Timeout:
+        return None
+    # Maybe set up for a retry, or continue in a retry loop
+    except requests.exceptions.TooManyRedirects:
+        return None
+    # Tell the user their URL was bad and try a different one
+    except requests.exceptions.RequestException as e:
+        return  None
 
     ## Lee la página del CAS
     parsed_html = BeautifulSoup(response.content,"html.parser")

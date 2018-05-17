@@ -175,6 +175,16 @@
     <script src="{% static 'bootstrap-select/dist/js/bootstrap-select.min.js' %}"></script>
 
     <script src="{% static 'admin-lte/plugins/pace/pace.min.js' %}" ></script>
+
+    <script src="{% static 'misvoti/js/util.js' %}" ></script>
+
+    <script type="text/javascript">
+        window.misvotiapp = {
+            messages : {{ json_messages}}
+        }
+    </script>
+    <script src="{% static 'misvoti/js/base.js' %}" ></script>
+
 {% block final_pagina_scripts %}
 {% endblock %}
 

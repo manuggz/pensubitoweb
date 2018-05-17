@@ -7,6 +7,7 @@ import urllib3
 
 from bs4 import BeautifulSoup
 from bs4.builder import HTMLTreeBuilder
+from django.contrib import messages
 
 from django.contrib.auth import login, authenticate, logout, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -223,7 +224,7 @@ def crear_plan_desde_expe_url(request):
         if request.user.usbid and request.user.password_cas :
             content_page_expediente = get_expediente_page_content(request.user.usbid,request.user.password_cas)
 
-            if content_page_expediente != '':
+            if content_page_expediente != '' and content_page_expediente is not None:
                 try:
                     carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
                 except ObjectDoesNotExist:
@@ -252,6 +253,10 @@ def crear_plan_desde_expe_url(request):
 
                 request.user.gdrive_id_json_plan = gdrive_file['id']
                 request.user.save()
+                return redirect('home')
+
+            if content_page_expediente is None:
+                messages.error(request,'Error conectandose  a la página del expediente')
                 return redirect('home')
 
         context["form"] = DatosAccesoCASForm(user=request.user)
