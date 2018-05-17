@@ -120,7 +120,7 @@ class TrimestrePensum(models.Model):
         (SEPTIEMBRE_DICIEMBRE, 'Septiembre - Diciembre'),
         (ENERO_MARZO, 'Enero - Marzo'),
         (ABRIL_JULIO, 'Abril - Julio'),
-        (JULIO_AGOSTO, 'Intensivo(Julio - Agosto)'),
+        (JULIO_AGOSTO, 'Verano(Julio - Agosto)'),
     )
 
     periodo = models.CharField(

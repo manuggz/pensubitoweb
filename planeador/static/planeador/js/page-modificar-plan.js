@@ -315,7 +315,7 @@ $(function () {
             case 'AJ':
                 return "Abril - Julio";
             case 'JA':
-                return "Julio - Agosto";
+                return "Verano";
         }
     }
 
