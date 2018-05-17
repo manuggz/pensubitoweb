@@ -92,6 +92,7 @@ def crear_plan_vacio_vista(request):
     dict_nuevo_plan = {
         'nombre': nombre_nuevo_plan,
         'id_pensum': pensum_escogido.id,
+        'trimestres':[],
     }
 
     gdrive_file = gdrive_crear_nuevo_plan(user.username, dict_nuevo_plan)
