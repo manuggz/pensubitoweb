@@ -53,3 +53,10 @@ https://misvoti.herokuapp.com/
 
 ## Autores
 - [Manuel González](https://github.com/manuggz)
+
+
+
+heroku addons:destroy heroku-postgresql:hobby-dev
+heroku addons:create heroku-postgresql:hobby-dev
+heroku run migrate
+https://github.com/manuggz/heroku-buildpack-python/

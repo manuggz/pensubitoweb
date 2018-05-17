@@ -136,7 +136,7 @@
                                                     <td> {{ materia.creditos }} </td>
 
                                                     <td>
-                                                       <select class="selectpicker  show-tick show-menu-arrow"  title="Escoja una opción." onchange="on_change_select_nota_final(this)">
+                                                       <select class="selectpicker  show-tick show-menu-arrow"  title="Escoja una opción." onchange="onChangeSelectNotaFinalMateria(this)">
                                                             <optgroup label="Posibles Notas">
                                                                 <option {% if materia.nota_final == 1 %} selected {% endif %}>  1 </option>
                                                                 <option {% if materia.nota_final == 2 %} selected {% endif %}>  2 </option>

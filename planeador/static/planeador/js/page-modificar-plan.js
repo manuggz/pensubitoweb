@@ -178,7 +178,7 @@ $(function () {
      * Callback para cuando se cambia la nota de una materia en la tabla
      * @param sel_obj Objeto al cual se le cambio la nota (this = select javascript)
      */
-    function on_change_select_nota_final(sel_obj) {
+    function onChangeSelectNotaFinalMateria(sel_obj) {
         // Se ha hecho tal que en los tr del tbody de la tabla
         // se guarden datos usables para el código
         // por lo que lo primero es encontrar el más cernano tr del elemento
@@ -258,7 +258,7 @@ $(function () {
 
         // Select para las notas de la materia(Incluye la opción R - Retirada)
         html_tr_materia += "<td>";
-        html_tr_materia += '<select class="selectpicker  show-tick show-menu-arrow"  title="Escoja una opción." onchange="on_change_select_nota_final(this)">';
+        html_tr_materia += '<select class="selectpicker  show-tick show-menu-arrow"  title="Escoja una opción." onchange="onChangeSelectNotaFinalMateria(this)">';
         html_tr_materia += '<optgroup label="Posibles Notas">';
         for (var nota = 1; nota <= 5; nota++) {
             html_tr_materia += "<option ";
@@ -558,4 +558,5 @@ $(function () {
     window.actualizarDatosPlanCreado = actualizarDatosPlanCreado;
     window.convertirTipoMateriaCodigoAString = convertirTipoMateriaCodigoAString;
     window.onClickBotonEliminarMateria = onClickBotonEliminarMateria;
+    window.onChangeSelectNotaFinalMateria = onChangeSelectNotaFinalMateria;
 });
