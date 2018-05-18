@@ -4,6 +4,7 @@ from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+from django.contrib import auth, messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -15,6 +16,7 @@ from django.urls import reverse
 from api_misvoti.models import MiVotiUser
 from misvoti import settings
 from planeador.decorators import only_allow_https
+from planeador.forms import LoginForm
 from planeador.usbldap import random_password, obtener_datos_desde_ldap
 
 
@@ -118,15 +120,35 @@ def login_cas(request):
     # Al finalizar login o registro, redireccionamos a home
     return redirect('home')
 
+
+
 @only_allow_https
-def login_check(request):
+def pensubito_normal_login(request):
 
-    # Todos los usuarios autenticados tienen permiso de chatear
-    # Por lo que no hace falta que se autentique con otra cuenta
-    if request.user.is_authenticated:
-        return redirect('home')
+    context = {}
+    next = request.GET.get('next', '')
+    context['next'] = next
+    #context['pagename'] = 'login'
 
-    return auth_views.login(request)
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+
+            user = authenticate(request, username=username, password=password)
+            if user is None:
+                context['error_form'] = True
+            else:
+                auth.login(request, user)
+                messages.success(request, "Bienvenido , " + username + "!")
+                return HttpResponseRedirect(next)
+    else:
+        form = LoginForm()
+
+    context['form'] = form
+    return render(request, 'registration/login.html', context)
 # Vista para deslogear a un usuario
 
 def logout_view(request):

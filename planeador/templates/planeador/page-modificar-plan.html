@@ -29,19 +29,12 @@
         <section class="content container-fluid">
             <div class="col-md-12">
                 <fieldset>
-                    <div class="btn-group" role="group" aria-label="...">
-                      <button type="button" class="btn btn-primary" disabled="disabled" id = "btn-guardar-cambios">Guardar Cambios</button>
-
-                      <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          Más Opciones
-                          <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                          <li><a data-accion="eliminar-plan" data-plan-nombre = "{{ plan.nombre }}" data-plan-id = "{{ plan.id }}">Eliminar</a></li>
-                        </ul>
-                      </div>
-                    </div>
+                    <a class="btn btn-app" disabled="disabled" id="btn-guardar-cambios">
+                        <i class="fa fa-save"></i> Guardar cambios
+                    </a>
+                    <a class="btn btn-app" data-accion="eliminar-plan" data-plan-nombre = "{{ plan.nombre }}" data-plan-id = "{{ plan.id }}">
+                        <i class="fa fa-trash"></i> Eliminar plan
+                    </a>
 
                     {# Box para un trimestre particular #}
                     <div style="margin-top:30px;" id="div-trimestres">

@@ -1,99 +1,83 @@
+{% extends 'misvoti/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Planeador de trimestres de la Universidad Simón Bolívar">
-    <meta name="author" content="Manuel González">
+{% block title  %}
+    <title>Pensubito | Inicio de sesión</title>
+{% endblock title %}
+{% block body_tag %}
+<body class="hold-transition login-page">
+{% endblock %}
+{% block body_content %}
+<div class="login-box">
+  <div class="login-logo">
+    <img src="{% static 'accounts/img/logo_pensubito.png' %}">
+  </div>
+  <!-- /.login-logo -->
+  <div class="login-box-body">
+    <p class="login-box-msg">Hey, bienvenido :)</p>
+        {% if next %}
+            {% if user.is_authenticated %}
+                <p class="text-center">Tu cuenta no tiene acceso a esta página, inicia sesión con otra cuenta.</p>
+            {% else %}
+                <p class="text-center">Inicia sesión para ver esta página.</p>
+            {% endif %}
+        {% endif %}
+        {% if error_form %}
+            <p class="text-center text-danger">Nombre de usuario o contraseña incorrecta. Intente de nuevo.</p>
+        {% endif %}
 
-    <!--===============================================================================================-->
-	<link rel="icon" type="image/png" href="{% static 'misvoti/images/icons/favicon.ico' %}"/>
+    <form action="" method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+      {% for field in form %}
+        <div class="form-group has-feedback">
+          {{ field }}
+          {{ field.errors }}
+          {% if field.name == "username" %}
+              <span class="glyphicon glyphicon-user form-control-feedback"></span>
+          {% else %}
+              <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+          {% endif %}
+        </div>
+      {% endfor %}
 
-    <title>Pensubito - Control de estudios</title>
-    <link rel="stylesheet" href={% static 'bootstrap/dist/css/bootstrap.min.css' %}>
-    <link rel="stylesheet" href={% static 'bootstrap/dist/css/bootstrap-theme.min.css' %}>
+      <div class="row">
+        <div class="col-xs-12">
+          <button type="submit" class="btn btn-flat pull-right">Iniciar sesión</button>
+        </div>
+      </div>
+    <hr>
+    <div class="row">
+        <div class="col-xs-12">
+            {% url 'login_cas' as login_cas %}
+            <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas }}"
+               class="btn btn-block btn-social btn-login-cas" role="button">
+                <i class="fa fa-address-card"></i>Inicia sesión utilizando tú USB-ID
+            </a>
+            <ul class="login-more p-t-50">
+                <li class="m-b-8">
+                    <span class="txt1">
+                        Olvidaste tu
+                    </span>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
-<!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="{% static 'animate.css/animate.min.css' %}">
-<!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="{% static 'hamburgers/dist/hamburgers.min.css' %}">
-<!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="{% static 'registration/css/util.css' %}">
-	<link rel="stylesheet" type="text/css" href="{% static 'registration/css/main.css' %}">
-<!--===============================================================================================-->
-</head>
-<body>
-	<div class="limiter">
-		<div class="container-login100">
-			<div class="wrap-login100 p-t-85 p-b-20">
-				<form class="login100-form validate-form" method="post" action="{% url 'login' %}">
-                    {% csrf_token %}
-					<span class="login100-form-title">
-						Hey, bienvenido
-					</span>
-                    {% if form.errors %}
-                        <p>Your username and password didn't match. Please try again.</p>
-                    {% endif %}
-                    {% if next %}
-                        {% if user.is_authenticated %}
-                        <p>Your account doesn't have access to this page. To proceed,
-                        please login with an account that has access.</p>
-                        {% else %}
-                        <p>Please login to see this page.</p>
-                        {% endif %}
-                    {% endif %}
-					<div class="wrap-input100 validate-input m-t-50 m-b-35" data-validate = "Enter username">
-						<input class="input100" type="text" name="username" value="{{ form.username.value |default_if_none:"" }}">
-						<span class="focus-input100" data-placeholder="Nombre de usuario"></span>
-					</div>
+                    <a href="{% url 'password_reset' %}" class="txt2">
+                        Nombre de usuario / Contraseña?
+                    </a>
+                </li>
 
-					<div class="wrap-input100 validate-input m-b-50" data-validate="Enter password">
-						<input class="input100" type="password" name="password">
-						<span class="focus-input100" data-placeholder="Contraseña"></span>
-					</div>
+                <li>
+                    <span class="txt1">
+                        No tienes una cuenta todavía?
+                    </span>
 
-					<div class="container-login100-form-btn">
-						<button class="login100-form-btn">
-							Iniciar sesión
-						</button>
-					</div>
+                    <a href="{% url 'crear_cuenta' %}" class="txt2">
+                        Registrate
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    </form>
+  </div>
+  <!-- /.login-box-body -->
+</div>
 
-                    {% url 'login_cas' as login_cas %}
-                    <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas }}"
-                       class="btn btn-primary btn-block" role="button">USB-ID</a>
-					<ul class="login-more p-t-50">
-						<li class="m-b-8">
-							<span class="txt1">
-								Olvidaste tu
-							</span>
-
-							<a href="{% url 'password_reset' %}" class="txt2">
-								Nombre de usuario / Contraseña?
-							</a>
-						</li>
-
-						<li>
-							<span class="txt1">
-								No tienes una cuenta todavía?
-							</span>
-
-							<a href="{% url 'crear_cuenta' %}" class="txt2">
-								Registrate
-							</a>
-						</li>
-					</ul>
-				</form>
-			</div>
-		</div>
-	</div>
-
-<!--===============================================================================================-->
-    <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-<!--===============================================================================================-->
-    <script src="{% static 'registration/js/main.js' %}"></script>
-
-</body>
-</html>
+{% endblock %}

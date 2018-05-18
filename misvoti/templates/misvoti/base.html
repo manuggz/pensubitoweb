@@ -9,8 +9,10 @@
     <meta name="description" content="Planeador de trimestres de la Universidad Simón Bolívar">
     <meta name="author" content="Manuel González">
 
-    <title>Pensubito - Control de estudios</title>
-	<link rel="icon" type="image/png" href="{% static 'misvoti/images/icons/favicon.ico' %}"/>
+    {% block title  %}
+    <title>Pensubito | Control de estudios</title>
+    {% endblock title %}
+	<link rel="shortcut icon" type="image/png" href="{% static 'misvoti/images/icons/favicon.ico' %}"/>
 
     <link rel="stylesheet" href={% static 'bootstrap/dist/css/bootstrap.min.css' %}>
 
@@ -37,6 +39,7 @@
     <link href="{% static 'bootstrap-select/dist/css/bootstrap-select.min.css' %}" rel="stylesheet">
 
     <link href="{% static 'admin-lte/plugins/pace/pace.min.css' %}" rel="stylesheet">
+    <link href="{% static 'accounts/css/theme.css' %}" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -65,9 +68,10 @@
     {% endif %}
 </script>
 </head>
-
+{% block body_tag  %}
 <body class="hold-transition skin-blue fixed  sidebar-mini">
-
+{% endblock %}
+{% block body_content %}
 <div class="wrapper">
 
   <!-- Main Header -->
@@ -165,9 +169,9 @@
     <!-- Default to the left -->
       Control de estudios para estudiantes
   </footer>
-
 </div>
 <!-- /#wrapper -->
+{% endblock body_content %}
 
 
     <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>

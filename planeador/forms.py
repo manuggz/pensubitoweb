@@ -2,7 +2,7 @@
 import datetime
 
 ## Form utilizado para cuando se va a crear un nuevo plan
-from django.forms import forms, CharField, ChoiceField, BooleanField, CheckboxInput
+from django.forms import forms, CharField, ChoiceField, BooleanField, CheckboxInput, TextInput, PasswordInput
 
 from api_misvoti.models import CarreraUsb, Pensum
 
@@ -73,3 +73,10 @@ class DatosAccesoCASForm(forms.Form):
 
 class CrearNuevoPlanExpedienteDescargado(forms.Form):
     archivo_html_expediente = forms.FileField(required=True, help_text="Archivo HTML de la página expediente.usb.ve.")
+
+# form to log user in
+class LoginForm(forms.Form):
+    username = CharField(
+        widget=TextInput(attrs={'placeholder': ' Username', 'class': 'form-control', 'required': 'True'}))
+    password = CharField(max_length=20, widget=PasswordInput(
+        attrs={'placeholder': 'Password', 'type': 'password', 'class': 'form-control', 'required': 'True'}))

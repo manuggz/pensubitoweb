@@ -216,7 +216,7 @@ $(function () {
         actualizarDatosPlanCreado();
 
         // Activamos el boton de guardar
-        $btn_guardar_cambios.text("Guardar Cambios*");
+        $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
         $btn_guardar_cambios.removeAttr("disabled");
     }
 
@@ -351,7 +351,7 @@ $(function () {
                 // Actualizamos los datos del plan que se le muestran al usuario
                 actualizarDatosPlanCreado();
                 // Capacitamos al usuario para poder guardar los cambios realizados al plan
-                $btn_guardar_cambios.text("Guardar Cambios*");
+                $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
                 $btn_guardar_cambios.removeAttr("disabled");
             },
             null
@@ -381,7 +381,7 @@ $(function () {
                 // Actualizamos los datos del plan
                 actualizarDatosPlanCreado();
                 // Capacitamos al usuario para guardar los datos
-                $btn_guardar_cambios.text("Guardar Cambios*");
+                $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
                 $btn_guardar_cambios.removeAttr("disabled");
             },
             null
@@ -486,7 +486,7 @@ $(function () {
         $fieldset.attr("disabled", "disabled");
 
         // Desactivamos el boton de guardar
-        $btn_guardar_cambios.text("Guardando Cambios...");
+        $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardando Cambios...");
 
         // Mandamos los datos al servidor
         // Notar que mandamos un json de la forma
@@ -500,13 +500,13 @@ $(function () {
             data: JSON.stringify(modificar_plan_params.plan_creado_json),
             success: function (data, status, request) {
                 alertify.success('¡Plan actualizado!');
-                $btn_guardar_cambios.text("¡Cambios Guardados!");
+                $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> ¡Cambios Guardados!");
                 $btn_guardar_cambios.attr("disabled", "disabled")
             },
             error: function (request, status, error) {
                 console.log(request, status, error);
                 alertify.error('Ocurrió un error actualizando el plan :(');
-                $btn_guardar_cambios.text("Guardar Cambios*");
+                $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
             },
             complete: function (request, status) {
                 $fieldset.removeAttr("disabled");
