@@ -57,7 +57,7 @@ class CrearNuevoPlanForm(forms.Form):
 class DatosAccesoCASForm(forms.Form):
     usbid = CharField(label="USBID", help_text="Usbid de acceso.")
 
-    password_cas = CharField(label=u'Password',help_text="Contraseña del CAS.")
+    password_cas = CharField(label=u'Password', help_text="Contraseña del CAS.")
 
     remember_cas_pass = BooleanField(required=False)
 
@@ -71,8 +71,28 @@ class DatosAccesoCASForm(forms.Form):
 
         self.fields['remember_cas_pass'].initial = True
 
+
 class CrearNuevoPlanExpedienteDescargado(forms.Form):
     archivo_html_expediente = forms.FileField(required=True, help_text="Archivo HTML de la página expediente.usb.ve.")
+
+
+class RegisterForm(forms.Form):
+    name = CharField(max_length=20,required=False)
+
+    carnet = CharField(max_length=10,required=False)
+    username = CharField(max_length=20)
+    password = CharField(max_length=20, widget=PasswordInput)
+
+    career = ChoiceField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(RegisterForm, self).__init__(*args, **kwargs)
+
+        carreras_bd = CarreraUsb.objects.all()
+        self.fields['career'].choices = [(c.pk, c.nombre) for c in carreras_bd]
+
+        # self.fields['carrera_plan'].value = self.fields['carrera_plan'].choices[0][0]
+
 
 # form to log user in
 class LoginForm(forms.Form):

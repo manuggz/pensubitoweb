@@ -5,12 +5,12 @@ html {
 /*
 Tema para el botón de iniciar sesión
 */
-.login-box-body button[type='submit']{
+.login-box-body button[type='submit'],.btn-pb-primary{
     color: #fff !important;
     background-color: #3d9970 !important;
 }
 
-.login-box-body button[type='submit']:hover {
+.login-box-body button[type='submit']:hover,.btn-pb-primary:hover {
     -webkit-box-shadow: inset 0 0 100px rgba(0,0,0,0.2);
     box-shadow: inset 0 0 100px rgba(0,0,0,0.2);
 }
@@ -53,25 +53,15 @@ Tema para el botón de iniciar sesión
     margin-bottom: 10px;
 }
 
-.login-page{
+.login-page, .register-page{
     background: #388E3C;
 }
 
-.btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited {
-    background-color: #56cdc7!important;
-    border-color: white;
-}
 @media (max-width: 768px) {
     .main-header .logo .logo-lg img {
         height: 56px;
     }
 }
-
-.btn-primary:hover{
-    background-color: #6be0da;
-    border-color: white;
-}
-
 .btn-link{
     color: #56cdc7
 }
@@ -82,10 +72,6 @@ Tema para el botón de iniciar sesión
 .skin-blue .sidebar-menu>li.header {
     color: #fff;
     background: #1a2226;
-}
-
-a.sidebar-toggle:hover {
-    background-color: #56cdc7 !important;
 }
 
 .skin-blue .main-header .logo {

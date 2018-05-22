@@ -11,6 +11,7 @@
     "animate.css": "^3.6.1",
     "bootstrap-select": "^1.12.4",
     "hamburgers": "^0.9.3",
+    "iCheck": "https://github.com/fronteed/iCheck/",
     "jquery-form": "^4.2.2"
   }
 }

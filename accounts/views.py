@@ -16,31 +16,45 @@ from django.urls import reverse
 from api_misvoti.models import MiVotiUser
 from misvoti import settings
 from planeador.decorators import only_allow_https
-from planeador.forms import LoginForm
+from planeador.forms import LoginForm, RegisterForm
 from planeador.usbldap import random_password, obtener_datos_desde_ldap
+
+def mi_perfil(request):
+    return render(request, 'accounts/signup.htm')
 
 
 def crear_cuenta(request):
+
     if request.user.is_authenticated:
         return redirect('ver_plan')
 
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
+    context = {}
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
 
         if form.is_valid():
-            user = User.objects.create_user(username=form.cleaned_data['username'],
-                                            password=form.cleaned_data['password1'])
 
-            user_autenticado = authenticate(username=user.username, password=form.cleaned_data['password1'])
-            login(request, user_autenticado)
-            user.forma_acceso = MiVotiUser.INTERNA
-            user.save()
-            return redirect('home')
+            new_user = MiVotiUser.objects.create_user(
+                first_name=form.cleaned_data['name'],
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password'],
+                usbid=form.cleaned_data['carnet'],
+                codigo_carrera=form.cleaned_data['career'],
 
+            )
+            if new_user.pk > 0:
+                # auth.login(request, user)
+                auth.login(request, new_user)
+                messages.success(request, "Bienvenido , " + new_user.username + "!")
+                return redirect('ver_plan')
+            else:
+                context['error_form'] = True
     else:
-        form = UserCreationForm()
+        form = RegisterForm()
 
-    return render(request, 'registration/signup.html', {'form': form})
+    context['form'] = form
+
+    return render(request, 'accounts/signup.html', context)
 
 ## se encarga de logear al usuario que accede a traves del CAS
 ## A esta vista se le pasa un link del tipo /login_cas/?ticket=ST-11140-4UfRysbyAPox0Kuwnh93-cas
@@ -143,12 +157,15 @@ def pensubito_normal_login(request):
             else:
                 auth.login(request, user)
                 messages.success(request, "Bienvenido , " + username + "!")
-                return HttpResponseRedirect(next)
+                if next:
+                    return HttpResponseRedirect(next)
+                else:
+                    return redirect('ver_plan')
     else:
         form = LoginForm()
 
     context['form'] = form
-    return render(request, 'registration/login.html', context)
+    return render(request, 'accounts/login.html', context)
 # Vista para deslogear a un usuario
 
 def logout_view(request):

@@ -177,7 +177,6 @@ $(function () {
         }
         // Cuando se cierra el modal al realizar la acción con éxito, se cambia la clase a btn btn-success. Así que
         // hay que resetearla cuando se abre el modal.
-        $btn_accion[0].className = "btn btn-primary";
 
     });
 
@@ -203,7 +202,6 @@ $(function () {
             return;
         }
 
-        $btn_accion[0].className = "btn btn-success";
         // Creamos el JSON con los datos de la nueva materia o la materia editada
         let materia_json = {};
         materia_json.codigo = $txt_input_codigo_mat_en_modal.val();
@@ -333,7 +331,6 @@ $(function () {
      * Cuando el usuario cambio el contenido de los campos del modal, nos aseguramos que se quiten los mensajes de error
      */
     $campos_form_materia.on('input change', function (event) {
-        $btn_accion[0].className = "btn btn-primary";
         limpiarErrorCampo(null, this);
         let $jqCampo = $(this);
         isFieldValid($jqCampo);
@@ -417,7 +414,6 @@ $(function () {
         //$jqCampo.closest('form').es_valido = state != "error";
         $container[0].className += " has-" + state;
         if (state === "error") {
-            $btn_accion[0].className = "btn btn-danger";
             return false;
         }
 

@@ -1,0 +1,103 @@
+{% extends "misvoti/base.html" %}
+{% load static %}
+{% block title  %}
+    <title>Pensubito | Registrarse</title>
+{% endblock title %}
+{% block body_tag %}
+<body class="hold-transition register-page">
+{% endblock %}
+{% block body_content %}
+
+<div class="register-box">
+  <div class="register-logo">
+    <a href="{% url 'home' %}"><b>Pensubito</b></a>
+  </div>
+
+  <div class="register-box-body">
+    <p class="login-box-msg">Registrate y comienza a planear tus trimestres</p>
+    <p class="text-info">Dime un poco sobre ti para poder ayudarte.</p>
+
+    <form action="{% url 'crear_cuenta' %}" method="post" _lpchecked="1">
+        {% csrf_token %}
+      <div class="form-group has-feedback">
+        <label class="control-label" for="id_name">Nombre</label>
+        <input type="text" class="form-control" placeholder="Nombre" name="name" id="id_name">
+        <span class="glyphicon glyphicon-user form-control-feedback"></span>
+          {{ form.name.errors }}
+      </div>
+      <div class="form-group has-feedback">
+        <label class="control-label" for="id_carnet">Carnet</label>
+        <input type="text" class="form-control" placeholder="Carnet" name="carnet" id="id_carnet">
+        <span class="glyphicon glyphicon-user form-control-feedback"></span>
+          {{ form.carnet.errors }}
+      </div>
+      <div class="form-group has-feedback">
+        <label class="control-label" for="id_username">Nombre de usuario *</label>
+        <input type="text" class="form-control" placeholder="Nombre de usuario" name="username" id="id_username" required>
+        <span class="glyphicon glyphicon-user form-control-feedback"></span>
+          {{ form.username.errors }}
+      </div>
+      <div class="form-group has-feedback">
+        <label class="control-label" for="id_password">Contraseña *</label>
+        <input type="password" class="form-control" placeholder="Password" name="password" id="id_password" required>
+        <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+          {{ form.password.errors }}
+      </div>
+        <div class="form-group has-feedback">
+            <label class="control-label" for="id_career">Carrera</label>
+            <select class="form-control selectpicker show-tick show-menu-arrow" name="career" id="id_career">
+                {%  for choice in form.career.field.choices %}
+                    <option value="{{ choice.0  }}" >{{choice.1}}</option>
+                {% endfor %}
+            </select>
+          {{ form.career.errors }}
+        </div>
+{% comment %}
+        <div class="form-group has-feedback">
+            <label class="control-label" for="id_starting_year">Año en el que iniciaste clases(o inicias)</label>
+            <select class="form-control selectpicker show-tick show-menu-arrow" name="starting_year" id="id_starting_year" title="¿En qué año inicias(te) clases?">
+                {%  for year in years %}
+                    <option value="{{ year }}" >{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+{% endcomment %}
+      <div class="row">
+        <div class="col-xs-8">
+            <label>
+                Al crear una cuenta aceptas nuestros <a href="" onclick="alert('u sure wanna read it buddy?')">terminos</a>
+            </label>
+        </div>
+        <!-- /.col -->
+        <div class="col-xs-4">
+          <button type="submit" class="btn btn-pb-primary btn-block btn-flat ">Registrarse</button>
+        </div>
+        <!-- /.col -->
+      </div>
+    </form>
+
+    <div class="social-auth-links text-center">
+      <p>- O -</p>
+        {% url 'login_cas' as login_cas %}
+        <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas }}"
+           class="btn btn-block btn-social btn-login-cas" role="button">
+            <i class="fa fa-address-card"></i>Inicia sesión utilizando tú USB-ID
+        </a>
+    </div>
+
+    <a href="{% url 'login' %}" class="text-center">Ya tengo una cuenta</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block final_pagina_scripts %}
+<script>
+  $(function () {
+    $('input').iCheck({
+      checkboxClass: 'icheckbox_flat-green',
+      radioClass: 'iradio_flat-green',
+      increaseArea: '20%' /* optional */
+    });
+  });
+</script>
+{% endblock %}

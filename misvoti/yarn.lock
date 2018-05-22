@@ -606,6 +606,10 @@ https-browserify@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/https-browserify/-/https-browserify-1.0.0.tgz#ec06c10e0a34c0f2faf199f7fd7fc78fffd03c73"
 
+"iCheck@https://github.com/fronteed/iCheck/":
+  version "0.0.0"
+  resolved "https://github.com/fronteed/iCheck/#cf738c22bd543f99cdf76febb207371b1be8f611"
+
 ieee754@^1.1.4:
   version "1.1.8"
   resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.1.8.tgz#be33d40ac10ef1926701f6f08a2d86fbfd1ad3e4"
