@@ -58,17 +58,13 @@ class DatosAccesoCASForm(forms.Form):
 
     password_cas = CharField(label=u'Password', help_text="Contraseña del CAS.")
 
-    remember_cas_pass = BooleanField(required=False)
-
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super(DatosAccesoCASForm, self).__init__(*args, **kwargs)
 
         if self.user is not None:
             if self.user.usbid:
-                self.fields['usbid'].value = self.user.usbid
-
-        self.fields['remember_cas_pass'].initial = True
+                self.fields['usbid'].initial = self.user.usbid
 
 
 class CrearNuevoPlanExpedienteDescargado(forms.Form):

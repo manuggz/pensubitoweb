@@ -26,23 +26,17 @@
                     <form role="form" enctype="multipart/form-data" method="post">
                         {% csrf_token %}
                         {{ form.errors }}
-                        <div class="form-group">
+                        <div class="form-group has-feedback">
                             <label class="control-label" for="{{ form.usbid.id_for_label }}">Usbid</label>
-                            <input type="text" class="form-control form-component" id="{{ form.usbid.id_for_label }}" name="{{ form.usbid.html_name }}" value="{{ form.usbid.value |default_if_none:'' }}" placeholder="Ex: 11-10390">
+                            <input type="text" class="form-control form-component" id="{{ form.usbid.id_for_label }}" name="{{ form.usbid.html_name }}" value="{{ form.usbid.value |default_if_none:'' }}" placeholder="Ex: 11-10390" required>
+                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
                             {{ form.usbid.errors }}
                         </div>
-                        <div class="form-group">
+                        <div class="form-group has-feedback">
                             <label class="control-label" for="{{ form.password_cas.id_for_label }}">Contraseña de CAS</label>
-                            <input type="password" class="form-control form-component" id="{{ form.password_cas.id_for_label }}" name="{{ form.password_cas.html_name }}">
+                            <input type="password" class="form-control form-component" id="{{ form.password_cas.id_for_label }}" name="{{ form.password_cas.html_name }}" required>
+                            <span class="glyphicon glyphicon-lock form-control-feedback"></span>
                             {{ form.password_cas.errors }}
-                        </div>
-                        <div class="form-group">
-                            <div class="checkbox">
-                              <label>
-                                <input type="checkbox" class="form-component"  {% if form.remember_cas_pass.initial %} checked {% endif %}name="{{ form.remember_cas_pass.html_name }}" id="{{ form.remember_cas_pass.id_for_label }}">
-                                Guardar mis datos de acceso al CAS
-                              </label>
-                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary" style="margin-top: 10px">Crear Plan</button>
                     </form>

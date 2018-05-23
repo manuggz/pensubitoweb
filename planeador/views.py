@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.hashers import make_password, check_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404
 from django.http import JsonResponse
@@ -93,14 +94,14 @@ def crear_plan_vacio_vista(request):
     dict_nuevo_plan = {
         'nombre': nombre_nuevo_plan,
         'id_pensum': pensum_escogido.id,
-        'trimestres':[],
+        'trimestres': [],
     }
 
     gdrive_file = gdrive_crear_nuevo_plan(user.username, dict_nuevo_plan)
     if gdrive_file:
         user.gdrive_id_json_plan = gdrive_file['id']
         user.save()
-    messages.success(request,"¡Creado plan sin trimestres!")
+    messages.success(request, "¡Creado plan sin trimestres!")
     return redirect('home')
 
 
@@ -142,7 +143,7 @@ def crear_plan_base_vista(request):
     user.gdrive_id_json_plan = gdrive_file['id']
     user.save()
 
-    messages.success(request,"¡Creado plan de acuerdo al pensum de tu carrera!")
+    messages.success(request, "¡Creado plan de acuerdo al pensum de tu carrera!")
     return redirect('home')
 
 
@@ -188,16 +189,11 @@ def crear_plan_desde_expe_url(request):
             usbid = form.cleaned_data['usbid']
             caspassword = form.cleaned_data['password_cas']
 
-            if not usbid or not caspassword:
-                form.add_error(None,"Datos de acceso no pueden estar vacios.")
-                return render(request, 'planeador/page-crear-plan-expe-url.html', context)
+            content_page_expediente = get_expediente_page_content(usbid, caspassword)
 
-            remember_cas_pass = form.cleaned_data['remember_cas_pass']
-
-            content_page_expediente = get_expediente_page_content(usbid,caspassword)
-
-            if content_page_expediente == False:
-                form.add_error(None,"Error accediendo al expediente. Posibles datos de acceso errones.")
+            if content_page_expediente == False or content_page_expediente is None:
+                form.add_error(None, "Error accediendo al expediente. Posibles datos de acceso errones.")
+                messages.error(request,'Error accediendo a la página del expediente.')
                 return render(request, 'planeador/page-crear-plan-expe-url.html', context)
 
             if content_page_expediente != '':
@@ -212,59 +208,17 @@ def crear_plan_desde_expe_url(request):
                 request.user.gdrive_id_json_plan = gdrive_file['id']
                 request.user.save()
 
-                if remember_cas_pass:
-                    user.usbid = usbid
-                    user.password_cas = caspassword
-                    user.save()
-
                 messages.success(request, "¡Creado plan de acuerdo a tu expediente!")
                 return redirect('home')
+        else:
+            messages.error(request, 'Error en el formulario.')
 
-        return render(request, 'planeador/page-crear-plan-expe-url.html', context)
 
     else:
-
-        if request.user.usbid and request.user.password_cas :
-            content_page_expediente = get_expediente_page_content(request.user.usbid,request.user.password_cas)
-
-            if content_page_expediente != '' and content_page_expediente is not None:
-                try:
-                    carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
-                except ObjectDoesNotExist:
-                    return HttpResponse(status=400)
-
-                try:
-                    pensum_escogido = Pensum.objects.get(
-                        carrera=carrera_plan_bd,
-                        tipo=user.tipo_pensum
-                    )
-                except ObjectDoesNotExist:
-                    return HttpResponse(status=400)
-
-                dict_nuevo_plan = {
-                    'nombre': "mi expediente",
-                    'id_pensum': pensum_escogido.id,
-                }
-
-                # Parseamos el html
-                crear_modelos_desde_resultado_parser(
-                    dict_nuevo_plan,
-                    parser_html(content_page_expediente),
-                )
-
-                gdrive_file = gdrive_crear_nuevo_plan(request.user.username, dict_nuevo_plan)
-
-                request.user.gdrive_id_json_plan = gdrive_file['id']
-                request.user.save()
-                messages.success(request, "¡Creado plan de acuerdo a tu expediente!")
-                return redirect('home')
-            else:
-                messages.error(request,'Error conectandose  a la página del expediente')
-                return redirect('home')
-
         context["form"] = DatosAccesoCASForm(user=request.user)
 
     return render(request, 'planeador/page-crear-plan-expe-url.html', context)
+
 
 @only_allow_https
 @login_required
@@ -308,7 +262,6 @@ def crear_plan_desde_expe_descar(request):
             }
 
             if form.cleaned_data["archivo_html_expediente"]:
-
                 # Parseamos el html
                 crear_modelos_desde_resultado_parser(
                     dict_nuevo_plan,
@@ -331,7 +284,6 @@ def crear_plan_desde_expe_descar(request):
         context["form"] = CrearNuevoPlanExpedienteDescargado()
 
     return render(request, 'planeador/page-crear-plan-expe-descar.html', context)
-
 
 
 @login_required
@@ -390,8 +342,6 @@ def materias_vista(request):
         )
 
     return JsonResponse(context)
-
-
 
 
 @login_required
