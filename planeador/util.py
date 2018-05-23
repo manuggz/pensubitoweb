@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import json
 import os
 import errno
@@ -54,4 +55,12 @@ def get_dict_int(data, key, default=0):
         return int(data[key])
     except Exception:
         return default
+
+
+
+
+_map_accent_not_accent = {'á': 'a',"í": "i",'ú': 'u',"é": "e",'ó': 'o',"ú": "u",}
+def asciify(error):
+    return _map_accent_not_accent[error.object[error.start]], error.end
+
 

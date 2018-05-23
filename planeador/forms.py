@@ -43,7 +43,6 @@ class CrearNuevoPlanForm(forms.Form):
         if self.user != None:
             if self.user.usbid:
                 anyo_carnet = int(self.user.usbid[:2])
-                print(anyo_carnet)
                 if anyo_carnet >= 0 and anyo_carnet <= 90:
                     self.fields['anyo_inicio'].value = int("{0}{1}".format(20, anyo_carnet))
                 else:

@@ -26,7 +26,6 @@ def obtener_datos_desde_ldap(usbid):
         else:
             return None
 
-    user = {}
     l = ldap.open("ldap.usb.ve")
     searchScope = ldap.SCOPE_SUBTREE
     retrieveAttributes = None  # Traemos todos los atributos
@@ -36,10 +35,13 @@ def obtener_datos_desde_ldap(usbid):
     result_type, consulta = l.result(ldap_result_id, 0)
     datos = consulta[0][1]
     print("datos",datos)
+
     # Extraer datos evitando campos inexistentes
+    user = {}
     user['first_name'] = obtenerValor(datos.get('givenName'))
     user['last_name'] = obtenerValor(datos.get('sn'))
     user['email'] = obtenerValor(datos.get('mail'))
+    user['usbid'] = obtenerValor(datos.get('uid'))
     user['cedula'] = obtenerValor(datos.get('personalId'))
     user['phone'] = obtenerValor(datos.get('mobile'))
     user_type = obtenerValor(datos.get('gidNumber'))

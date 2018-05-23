@@ -1,4 +1,5 @@
 # coding=utf-8
+import codecs
 import ssl
 from urllib.error import HTTPError
 from urllib.parse import quote
@@ -13,11 +14,13 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import views as auth_views
 from django.urls import reverse
 
-from api_misvoti.models import MiVotiUser
+from api_misvoti.models import MiVotiUser, CarreraUsb
 from misvoti import settings
 from planeador.decorators import only_allow_https
 from planeador.forms import LoginForm, RegisterForm
 from planeador.usbldap import random_password, obtener_datos_desde_ldap
+from planeador.util import asciify
+
 
 def mi_perfil(request):
     return render(request, 'accounts/signup.htm')
@@ -96,26 +99,14 @@ def login_cas(request):
         usbid = data[1]
 
         try:
-            usuario_existente = MiVotiUser.objects.get(usbid=usbid)
+            usuario_existente = MiVotiUser.objects.get(usbid=usbid,estan_cargados_datos_ldap=True)
         except ObjectDoesNotExist:
             usuario_existente = None
 
         if usuario_existente:
-            # if not usuario_existente.estan_cargados_datos_ldap:
-            #     us = get_ldap_data(usbid)
-            #     usuario_existente.first_name = us.get('first_name')
-            #     usuario_existente.last_name  = us.get('last_name')
-            #     usuario_existente.email = us.get('email')
-            #     usuario_existente.cedula = us['cedula']
-            #     usuario_existente.telefono = us['phone']
-            #     usuario_existente.tipo = us['tipo']
-            #     usuario_existente.estan_cargados_datos_ldap = True
-
             usuario_existente.forma_acceso = MiVotiUser.CAS
             usuario_existente.save()
-
             login(request, usuario_existente)
-
         else:
             clave = random_password()
             us = obtener_datos_desde_ldap(usbid)
@@ -125,7 +116,24 @@ def login_cas(request):
             nuevo_usuario.cedula = us['cedula']
             nuevo_usuario.telefono = us['phone']
             nuevo_usuario.tipo = us.get('tipo')
-            nuevo_usuario.usbid = usbid
+            nuevo_usuario.estan_cargados_datos_ldap = True
+            nuevo_usuario.usbid = us.get('usbid')
+
+            anyo_carnet = int(us.get('usbid')[:2])
+
+            if 0 <= anyo_carnet <= 90:
+                nuevo_usuario.anyo_inicio = "{0}{1}".format(20, anyo_carnet)
+            else:
+                nuevo_usuario.anyo_inicio = "{0}{1}".format(19, anyo_carnet)
+
+            # El nombre de la carrera se guarda con acentos , y del ldap se carga el nombre de la carrera en ascii
+            # Antes de comparar si se tiene la carrera regresada por el ldap se debe hacer la conversión de por ejemplo
+            # Ingeniería de computación ===> Ingenieria de computacion
+            codecs.register_error('asciify', asciify)
+            for carrera in CarreraUsb.objects.all():
+                if carrera.nombre.encode('ascii', 'asciify').decode('utf-8').lower() == us.get('carrera').lower():
+                    nuevo_usuario.codigo_carrera = carrera.codigo
+
             # nuevo_usuario.estan_cargados_datos_ldap = True
             nuevo_usuario.forma_acceso = MiVotiUser.CAS
             nuevo_usuario.save()
