@@ -1,11 +1,13 @@
 <!-- Modal de Agregar/Modificar materia -->
 
-<div class="modal fade sucess" tabindex="-1"  id="modal-materia" role="dialog">
+<div class="modal fade" tabindex="-1"  id="modal-materia" role="dialog">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
         <div class="modal-header ">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <h4 class="modal-title"></h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
         </div>
         <div class="modal-body">
             <form data-togle="validator">
@@ -42,17 +44,17 @@
                         <optgroup label="Posibles Notas">
                             <option >1</option>
                             <option >2</option>
-                            <option>3</option>
+                            <option >3</option>
                             <option >4</option>
-                            <option>5</option>
+                            <option >5</option>
                         </optgroup>
                         <optgroup label="¿Está Retirada?">
                             <option title="Retirada" value='R'> Retirada </option>
                         </optgroup>
+                    </select>
                      <div class = 'help-block validate-errors'>
                          <ul></ul>
                      </div>
-                    </select>
                 </div>
                  <div class="form-group">
                     <label class="control-label" for="select_creditos">Creditos:</label>
@@ -81,8 +83,8 @@
             </form>
        </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-flat" data-dismiss="modal">Cerrar</button>
-            <button type="button" class="btn btn-pb-primary btn-flat" id="btn-accion-materia">Agregar</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" id="btn-accion-materia">Agregar</button>
         </div>
     </div>
   </div>

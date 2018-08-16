@@ -16,8 +16,6 @@
 
     <link rel="stylesheet" href={% static 'bootstrap/dist/css/bootstrap.min.css' %}>
 
-    <link rel="stylesheet" href={% static 'bootstrap/dist/css/bootstrap-theme.min.css' %}>
-
     <!-- Font Awesome -->
     <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
 
@@ -25,11 +23,7 @@
     <link rel="stylesheet" href="{%  static 'ionicons/dist/css/ionicons.min.css' %}">
 
     <!-- Theme style -->
-    <link rel="stylesheet" href="{% static 'admin-lte/dist/css/AdminLTE.min.css' %}">
-    <!-- AdminLTE Skins. We have chosen the skin-green for this starter
-        page. However, you can choose any other skin. Make sure you
-        apply the skin class to the body tag so the changes take effect. -->
-    <link rel="stylesheet" href="{% static 'admin-lte/dist/css/skins/_all-skins.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin-lte/dist/css/adminlte.css' %}">
 
     <!-- iCheck -->
     <link rel="stylesheet" href="{% static 'iCheck/skins/flat/green.css' %}">
@@ -42,7 +36,6 @@
     <link href="{% static 'bootstrap-select/dist/css/bootstrap-select.min.css' %}" rel="stylesheet">
 
     <link href="{% static 'admin-lte/plugins/pace/pace.min.css' %}" rel="stylesheet">
-    <link href="{% static 'accounts/css/theme.css' %}" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -72,106 +65,82 @@
 </script>
 </head>
 {% block body_tag  %}
-<body class="hold-transition skin-green fixed  sidebar-mini">
+<body class="hold-transition fixed  sidebar-mini">
 {% endblock %}
 {% block body_content %}
 <div class="wrapper">
 
-  <!-- Main Header -->
-  <header class="main-header">
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-dark bg-success" role="navigation">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#"><i class="fa fa-bars"></i></a>
+      </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a href="{% url 'home' %}" class="nav-link">Home</a>
+      </li>
+    </ul>
+  </nav>
 
-    <!-- Logo -->
-    <a href="{% url 'home' %}" class="logo">
-      <!-- mini logo for sidebar mini 50x50 pixels -->
-      <span class="logo-mini"><b>P</b>B</span>
-      <!-- logo for regular state and mobile devices -->
-      <span class="logo-lg"><b>Pensubito</b>USB</span>
+  <!-- Main Sidebar Container -->
+  <aside class="main-sidebar elevation-4 sidebar-light-success">
+
+    <!-- Brand Logo -->
+    <a href="{% url 'home' %}" class="brand-link bg-success">
+{#      <img src="../../dist/img/AdminLTELogo.png"#}
+{#           alt="AdminLTE Logo"#}
+{#           class="brand-image img-circle elevation-3"#}
+{#           style="opacity: .8">#}
+      <span class="brand-text font-weight-light">Pensubito</span>
     </a>
 
-    <!-- Header Navbar -->
-    <nav class="navbar navbar-static-top" role="navigation">
-      <!-- Sidebar toggle button-->
-      <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
-        <span class="sr-only">Toggle navigation</span>
-      </a>
-      <!-- Navbar Right Menu -->
-      <div class="navbar-custom-menu">
-        <ul class="nav navbar-nav">
-        {% if user.is_authenticated %}
-<!-- User Account Menu -->
-          <li class="dropdown user user-menu">
-            <!-- Menu Toggle Button -->
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              <!-- The user image in the navbar-->
-              <img src="https://api.adorable.io/avatars/198/{{ request.user.username }}@adorable.png" class="user-image" alt="User Image">
-              <!-- hidden-xs hides the username on small devices so only the image appears. -->
-              <span class="hidden-xs">{{ request.user.username }}</span>
-            </a>
-            <ul class="dropdown-menu">
-              <!-- The user image in the menu -->
-              <li class="user-header">
-                <img src="https://api.adorable.io/avatars/198/{{ request.user.username }}@adorable.png" class="img-circle" alt="User Image">
-                <p>
-                  {{ request.user.first_name }}{{ request.user.last_name }}
-                    <br>{{ request.user.username }} - Estudiante
-                </p>
-              </li>
-              <!-- Menu Footer-->
-              <li class="user-footer">
-                <div class="pull-right">
-                  <a href="{% url 'logout' %}" class="btn btn-default btn-flat">Cerrar sesión</a>
-                </div>
-              </li>
-            </ul>
-          </li>
-        {% endif %}
-        </ul>
-      </div>
-    </nav>
-  </header>
-
-<!-- Left side column. contains the logo and sidebar -->
-  <aside class="main-sidebar">
-
-    <!-- sidebar: style can be found in sidebar.less -->
-    <section class="sidebar">
-
-      <!-- Sidebar user panel (optional) -->
-      <div class="user-panel">
-        <div class="pull-left image">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Sidebar user (optional) -->
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="image">
             <img src="https://api.adorable.io/avatars/198/{{ request.user.username }}@adorable.png" class="img-circle" alt="User Image">
         </div>
-        <div class="pull-left info">
-            <p>
-              {{ request.user.first_name }}{{ request.user.last_name }}
-                <br>
-                {{ request.user.username }} </p>
+        <div class="info">
+          <a href="#" class="d-block">{{ request.user.first_name }}{{ request.user.last_name }} {{ request.user.username }}</a>
         </div>
       </div>
       <!-- /.search form -->
 
       <!-- Sidebar Menu -->
-      <ul class="sidebar-menu" data-widget="tree">
-        <li class="header">Acciones</li>
-        <!-- Optionally, you can add icons to the links -->
-        <li class="active"><a href="{%  url 'ver_plan' %}"><i class="fa fa-graduation-cap"></i> <span>Mi plan</span></a></li>
-      </ul>
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+          <li class="nav-item">
+            <a href="{%  url 'home' %}" class="nav-link {% if pagename == 'home' %}active{% endif %}">
+                <i class="nav-icon fa fa-dashboard"></i>
+                <p>Home</p>
+            </a>
+            <a href="{%  url 'ver_plan' %}" class="nav-link {% if pagename == 'ver_plan' %}active{% endif %}">
+                <i class="fa fa-graduation-cap"></i>
+                <p>Mi plan</p>
+            </a>
+          </li>
+        </ul>
+      </nav>
       <!-- /.sidebar-menu -->
-    </section>
+    </div>
     <!-- /.sidebar -->
   </aside>
     {% block content %}
     {% endblock %}
 
-<!-- Main Footer -->
+  <!-- /.content-wrapper -->
   <footer class="main-footer">
-    <!-- To the right -->
-    <div class="pull-right hidden-xs">
-      <a  target="_blank" href = "https://github.com/manuggz/pensubitoweb" style="text-decoration: none"> Ver en <b>github</b> </a>
+    <div class="float-right d-none d-sm-block">
+      <b>Version</b> 1.0.0
     </div>
-    <!-- Default to the left -->
-      Control de estudios para estudiantes
+    <strong>Copyright &copy; 2018-2050 <a href="https://github.com/manuggz">manuggz</a>.</strong> All rights
+    reserved.
   </footer>
+
 </div>
 <!-- /#wrapper -->
 {% endblock body_content %}
@@ -179,6 +148,7 @@
 
     <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
 
+    <script src="{% static 'popper.js/dist/umd/popper.js' %}"></script>
     <script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'admin-lte/dist/js/adminlte.min.js' %}"></script>
 

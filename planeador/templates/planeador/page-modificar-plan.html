@@ -11,24 +11,27 @@
     <div class="content-wrapper">
 
         <!-- Content Header (Page header) -->
-        <section class="content-header">
-          <h1>
-            Modificar Plan
-          </h1>
-          <ol class="breadcrumb">
-            <li>
-                <i class="fa fa-table"></i>  <a href="{% url 'ver_plan' %}">Mi plan</a>
-            </li>
-            <li class="active">
-                <i class="fa fa-table"></i> {{ plan.nombre }}
-            </li>
-          </ol>
-        </section>
-
+      <section class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-6">
+                <h1>Modificar Plan</h1>
+              </div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                  <li class="breadcrumb-item active">Mi plan</li>
+                </ol>
+              </div>
+            </div>
+          </div><!-- /.container-fluid -->
+      </section>
         <!-- Main content -->
-        <section class="content container-fluid">
-            <div class="col-md-12">
+        <section class="content">
+        <div class="row">
+            <div class="col-12">
                 <fieldset>
+
                     <a class="btn btn-app" disabled="disabled" id="btn-guardar-cambios">
                         <i class="fa fa-save"></i> Guardar cambios
                     </a>
@@ -36,14 +39,14 @@
                         <i class="fa fa-trash"></i> Eliminar plan
                     </a>
 
-                    {# Box para un trimestre particular #}
+                    {# card para un trimestre particular #}
                     <div style="margin-top:30px;" id="div-trimestres">
                         {% for trimestre in plan.trimestres %}
                         {% gen_indice_for 'for_trimestre' as i_trimestre %}
-                            {# Box para un trimestre particular #}
-                            <div class='box box-primary' data-trimestre-codigo="{{ i_trimestre }}">
-                                <div class="box-header" >
-                                    <h3 class="box-title" >
+                            {# card para un trimestre particular #}
+                            <div class='card card-success card-outline' data-trimestre-codigo="{{ i_trimestre }}">
+                                <div class="card-header" >
+                                    <h3 class="card-title" >
                                         {% if trimestre.periodo == "SD" %}
                                            Septiembre - Diciembre
                                         {% elif trimestre.periodo == "EM" %}
@@ -57,8 +60,8 @@
                                         {% endif %}
                                         {{ trimestre.anyo }}
                                     </h3>
-                                    <div class="box-tools pull-right">
-                                        <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip" title="Collapse">
+                                    <div class="card-tools pull-right">
+                                        <button type="button" class="btn btn-tool" data-widget="collapse">
                                           <i class="fa fa-minus"></i>
                                         </button>
                                         <button type="button" class="btn btn-box-tool" onclick="onClickBotonEliminarTrimestre(this)" data-toggle="tooltip" title="Remove">
@@ -66,7 +69,7 @@
                                         </button>
                                     </div>
                                  </div>
-                                 <div class="box-body" >
+                                 <div class="card-body p-0" >
                                      <table class="table table-hover datos-trimestre">
                                              <tr>
                                                  <th>Indice del Trimestre</th>
@@ -161,7 +164,7 @@
 
                                  </div>
 
-                                 <div class="box-footer">
+                                 <div class="card-footer">
                                      <button type="button" data-toggle="modal" data-target="#modal-materia" class="btn btn-link">
                                          <span class="fa fa-plus"  style="margin-left: 4px"></span>
                                      </button>
@@ -176,6 +179,7 @@
                         <i class="fa fa-plus"></i> ¡Agregar Trimestre!
                     </a>
                 </fieldset>
+            </div>
             </div>
         </section>
     </div>
