@@ -54,7 +54,7 @@ class MateriaUsuarioSerializer(serializers.Serializer):
     nombre = serializers.CharField(required=False,allow_blank=True)
     codigo = serializers.CharField(required=False,allow_blank=True)
     tipo = serializers.ChoiceField(RelacionMateriaPensumBase.POSIBLES_TIPOS)
-    nota_final = serializers.IntegerField(required=False, min_value=1, max_value=5)
+    nota_final = serializers.IntegerField(required=False, min_value=1, max_value=5,allow_null=True)
     esta_retirada = serializers.BooleanField(default=False)
 
     ## Es ejecutado automáticamente para validar el código de las materias en el JSON

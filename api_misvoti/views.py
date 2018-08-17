@@ -42,33 +42,39 @@ def user_plan(request, username):
     """
     Obtiene, Crea o Borra el plan creado por un usuario
     """
-    if not request.user.gdrive_id_json_plan:
+
+    try:
+        user = MiVotiUser.objects.get(username=username)
+    except MiVotiUser.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if not user.gdrive_id_json_plan:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         # Obtener el plan
-        dict_plan = gdrive_obtener_contenido_plan(request.user.gdrive_id_json_plan)
+        dict_plan = gdrive_obtener_contenido_plan(user.gdrive_id_json_plan)
         return Response(dict_plan)
     elif request.method == 'POST':
         # Crear un nuevo Plan
         serializer = PlanEstudioUsuarioSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(request.user)
+            serializer.save(user)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         # Eliminar el plan
-        ruta_local = os.path.join('planes_json_cache', request.user.gdrive_id_json_plan)
+        ruta_local = os.path.join('planes_json_cache', user.gdrive_id_json_plan)
 
         if os.path.exists(ruta_local):
             os.remove(ruta_local)
 
         archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile(
-            {'id': request.user.gdrive_id_json_plan})
+            {'id': user.gdrive_id_json_plan})
         archivo_plan_json.Delete()
 
-        request.user.gdrive_id_json_plan = None
-        request.user.save()
+        user.gdrive_id_json_plan = None
+        user.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)

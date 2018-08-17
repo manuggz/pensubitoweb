@@ -76,11 +76,11 @@ $(function () {
     let indice_materia;
 
     /**
-     * Referencia al elemento HTML <div class="box"... que contiene los datos del trimestre.
+     * Referencia al elemento HTML <div class="card"... que contiene los datos del trimestre.
      * Se referencia cuando se carga el modal.
      * @type {jQuery}
      */
-    let $trimestre_box;
+    let $trimestre_card;
     /**
      * Referencia al elemento HTML  <tr><td>MA1111</td><td>Matemáticas I</td>... que contiene los datos actuales de la materia a
      * editar.
@@ -124,17 +124,17 @@ $(function () {
          * @type {jQuery}
          */
         const $botonTrigger = $(event.relatedTarget);
-        // HTML Box que contiene el trimestre al que pertenece o pertenecerá la materia
-        $trimestre_box = $botonTrigger.closest("div.box");
+        // HTML Card que contiene el trimestre al que pertenece o pertenecerá la materia
+        $trimestre_card = $botonTrigger.closest("div.card");
         // Index del trimestre en el array de trimestres del plan
-        indice_trimestre = parseInt($trimestre_box.data("trimestre-codigo"));
+        indice_trimestre = parseInt($trimestre_card.data("trimestre-codigo"));
         // Acción con la que se abrió el modal
         accion = $botonTrigger.data('action') || "agregar";
         // Establece el título del modal al titulo del trimestre de la materia
         // Ejemplo: Septiembre - Diciembre 2020
-        $modal_agregar_mat.find(".modal-title").html(
+        $modal_agregar_mat.find(".modal-title").html( "<h6>" +
             convertirPeriodoCodigoAString(modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].periodo) + " " +
-            modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].anyo
+            modificar_plan_params.plan_creado_json.trimestres[indice_trimestre].anyo + "</h6>"
         );
         // Quitamos mensajes de error que estén en el modal para cada campo
         $campos_form_materia.each(limpiarErrorCampo);
@@ -226,7 +226,7 @@ $(function () {
             $nuevo_tr_mat_jquer.find(".selectpicker").selectpicker('refresh');
 
             // Agregamos el <tr> de la materia
-            $trimestre_box.find("tbody.materias-trimestres").append($nuevo_tr_mat_jquer);
+            $trimestre_card.find("tbody.materias-trimestres").append($nuevo_tr_mat_jquer);
 
             $nuevo_tr_mat_jquer.show('slow');
         } else {
@@ -268,7 +268,7 @@ $(function () {
         // Actualizamos las estadisticas mostradas al usuario
         actualizarDatosPlanCreado();
 
-        $btn_guardar_cambios.text("Guardar Cambios*");
+        $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
         $btn_guardar_cambios.removeAttr("disabled");
 
     });

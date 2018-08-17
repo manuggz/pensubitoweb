@@ -12,72 +12,69 @@
     <a href="{% url 'home' %}"><b>Pensubito</b></a>
   </div>
   <!-- /.login-logo -->
-  <div class="login-box-body">
-    <p class="login-box-msg">Hey, bienvenido :)</p>
-        {% if next %}
-            {% if user.is_authenticated %}
-                <p class="text-center">Tu cuenta no tiene acceso a esta página, inicia sesión con otra cuenta.</p>
-            {% else %}
-                <p class="text-center">Inicia sesión para ver esta página.</p>
+  <div class="card">
+      <div class="card-body login-card-body">
+        <p class="login-box-msg">Hey, bienvenido :)</p>
+            {% if next %}
+                {% if user.is_authenticated %}
+                    <p class="text-center">Tu cuenta no tiene acceso a esta página, inicia sesión con otra cuenta.</p>
+                {% else %}
+                    <p class="text-center">Inicia sesión para ver esta página.</p>
+                {% endif %}
             {% endif %}
-        {% endif %}
-        {% if error_form %}
-            <p class="text-center text-danger">Nombre de usuario o contraseña incorrecta. Intente de nuevo.</p>
-        {% endif %}
+            {% if error_form %}
+                <p class="text-center text-danger">Nombre de usuario o contraseña incorrecta. Intente de nuevo.</p>
+            {% endif %}
 
-    <form action="" method="post" action="{% url 'login' %}">
-    {% csrf_token %}
-      {% for field in form %}
-        <div class="form-group has-feedback">
-          {{ field }}
-          {{ field.errors }}
-          {% if field.name == "username" %}
-              <span class="glyphicon glyphicon-user form-control-feedback"></span>
-          {% else %}
-              <span class="glyphicon glyphicon-lock form-control-feedback"></span>
-          {% endif %}
-        </div>
-      {% endfor %}
+        <form action="" method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+          {% for field in form %}
+            <div class="form-group has-feedback">
+              {{ field }}
+              {{ field.errors }}
+              {% if field.name == "username" %}
+                  <span class="glyphicon glyphicon-user form-control-feedback"></span>
+              {% else %}
+                  <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+              {% endif %}
+            </div>
+          {% endfor %}
 
-      <div class="row">
-        <div class="col-xs-12">
-          <button type="submit" class="btn btn-flat pull-right">Iniciar sesión</button>
-        </div>
-      </div>
-    <div class="row">
-        <div class="col-xs-12 social-auth-links text-center">
-        <p>- O -</p>
+          <div class="row">
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary btn-block btn-flat">Iniciar sesión</button>
+            </div>
+          </div>
+        <!-- /.login -->
+        </form>
+        <div class="social-auth-links text-center mb-3">
+            <p>- O -</p>
             {% url 'login_cas' as login_cas %}
             <a href="https://secure.dst.usb.ve/login?service={% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}{{ login_cas }}"
-               class="btn btn-block btn-social btn-login-cas" role="button">
-                <i class="fa fa-address-card"></i>Inicia sesión utilizando tú USB-ID
+               class="btn btn-block btn-primary" role="button">
+                <i class="fa fa-address-card mr-2"></i>Inicia sesión utilizando tú USB-ID
             </a>
-            <ul class="login-more p-t-50">
-                <li class="m-b-8">
-                    <span class="txt1">
-                        Olvidaste tu
-                    </span>
+        <!-- /.social-auth-links -->
 
-                    <a href="{% url 'password_reset' %}" class="txt2">
-                        Nombre de usuario / Contraseña?
-                    </a>
-                </li>
-
-                <li>
-                    <span class="txt1">
-                        No tienes una cuenta todavía?
-                    </span>
-
-                    <a href="{% url 'crear_cuenta' %}" class="txt2">
-                        Registrate
-                    </a>
-                </li>
-            </ul>
         </div>
-    </div>
-    </form>
+        <p class="mb-1">
+            Olvidaste tu
+            <a href="{% url 'password_reset' %}">
+                Nombre de usuario / Contraseña?
+            </a>
+        </p>
+        <p class="mb-0">
+            No tienes una cuenta todavía?
+            <a href="{% url 'crear_cuenta' %}" class="txt-center">
+                Registrate
+            </a>
+        </p>
+
+        <!-- /.card-body -->
+      </div>
+  <!-- /.card-->
   </div>
-  <!-- /.login-box-body -->
+<!-- /.login-box-body -->
 </div>
 
 {% endblock %}

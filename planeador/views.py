@@ -40,6 +40,10 @@ def index_vista(request):
     :param request:
     :return:
     """
+    context = {"pagename": "home"}
+
+    if not request.user.gdrive_id_json_plan:
+        return render(request, 'planeador/page-sin-plan.html', context)
 
     return redirect('ver_plan')
 
@@ -155,7 +159,7 @@ def crear_plan_desde_expe_url(request):
     :param request:
     :return:
     """
-    context = {"planes_activo": "active"}
+    context = {"pagename": "ver_plan"}
 
     user = request.user
 
@@ -228,7 +232,7 @@ def crear_plan_desde_expe_descar(request):
     :param request:
     :return:
     """
-    context = {"planes_activo": "active"}
+    context = {"pagename": "ver_plan"}
 
     user = request.user
 
@@ -294,10 +298,10 @@ def plan_modificar_trim(request):
     :param request:
     :return:
     """
-    context = {"planes_activo": "active"}
+    context = {"pagename": "ver_plan"}
 
     if not request.user.gdrive_id_json_plan:
-        return render(request, 'planeador/page-sin-plan.html', context)
+        return redirect('home')
     else:
 
         # Plan del usuario
@@ -351,7 +355,7 @@ def ver_plan_vista_principal(request):
     :param request:
     :return:
     """
-    context = {"planes_activo": "active"}
+    context = {"pagename": "ver_plan"}
 
     if request.user.gdrive_id_json_plan:
         dict_plan = gdrive_obtener_contenido_plan(request.user.gdrive_id_json_plan)

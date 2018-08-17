@@ -192,10 +192,10 @@ $(function () {
         // por lo que lo primero es encontrar el más cernano tr del elemento
         var select = $(sel_obj);
         var tr_con_datos = select.closest("tr");
-        var box_con_datos = tr_con_datos.closest("div.box");
+        var card_con_datos = tr_con_datos.closest("div.card");
 
         // Obtenemos los datos de la materia y trimestre a la cual pertenece
-        var i_trimestre_cambiado = parseInt(box_con_datos.data("trimestre-codigo"));
+        var i_trimestre_cambiado = parseInt(card_con_datos.data("trimestre-codigo"));
         var j_materia_cambiada = parseInt(tr_con_datos.data("materia-codigo"));
 
         //var posicion_materia = posicion_ij_materia(i_trimestre_cambiado,j_materia_cambiada);
@@ -330,8 +330,8 @@ $(function () {
     function onClickBotonEliminarMateria(boton_jsobj) {
         var button = $(boton_jsobj);
         var tr_materia = button.closest("tr");
-        var box_trimestre_jsobj = tr_materia.closest("div.box");
-        var i_trimestre_materia_eliminar = parseInt(box_trimestre_jsobj.data("trimestre-codigo"));
+        var card_trimestre_jsobj = tr_materia.closest("div.card");
+        var i_trimestre_materia_eliminar = parseInt(card_trimestre_jsobj.data("trimestre-codigo"));
         var j_materia_eliminar = parseInt(tr_materia.data("materia-codigo"));
 
         //var indices = posicion_ij_materia(i_trimestre_materia_eliminar,j_materia_eliminar);
@@ -363,8 +363,8 @@ $(function () {
     function onClickBotonEliminarTrimestre(boton_jsobj) {
 
         var button = $(boton_jsobj); // Button that triggered the modal
-        var box_trimestre = button.closest("div.box");
-        var i_trimestre = parseInt(box_trimestre.data("trimestre-codigo"));
+        var card_trimestre = button.closest("div.card");
+        var i_trimestre = parseInt(card_trimestre.data("trimestre-codigo"));
 
         var trimestre_elim_json = modificar_plan_params.plan_creado_json.trimestres[i_trimestre];
 
@@ -373,8 +373,8 @@ $(function () {
             '¿ Eliminar el trimestre y sus materias ?',
             function () {
                 // Ocultamos la tabla con las materias
-                box_trimestre.hide('slow', function () {
-                    box_trimestre.remove();
+                card_trimestre.hide('slow', function () {
+                    card_trimestre.remove();
                 });
                 // Eliminamos el trimestre
                 modificar_plan_params.plan_creado_json.trimestres.splice(i_trimestre, 1);
@@ -397,25 +397,25 @@ $(function () {
      * @param indice_trimestre Indice del trimestre en el json al cual se le creará la tabla
      * @returns {string} HTML de la tabla -  <table></table>
      */
-    function crearHtmlBoxTrimestre(indice_trimestre) {
+    function crearHtmlCardTrimestre(indice_trimestre) {
 
         var trimestre_json = modificar_plan_params.plan_creado_json.trimestres[indice_trimestre];
 
-        var html_tabla_trimestre = "<div class='box box-primary' data-trimestre-codigo='" + indice_trimestre + "'>";
+        var html_tabla_trimestre = "<div class='card card-success card-outline' data-trimestre-codigo='" + indice_trimestre + "'>";
 
             // HEAD de la tabla
-            html_tabla_trimestre += '<div class="box-header">';
+            html_tabla_trimestre += '<div class="card-header">';
                 // Periodo del trimestre
-                html_tabla_trimestre += '<h3 class="box-title">';
+                html_tabla_trimestre += '<h3 class="card-title">';
                 html_tabla_trimestre += convertirPeriodoCodigoAString(trimestre_json.periodo);
                 html_tabla_trimestre += " " + trimestre_json.anyo;
                 html_tabla_trimestre += "</h3>";
                 // Opción de eliminar el trimestre
-                html_tabla_trimestre += '<div class="box-tools pull-right">';
-                    html_tabla_trimestre += '<button type="button"  data-widget="collapse" class="btn btn-box-tool" data-toggle="tooltip" title="Collapse">';
+                html_tabla_trimestre += '<div class="card-tools pull-right">';
+                    html_tabla_trimestre += '<button type="button"  data-widget="collapse" class="btn btn-tool" data-toggle="tooltip" title="Collapse">';
                         html_tabla_trimestre += '<span class="fa fa-minus"></span>';
                     html_tabla_trimestre += '</button> ';
-                    html_tabla_trimestre += '<button type="button"  data-widget="remove" onclick="onClickBotonEliminarTrimestre(this)" class="btn btn-box-tool" data-toggle="tooltip" title="Remove">';
+                    html_tabla_trimestre += '<button type="button"  data-widget="remove" onclick="onClickBotonEliminarTrimestre(this)" class="btn btn-card-tool" data-toggle="tooltip" title="Remove">';
                         html_tabla_trimestre += '<span class="fa fa-times"></span>';
                     html_tabla_trimestre += '</button> ';
                 html_tabla_trimestre += "</div>";
@@ -423,7 +423,7 @@ $(function () {
 
             // Panel Body
 
-            html_tabla_trimestre += '<div class="box-body" >';
+            html_tabla_trimestre += '<div class="card-body p-0" >';
                 html_tabla_trimestre += '<table class="table table-hover datos-trimestre">';
                     html_tabla_trimestre += "<tr>";
                     html_tabla_trimestre += "<th>Indice del Trimestre</th>";
@@ -463,7 +463,7 @@ $(function () {
 
                 html_tabla_trimestre += "</table>";
 
-                html_tabla_trimestre += '<div class="box-footer">';
+                html_tabla_trimestre += '<div class="card-footer">';
                 html_tabla_trimestre += '<button type="button" data-toggle="modal" data-target="#modal-materia" class="btn btn-link">';
                 html_tabla_trimestre += '<span class="fa fa-plus"  style="margin-left: 4px"></span>';
                 html_tabla_trimestre += '</button> ';
@@ -561,7 +561,7 @@ $(function () {
         });
     });
 
-    window.crearHtmlBoxTrimestre = crearHtmlBoxTrimestre;
+    window.crearHtmlCardTrimestre = crearHtmlCardTrimestre;
     window.crearHtmlTrMateria = crearHtmlTrMateria;
     window.convertirPeriodoCodigoAString = convertirPeriodoCodigoAString;
     window.actualizarDatosPlanCreado = actualizarDatosPlanCreado;

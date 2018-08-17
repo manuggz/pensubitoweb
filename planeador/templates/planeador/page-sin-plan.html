@@ -1,20 +1,82 @@
 {% extends 'misvoti/base.html' %}
+{% load static %}
 {% block content %}
-    <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
-        <div class="content">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="jumbotron">
-                      <h1>¡No has creado tu plan todavía!</h1>
-                      <p>¡Comienza a llevar el control de tu progreso y planear tus trimestres con nosotros!</p>
-                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan_vacio' %}" role="button">¡Crear plan vacio!</a></p>
-                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan_base' %}" role="button">¡Crear plan según el pensum!</a></p>
-                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan_desde_expe_descar' %}" role="button">¡Crear plan desde mi expediente descargado!</a></p>
-                      <p><a class="btn btn-primary btn-lg" href="{% url 'crear_plan_desde_expe_url' %}" role="button">¡Crear plan accediendo a mi expediente.dii.usb.ve!</a></p>
-                    </div>
-                </div>
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper" >
+    <!-- Main content -->
+  <section class="content">
+    <div class="row">
+      <div class="col-12">
+        <div class="jumbotron">
+          <h1>¡No has creado tu plan todavía!</h1>
+          <p>¡Comienza a llevar el control de tu progreso y planear tus trimestres con nosotros!</p>
+            <div class="card">
+              <div class="card-header">
+                <h5 class="m-0">Crear plan vacio</h5>
+              </div>
+              <div class="card-body">
+{#                <h6 class="card-title">Special title treatment</h6>#}
+
+                <p class="card-text">Crea un plan de estudio sin contenido y agregale los trimestres y materias.</p>
+                <a href="{% url 'crear_plan_vacio' %}" class="btn btn-primary btn-crear-pensum">Crear</a>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <h5 class="m-0">Crear plan según el pensum</h5>
+              </div>
+              <div class="card-body">
+
+
+                <p class="card-text">Crea un plan de estudio con los trimestres y materias de acuerdo al pensum seleccionado en tu cuenta.</p>
+                <a href="{% url 'crear_plan_base' %}" class="btn btn-primary btn-crear-pensum">Crear</a>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <h5 class="m-0">Crear plan accediendo a mi expediente.dii.usb.ve</h5>
+              </div>
+              <div class="card-body">
+
+
+                <p class="card-text">Crea un plan de estudio accediendo a expediente.dii.usb.ve a traves de pensubito utilizando tus datos de acceso</p>
+                <a href="{% url 'crear_plan_desde_expe_url' %}" class="btn btn-primary btn-crear-pensum">Crear</a>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h5 class="m-0">Crear plan desde mi expediente descargado</h5>
+              </div>
+              <div class="card-body">
+
+
+                <p class="card-text">Crea un plan de estudio utilizando la página html que guardaste de expediente.dii.usb.ve.</p>
+                <a href="{% url 'crear_plan_desde_expe_descar' %}" class="btn btn-primary btn-crear-pensum">Crear</a>
+              </div>
             </div>
         </div>
+      </div>
+        <!-- /.col -->
     </div>
+      <!-- /.row -->
+  </section>
+    <!-- /.content -->
+
+</div>
+<!-- /.content-wrapper -->
+{% endblock content %}
+
+
+{% block final_pagina_scripts %}
+
+    <script>
+        {# Parametros para el script  modal-materia-js.js #}
+        window.page_sin_plan = {
+
+        }
+    </script>
+    <script src="{% static 'planeador/js/page-sin-plan.js' %}"></script>
+
+
 {% endblock %}

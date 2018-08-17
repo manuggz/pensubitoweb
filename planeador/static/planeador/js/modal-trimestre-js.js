@@ -85,7 +85,7 @@ $(function () {
         let n_trimestres = modificar_plan_params.plan_creado_json.trimestres.length;
         modificar_plan_params.plan_creado_json.trimestres[n_trimestres] = nuevo_trim_js;
 
-        let $nuevo_trim_obj = $(crearHtmlBoxTrimestre(n_trimestres)).hide();
+        let $nuevo_trim_obj = $(crearHtmlCardTrimestre(n_trimestres)).hide();
         $nuevo_trim_obj.appendTo($div_datos_trimestres_html);
 
         $nuevo_trim_obj.show('slow');
@@ -93,7 +93,7 @@ $(function () {
         actualizarDatosPlanCreado();
 
         $modal_agregar_trim.modal("hide");
-        $btn_guardar_cambios.text("Guardar Cambios*");
+        $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
         $btn_guardar_cambios.removeAttr("disabled");
     });
 
