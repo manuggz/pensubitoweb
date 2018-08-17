@@ -24,10 +24,6 @@ alertifyjs@^1.11.0:
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/alertifyjs/-/alertifyjs-1.11.1.tgz#e40e45c4fde4234467cc481b936fe6337e6a4828"
 
-animate.css@^3.6.1:
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/animate.css/-/animate.css-3.7.0.tgz#5de25d1ee5fba11ba6a1e2c4fa568f512eb7d4da"
-
 bootstrap-select@^1.12.4:
   version "1.13.1"
   resolved "https://registry.yarnpkg.com/bootstrap-select/-/bootstrap-select-1.13.1.tgz#f59c02926fb5ac6356b9d1cdbc5384c2f013d9ba"
@@ -80,14 +76,6 @@ datatables.net@1.10.19, datatables.net@^1.10.16:
 font-awesome@^4.7.0:
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/font-awesome/-/font-awesome-4.7.0.tgz#8fa8cf0411a1a31afd07b06d2902bb9fc815a133"
-
-hamburgers@^0.9.3:
-  version "0.9.3"
-  resolved "https://registry.yarnpkg.com/hamburgers/-/hamburgers-0.9.3.tgz#73b3d299652a028647ca68b2957df172c76cc636"
-
-"iCheck@https://github.com/fronteed/iCheck/":
-  version "0.0.0"
-  resolved "https://github.com/fronteed/iCheck/#cf738c22bd543f99cdf76febb207371b1be8f611"
 
 jquery-form@^4.2.2:
   version "4.2.2"

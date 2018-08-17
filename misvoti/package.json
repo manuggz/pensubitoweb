@@ -8,12 +8,9 @@
   "dependencies": {
     "admin-lte": "^3.0.0-alpha.2",
     "alertifyjs": "^1.11.0",
-    "animate.css": "^3.6.1",
     "bootstrap": "^4.1.3",
     "bootstrap-select": "^1.12.4",
     "font-awesome": "^4.7.0",
-    "hamburgers": "^0.9.3",
-    "iCheck": "https://github.com/fronteed/iCheck/",
     "jquery": "^3.3.1",
     "jquery-form": "^4.2.2",
     "popper.js": "^1.14.4"
