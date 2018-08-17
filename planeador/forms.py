@@ -4,7 +4,7 @@ import datetime
 ## Form utilizado para cuando se va a crear un nuevo plan
 from django.forms import forms, CharField, ChoiceField, BooleanField, CheckboxInput, TextInput, PasswordInput
 
-from api_misvoti.models import CarreraUsb, Pensum
+from api_misvoti.models import CarreraUsb, Pensum, MiVotiUser
 
 
 class CrearNuevoPlanForm(forms.Form):
@@ -86,7 +86,13 @@ class RegisterForm(forms.Form):
         carreras_bd = CarreraUsb.objects.all()
         self.fields['career'].choices = [(c.pk, c.nombre) for c in carreras_bd]
 
-        # self.fields['carrera_plan'].value = self.fields['carrera_plan'].choices[0][0]
+    def clean_username(self):
+
+        username = self.cleaned_data.get('username')
+
+        if MiVotiUser.objects.filter(username=username).exists():
+            raise forms.ValidationError("Este username ya está en uso.", 'invalid')
+        return username
 
 
 # form to log user in
