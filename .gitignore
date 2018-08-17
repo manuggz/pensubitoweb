@@ -1,7 +1,6 @@
 venv
 *.pyc
 db.sqlite3
-planeador/static/planeador/others/credentials.cred
 .idea/
 staticfiles
 planes_json_cache
