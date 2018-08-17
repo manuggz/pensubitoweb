@@ -3,4 +3,4 @@ venv
 db.sqlite3
 planeador/static/planeador/others/credentials.cred
 .idea/
-misvoti/staticfiles
+staticfiles
