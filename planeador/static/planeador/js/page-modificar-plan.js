@@ -338,26 +338,32 @@ $(function () {
         var trimestre_json = modificar_plan_params.plan_creado_json.trimestres[i_trimestre_materia_eliminar];
         var materia_json = trimestre_json.materias[j_materia_eliminar];
 
-        alertify.confirm(
-            'Materia ' + convertirTipoMateriaCodigoAString(materia_json.tipo) + (materia_json.codigo?' ' + materia_json.codigo:''),
-            '¿ Eliminar ' + (materia_json.nombre?materia_json.nombre:'esta materia') + ' ?',
-            function () {
-                // Ocultamos el tr de la materia
-                tr_materia.hide('slow', function () {
-                    tr_materia.remove();
-                });
-                // Eliminamos la materia del array
-                modificar_plan_params.plan_creado_json.trimestres[i_trimestre_materia_eliminar].materias.splice(j_materia_eliminar, 1);
-                // Actualizamos los datos del plan que se le muestran al usuario
-                actualizarDatosPlanCreado();
-                // Capacitamos al usuario para poder guardar los cambios realizados al plan
-                $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
-                $btn_guardar_cambios.removeAttr("disabled");
+        $.confirm({
+            title: 'Materia ' + convertirTipoMateriaCodigoAString(materia_json.tipo) + (materia_json.codigo ? ' ' + materia_json.codigo : ''),
+            content: '¿ Eliminar ' + (materia_json.nombre ? materia_json.nombre : 'esta materia') + ' ?',
+            buttons:{
+                ok:{
+                    text:"Sí",
+                    btnClass:"btn-danger",
+                    keys: ['enter'],
+                    action:function () {
+                        // Ocultamos el tr de la materia
+                        tr_materia.hide('slow', function () {
+                            tr_materia.remove();
+                        });
+                        // Eliminamos la materia del array
+                        modificar_plan_params.plan_creado_json.trimestres[i_trimestre_materia_eliminar].materias.splice(j_materia_eliminar, 1);
+                        // Actualizamos los datos del plan que se le muestran al usuario
+                        actualizarDatosPlanCreado();
+                        // Capacitamos al usuario para poder guardar los cambios realizados al plan
+                        $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
+                        $btn_guardar_cambios.removeAttr("disabled");
+                    }
+                },
+                no:{}
             },
-            null
-        ).setting({
-            'labels': {ok: '¡Sí!', cancel: '¡No!'}
-        });
+
+        })
     }
 
     function onClickBotonEliminarTrimestre(boton_jsobj) {
@@ -368,26 +374,31 @@ $(function () {
 
         var trimestre_elim_json = modificar_plan_params.plan_creado_json.trimestres[i_trimestre];
 
-        alertify.confirm(
-            'Periodo: ' + convertirPeriodoCodigoAString(trimestre_elim_json.periodo) + " " + trimestre_elim_json.anyo,
-            '¿ Eliminar el trimestre y sus materias ?',
-            function () {
-                // Ocultamos la tabla con las materias
-                card_trimestre.hide('slow', function () {
-                    card_trimestre.remove();
-                });
-                // Eliminamos el trimestre
-                modificar_plan_params.plan_creado_json.trimestres.splice(i_trimestre, 1);
-                // Actualizamos los datos del plan
-                actualizarDatosPlanCreado();
-                // Capacitamos al usuario para guardar los datos
-                $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
-                $btn_guardar_cambios.removeAttr("disabled");
+        $.confirm({
+            title:'Periodo: ' + convertirPeriodoCodigoAString(trimestre_elim_json.periodo) + " " + trimestre_elim_json.anyo,
+            content:'¿ Eliminar el trimestre y sus materias ?',
+            buttons: {
+                ok:{
+                    text:'Sí',
+                    keys: ['enter'],
+                    btnClass: 'btn-danger',
+                    action:function () {
+                        // Ocultamos la tabla con las materias
+                        card_trimestre.hide('slow', function () {
+                            card_trimestre.remove();
+                        });
+                        // Eliminamos el trimestre
+                        modificar_plan_params.plan_creado_json.trimestres.splice(i_trimestre, 1);
+                        // Actualizamos los datos del plan
+                        actualizarDatosPlanCreado();
+                        // Capacitamos al usuario para guardar los datos
+                        $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardar Cambios*");
+                        $btn_guardar_cambios.removeAttr("disabled");
+                    },
+                },
+                no:{}
             },
-            null
-        ).setting({
-            'labels': {ok: '¡Sí!', cancel: '¡No!'}
-        });
+         });
 
     }
 
@@ -415,7 +426,7 @@ $(function () {
                     html_tabla_trimestre += '<button type="button"  data-widget="collapse" class="btn btn-tool" data-toggle="tooltip" title="Collapse">';
                         html_tabla_trimestre += '<span class="fa fa-minus"></span>';
                     html_tabla_trimestre += '</button> ';
-                    html_tabla_trimestre += '<button type="button"  data-widget="remove" onclick="onClickBotonEliminarTrimestre(this)" class="btn btn-card-tool" data-toggle="tooltip" title="Remove">';
+                    html_tabla_trimestre += '<button type="button"  onclick="onClickBotonEliminarTrimestre(this)" class="btn btn-box-tool" data-toggle="tooltip" title="Remove">';
                         html_tabla_trimestre += '<span class="fa fa-times"></span>';
                     html_tabla_trimestre += '</button> ';
                 html_tabla_trimestre += "</div>";
@@ -523,41 +534,46 @@ $(function () {
         var nombre_plan = button.data('plan-nombre');
         var id_plan = button.data('plan-id');
 
-        alertify.confirm(
-                'Plan: ' + nombre_plan,
-                '¿ Eliminar plan ?',
-                function(){
+        $.confirm({
+            title:'¿ Eliminar plan ?',
+            content:'<b>Trimestres: </b> ' + modificar_plan_params.plan_creado_json.trimestres.length,
+            buttons:{
+                ok:{
+                    text:"Sí",
+                    keys: ['enter'],
+                    btnClass:'btn-danger',
+                    action:function(){
+                        var n_puntos = 1;
 
-                    var n_puntos = 1;
+                        var msg_eliminando = alertify.message('Eliminando plan: ' + nombre_plan + '.',0, function(){ clearInterval(interval);});
 
-                    var msg_eliminando = alertify.message('Eliminando plan: ' + nombre_plan + '.',0, function(){ clearInterval(interval);});
+                         var interval = setInterval(function(){
+                             n_puntos = (n_puntos + 1) % 4;
+                            msg_eliminando.setContent('Eliminando plan: ' + nombre_plan + ".".repeat(n_puntos));
+                         },500);
 
-                     var interval = setInterval(function(){
-                         n_puntos = (n_puntos + 1) % 4;
-                        msg_eliminando.setContent('Eliminando plan: ' + nombre_plan + ".".repeat(n_puntos));
-                     },500);
+                        $.ajax({
+                            url:modificar_plan_params.url_api_plan_details,
+                            type: 'DELETE',
+                            success: function(data,status,request) {
+                                alertify.success('¡Eliminado plan: ' + nombre_plan + "!");
+                                msg_eliminando.dismiss();
+                                setTimeout("location.reload()", 500);
+                            },
+                            error:function (request, status, error) {
+                                msg_eliminando.dismiss();
+                                console.log(status,error);
+                                alertify.error('Ocurrió un error eliminando el plan: ' + nombre_plan)
+                            },
+                            contentType:'application/json; indent=4;charset=UTF-8',
+                            dataType:'json',
+                        });
 
-                    $.ajax({
-                        url:modificar_plan_params.url_api_plan_details,
-                        type: 'DELETE',
-                        success: function(data,status,request) {
-                            alertify.success('¡Eliminado plan: ' + nombre_plan + "!");
-                            msg_eliminando.dismiss();
-                            setTimeout("location.reload()", 500);
-                        },
-                        error:function (request, status, error) {
-                            msg_eliminando.dismiss();
-                            console.log(status,error);
-                            alertify.error('Ocurrió un error eliminando el plan: ' + nombre_plan)
-                        },
-                        contentType:'application/json; indent=4;charset=UTF-8',
-                        dataType:'json',
-                    });
-
+                    }
                 },
-                null
-        ).setting({
-            'labels':{ok:'¡Sí!', cancel:'¡No!'}
+                no:{}
+            },
+
         });
     });
 

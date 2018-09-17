@@ -230,14 +230,14 @@ def pensubito_normal_login(request):
             else:
                 auth.login(request, user)
 
-                if user.is_superuser:
-                    return HttpResponseRedirect('/admin')
-
                 messages.success(request, "Bienvenido , " + username + "!")
                 if next:
                     return HttpResponseRedirect(next)
                 else:
-                    return redirect('ver_plan')
+                    if user.is_superuser:
+                        return HttpResponseRedirect('/admin')
+                    else:
+                        return redirect('ver_plan')
     else:
         form = LoginForm()
 
