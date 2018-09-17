@@ -32,7 +32,12 @@
         <span class="glyphicon glyphicon-user form-control-feedback"></span>
           {{ form.carnet.errors }}
       </div>
-      <div class="form-group has-feedback">
+        <div class="form-group has-feedback">
+            <label class="control-label" for="id_career">Pensum</label>
+            {{ form.pensum }}
+          {{ form.pensum.errors }}
+        </div>
+    <div class="form-group has-feedback">
         <label class="control-label" for="id_username">Nombre de usuario *</label>
         <input type="text" class="form-control" placeholder="Nombre de usuario" name="username" id="id_username" required>
         <span class="glyphicon glyphicon-user form-control-feedback"></span>
@@ -44,15 +49,7 @@
         <span class="glyphicon glyphicon-lock form-control-feedback"></span>
           {{ form.password.errors }}
       </div>
-        <div class="form-group has-feedback">
-            <label class="control-label" for="id_career">Carrera</label>
-            <select class="form-control selectpicker show-tick show-menu-arrow" name="career" id="id_career">
-                {%  for choice in form.career.field.choices %}
-                    <option value="{{ choice.0  }}" >{{choice.1}}</option>
-                {% endfor %}
-            </select>
-          {{ form.career.errors }}
-        </div>
+
 {% comment %}
         <div class="form-group has-feedback">
             <label class="control-label" for="id_starting_year">Año en el que iniciaste clases(o inicias)</label>

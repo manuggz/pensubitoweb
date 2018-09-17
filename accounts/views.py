@@ -17,11 +17,11 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import views as auth_views
 from django.urls import reverse
 
-from accounts.forms import ProfileSettingsForm
+from accounts.forms import ProfileSettingsForm, RegisterForm
 from api_misvoti.models import MiVotiUser, CarreraUsb, Pensum
 from misvoti import settings
 from planeador.decorators import only_allow_https
-from planeador.forms import LoginForm, RegisterForm
+from planeador.forms import LoginForm
 from planeador.usbldap import random_password, obtener_datos_desde_ldap
 from planeador.util import asciify
 
@@ -88,15 +88,28 @@ def crear_cuenta(request):
         form = RegisterForm(request.POST)
 
         if form.is_valid():
+            pensum = form.cleaned_data['pensum']
+            try:
+                pensum_bd = Pensum.objects.get(pk = pensum)
+            except ObjectDoesNotExist:
+                pensum_bd = None
+
+            if pensum_bd:
+                codigo_carrera = pensum_bd.carrera.codigo
+                tipo_pensum = pensum_bd.tipo
+            else:
+                codigo_carrera = None
+                tipo_pensum = None
 
             new_user = MiVotiUser.objects.create_user(
                 first_name=form.cleaned_data['name'],
                 username=form.cleaned_data['username'],
                 password=form.cleaned_data['password'],
                 usbid=form.cleaned_data['carnet'],
-                codigo_carrera=form.cleaned_data['career'],
-
+                codigo_carrera=codigo_carrera,
+                tipo_pensum = tipo_pensum
             )
+
             if new_user.pk > 0:
                 # auth.login(request, user)
                 auth.login(request, new_user)
@@ -216,6 +229,10 @@ def pensubito_normal_login(request):
                 context['error_form'] = True
             else:
                 auth.login(request, user)
+
+                if user.is_superuser:
+                    return HttpResponseRedirect('/admin')
+
                 messages.success(request, "Bienvenido , " + username + "!")
                 if next:
                     return HttpResponseRedirect(next)

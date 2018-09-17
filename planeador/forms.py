@@ -71,30 +71,6 @@ class CrearNuevoPlanExpedienteDescargado(forms.Form):
     archivo_html_expediente = forms.FileField(required=True, help_text="Archivo HTML de la página expediente.usb.ve.")
 
 
-class RegisterForm(forms.Form):
-    name = CharField(max_length=20,required=False)
-
-    carnet = CharField(max_length=10,required=False)
-    username = CharField(max_length=20)
-    password = CharField(max_length=20, widget=PasswordInput)
-
-    career = ChoiceField(required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(RegisterForm, self).__init__(*args, **kwargs)
-
-        carreras_bd = CarreraUsb.objects.all()
-        self.fields['career'].choices = [(c.pk, c.nombre) for c in carreras_bd]
-
-    def clean_username(self):
-
-        username = self.cleaned_data.get('username')
-
-        if MiVotiUser.objects.filter(username=username).exists():
-            raise forms.ValidationError("Este username ya está en uso.", 'invalid')
-        return username
-
-
 # form to log user in
 class LoginForm(forms.Form):
     username = CharField(
