@@ -48,6 +48,13 @@ y para la Interfaz del Api:
 
     http://127.0.0.1:8000/api/users/
 
+## Hacer Deploy
+ 1) `$ cd misvoti`
+ 2) `$git push heroku master`
+ 
+## Cambios a la BD SQLite con datos preestablecidos datos_pensum
+
+
 ## Pagina Web en Heroku:
 https://misvoti.herokuapp.com/
 

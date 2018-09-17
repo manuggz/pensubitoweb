@@ -44,6 +44,13 @@ $(function () {
         // Total de creditos aprobados
         // Creditos que el estudiante inscribió y aprobó con una nota mayor o igual a 3
         var creds_apro = 0;
+
+        var n_materias_retiradas_total = 0;
+        var n_materias_retiradas_trim_actual = 0;
+
+        var n_materias_generales_total = 0;
+        var n_materias_generales_trim_actual = 0;
+
         // Total de creditos reprobados
         // Creditos que el estudiante inscribió y reprobó con una nota menor o igual a 2
         var creds_repro = 0;
@@ -70,6 +77,9 @@ $(function () {
             var sum_nota_creds_trimact = 0;
             // Total de los creditos que cuentan para el trimestre actual
             var cred_cont_trimact = 0;
+            n_materias_retiradas_trim_actual = 0;
+            n_materias_generales_trim_actual = 0;
+
             var trimestre_json = modificar_plan_params.plan_creado_json.trimestres[i];
 
             // Recorremos todas las materias inscritas para el trimestre i
@@ -119,6 +129,10 @@ $(function () {
 
                         // Aumentamos los creditos aprobados
                         creds_apro += cred_trim_actual;
+
+                        if(materia_planeada.tipo == "GE"){
+                            n_materias_generales_trim_actual += 1;
+                        }
                     }
 
                     // Aumentamos la suma nota i x credito materia i
@@ -129,8 +143,16 @@ $(function () {
                 } else {
                     // Aumentamos los creditos retirados
                     creds_ret += cred_trim_actual;
+                    n_materias_retiradas_trim_actual += 1;
                 }
             }
+
+
+            if(n_materias_retiradas_trim_actual != trimestre_json.materias.length){
+                n_materias_retiradas_total += n_materias_retiradas_trim_actual;
+            }
+
+            n_materias_generales_total += n_materias_generales_trim_actual;
 
             // Aumentamos la suma nota i * credito i para el acumulado
             sum_nota_creds_acum += sum_nota_creds_trimact;
@@ -191,6 +213,9 @@ $(function () {
                 indice_acumulado_anterior = indice_acumulado_actual;
             }
         }
+
+        $('#info-box-n-retiros').html(n_materias_retiradas_total + "/" + modificar_plan_params.plan_restricciones.n_max_retiros );
+        $('#info-box-n-generales').html(n_materias_generales_total + "/" + modificar_plan_params.plan_restricciones.n_max_generales);
     }
 
     /**

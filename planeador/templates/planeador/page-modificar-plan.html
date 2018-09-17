@@ -31,14 +31,40 @@
         <div class="row">
             <div class="col-12">
                 <fieldset>
-
                     <a class="btn btn-app" disabled="disabled" id="btn-guardar-cambios">
                         <i class="fa fa-save"></i> Guardar cambios
                     </a>
                     <a class="btn btn-app" data-accion="eliminar-plan" data-plan-id = "{{ plan.id }}">
                         <i class="fa fa-trash"></i> Eliminar plan
                     </a>
+                    <div class="row">
+                      <div class="col-md-3 col-sm-6 col-12">
+                        <div class="info-box">
+                          <span class="info-box-icon bg-info"><i class="fa fa-font"></i></span>
 
+                          <div class="info-box-content">
+                            <span class="info-box-text">Generales</span>
+                            <span class="info-box-number" id="info-box-n-generales"></span>
+                          </div>
+                          <!-- /.info-box-content -->
+                        </div>
+                        <!-- /.info-box -->
+                      </div>
+                      <!-- /.col -->
+                      <div class="col-md-3 col-sm-6 col-12">
+                        <div class="info-box">
+                          <span class="info-box-icon bg-success"><i class="fa fa-external-link"></i></span>
+
+                          <div class="info-box-content">
+                            <span class="info-box-text">Retiros</span>
+                            <span class="info-box-number" id="info-box-n-retiros"></span>
+                          </div>
+                          <!-- /.info-box-content -->
+                        </div>
+                        <!-- /.info-box -->
+                      </div>
+                      <!-- /.col -->
+                    </div>
                     {# card para un trimestre particular #}
                     <div style="margin-top:30px;" id="div-trimestres">
                         {% for trimestre in plan.trimestres %}
@@ -207,6 +233,7 @@
 
             tipos_materia:[['GE','General'],['EL','Electiva libre'],['EA','Electiva de Area'],['RG','Regular'],['EX','Extraplan']],
             plan_creado_json:{{ plan | as_json}},
+            plan_restricciones:{{ plan_restricciones | as_json}},
             url_api_plan_details : "{% url 'api:userplan-detail' request.user.username %}",
         }
     </script>

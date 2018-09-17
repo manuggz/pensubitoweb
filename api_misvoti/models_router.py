@@ -14,7 +14,7 @@ def debe_ir_db_datos_pensum(nombre_model):
            nombre_model == 'relacionmateriaopcional' or \
            nombre_model == 'relacionmateriaprerrequisito'
 
-## Django Router https://docs.djangoproject.com/en/1.10/topics/db/multi-db/
+## Django Router https://docs.djangoproject.com/en/2.1/topics/db/multi-db/
 class ApiModelRouter(object):
     """
      Un Router que se encarga de controlar el destino para los modelos en la aplicación su objetivo

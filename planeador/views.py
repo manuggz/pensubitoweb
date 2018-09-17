@@ -300,7 +300,31 @@ def plan_modificar_trim(request):
         context['periodos'] = [(p[0], p[1]) for p in TrimestrePensum.PERIODOS_USB]
 
         # Variable usada para mostrar un select de años en el front
-        context["anyos"] = [(anyo, anyo) for anyo in range(1993, 2030)]
+        context["anyos"] = [(anyo, anyo) for anyo in range(1993, 2040)]
+        try:
+            pensum_escogido = Pensum.objects.get(
+                carrera__codigo=request.user.codigo_carrera,
+                tipo=request.user.tipo_pensum
+            )
+        except ObjectDoesNotExist:
+            pensum_escogido = None
+
+        if pensum_escogido:
+            n_max_generales = RelacionMateriaPensumBase.objects.filter(
+                pensum = pensum_escogido,
+                tipo_materia = RelacionMateriaPensumBase.GENERAL
+            ).count()
+
+            n_max_retiros = pensum_escogido.carrera.max_retiros
+        else:
+            n_max_generales = None
+            n_max_retiros = 10
+
+
+        context['plan_restricciones'] = {
+            'n_max_retiros':n_max_retiros,
+            'n_max_generales':n_max_generales
+        }
 
         return render(request, 'planeador/page-modificar-plan.html', context)
 
@@ -355,12 +379,17 @@ def ver_plan_vista_principal(request):
     return render(request, 'planeador/vista_principal_plan.html', context)
 
 
+@login_required
 def crear_plan_base_test(request):
     """
     Vista de prueba, ejecutar solo una vez cuando se crea la BD _datos_pensum.sqlite3 por primera vez
     :param request:
     :return:
     """
+
+    if not request.user.is_superuser:
+        return HttpResponse('Yo wassup!')
+
     cargar_pensum_ods("Ingeniería de Computación", '0800', 'planeador/static/planeador/pensums/pensum_0800_pa_2013.ods')
 
     return HttpResponse('¡Plan Base Creado!')

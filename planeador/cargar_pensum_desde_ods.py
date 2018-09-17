@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from odf import opendocument
 from odf.namespaces import TABLENS
@@ -6,6 +7,7 @@ from odf.table import TableRow, Table
 from api_misvoti.models import MateriaBase, RelacionMateriasCorrequisito, CarreraUsb, Pensum, \
     RelacionMateriaOpcional, TrimestrePensum, RelacionMateriaPensumBase
 from api_misvoti.models import RelacionMateriaPrerrequisito
+from planeador.constants import PASANTIA_LARGA
 
 
 def getSheet(opendoc,sheet_name):
@@ -177,13 +179,13 @@ def cargar_pensum_ods(nombre_carrera,codigo_carrera,ruta_pensum_ods):
     try:
         pensum_bd = Pensum.objects.get(
             carrera=carrera_usb,
-            tipo=Pensum.PASANTIA_LARGA
+            tipo=PASANTIA_LARGA
         )
         print("Warning! El plan ya existia")
     except ObjectDoesNotExist:
         pensum_bd = Pensum(
             carrera=carrera_usb,
-            tipo=Pensum.PASANTIA_LARGA,
+            tipo=PASANTIA_LARGA,
         )
         pensum_bd.save()
         print("Info! Creado el Plan.")

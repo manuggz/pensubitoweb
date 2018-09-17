@@ -75,6 +75,8 @@ class CarreraUsb(models.Model):
     #Código ex 0800
     codigo = models.CharField(max_length=10, primary_key=True)
 
+    max_retiros = models.IntegerField(default=10)
+
     def __str__(self):
         return "{0} {1}".format(self.codigo, self.nombre)
 
