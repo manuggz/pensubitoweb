@@ -80,7 +80,6 @@ def crear_plan_vacio_vista(request):
     :return:
     """
     user = request.user
-    nombre_nuevo_plan = "mi plan"
 
     try:
         carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
@@ -96,7 +95,6 @@ def crear_plan_vacio_vista(request):
         return HttpResponse(status=400)
 
     dict_nuevo_plan = {
-        'nombre': nombre_nuevo_plan,
         'id_pensum': pensum_escogido.id,
         'trimestres': [],
     }
@@ -118,7 +116,6 @@ def crear_plan_base_vista(request):
     :return:
     """
     user = request.user
-    nombre_nuevo_plan = "mi plan"
 
     try:
         carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
@@ -134,7 +131,6 @@ def crear_plan_base_vista(request):
         return HttpResponse(status=400)
 
     dict_nuevo_plan = {
-        'nombre': nombre_nuevo_plan,
         'id_pensum': pensum_escogido.id,
     }
 
@@ -170,8 +166,6 @@ def crear_plan_desde_expe_url(request):
 
         if form.is_valid():
 
-            nombre_nuevo_plan = "mi expediente"
-
             try:
                 carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
             except ObjectDoesNotExist:
@@ -186,7 +180,6 @@ def crear_plan_desde_expe_url(request):
                 return HttpResponse(status=400)
 
             dict_nuevo_plan = {
-                'nombre': nombre_nuevo_plan,
                 'id_pensum': pensum_escogido.id,
             }
 
@@ -244,9 +237,6 @@ def crear_plan_desde_expe_descar(request):
 
         if form.is_valid():
 
-            nombre_nuevo_plan = "mi expediente"
-            context["nombre_plan"] = nombre_nuevo_plan
-
             try:
                 carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
             except ObjectDoesNotExist:
@@ -261,7 +251,6 @@ def crear_plan_desde_expe_descar(request):
                 return HttpResponse(status=400)
 
             dict_nuevo_plan = {
-                'nombre': nombre_nuevo_plan,
                 'id_pensum': pensum_escogido.id,
             }
 

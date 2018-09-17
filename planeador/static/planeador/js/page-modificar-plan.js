@@ -11,6 +11,8 @@ $(function () {
 // Enlaza el DOM del boton que se presiona para actualizar los datos del plan del servidor
     var $btn_guardar_cambios = $("#btn-guardar-cambios");
 
+    var $btn_float_guardar_cambios = $("#btn-float-guardar-cambios");
+
 
     /**
      * Redondea un numero ejem: 123.123453 a 4 cífras significativas a lo más. ejem: 123.1235
@@ -54,9 +56,15 @@ $(function () {
 
         var indice_acumulado_actual;
         var indice_acumulado_anterior = 0;
+
+        // Div.card que contiene los html elementos de un trimestre
+        var $div_card_data;
         // Recorremos todos los trimestres
         // i tomará valores desde 0 hasta total(trimestres cursados)
         for (var i in modificar_plan_params.plan_creado_json.trimestres) {
+
+            $div_card_data = $div_datos_trimestres_html.find('div.card[data-trimestre-codigo=' + i + ']');
+
             // Suma de nota(i)*creditosmateria(i) del trimestre actual del bucle
             // Se usa para calcular el indice del periodo/trimestre actual
             var sum_nota_creds_trimact = 0;
@@ -132,24 +140,27 @@ $(function () {
             // Notar que se ha usado la notación #td-indice-<codigo trimestre> para referenciar el td que muestra
             // los datos para el trimestre <código trimestre>
 
+            $div_card_data[0].className = "card";
             if (isNaN(sum_nota_creds_trimact) || sum_nota_creds_trimact === 0) {
-                $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html("Nota no calculable");
+                $div_card_data.find("#td-indice-periodo-" + i).html("Nota no calculable");
             } else {
                 let indice_trimestre_red = redondear(sum_nota_creds_trimact / cred_cont_trimact);
                 var html_indice_trimestre = "";
                 if (indice_trimestre_red > 4.0) {
                     html_indice_trimestre += "<strong style='color: darkgreen;'>" + indice_trimestre_red + "</strong>"
+                    $div_card_data[0].className += ' card-success';
                 } else if (indice_trimestre_red < 2.9) {
                     html_indice_trimestre += "<strong style='color: darkred;'>" + indice_trimestre_red + "</strong>"
+                    $div_card_data[0].className += ' card-danger';
                 } else {
                     html_indice_trimestre += indice_trimestre_red
                 }
 
-                $div_datos_trimestres_html.find("#td-indice-periodo-" + i).html(html_indice_trimestre);
+                $div_card_data.find("#td-indice-periodo-" + i).html(html_indice_trimestre);
             }
 
             if (isNaN(sum_nota_creds_acum) || sum_nota_creds_acum === 0) {
-                $div_datos_trimestres_html.find("#td-indice-acumulado-" + i).html("Nota no calculable");
+                $div_card_data.find("#td-indice-acumulado-" + i).html("Nota no calculable");
             } else {
 
                 indice_acumulado_actual = redondear(sum_nota_creds_acum / creds_cont);
@@ -175,7 +186,7 @@ $(function () {
                 }
 
 
-                $div_datos_trimestres_html.find("#td-indice-acumulado-" + i).html(html_indice_acumulado);
+                $div_card_data.find("#td-indice-acumulado-" + i).html(html_indice_acumulado);
 
                 indice_acumulado_anterior = indice_acumulado_actual;
             }
@@ -489,6 +500,10 @@ $(function () {
 
     actualizarDatosPlanCreado();
 
+    $btn_float_guardar_cambios.click(function (e) {
+        e.preventDefault();
+        $btn_guardar_cambios.click();
+    });
 // Listener para cuando se clickea el boton de guardar
 // El cual hace que se mande al servidor el estado del plan que maneja el cliente
 // Actualizandolo
@@ -498,7 +513,7 @@ $(function () {
         // Para cada select en la tabla
 
         $fieldset.attr("disabled", "disabled");
-
+        $btn_float_guardar_cambios.hide(200);
         // Desactivamos el boton de guardar
         $btn_guardar_cambios.html("<i class=\"fa fa-save\"></i> Guardando Cambios...");
 
@@ -525,6 +540,7 @@ $(function () {
             complete: function (request, status) {
                 $fieldset.removeAttr("disabled");
                 msg_actualizando_plan.dismiss();
+                $btn_float_guardar_cambios.show(300);
             },
             contentType: 'application/json; indent=4;charset=UTF-8',
         });
@@ -548,25 +564,25 @@ $(function () {
                     action:function(){
                         var n_puntos = 1;
 
-                        var msg_eliminando = alertify.message('Eliminando plan: ' + nombre_plan + '.',0, function(){ clearInterval(interval);});
+                        var msg_eliminando = alertify.message('Eliminando plan.',0, function(){ clearInterval(interval);});
 
                          var interval = setInterval(function(){
                              n_puntos = (n_puntos + 1) % 4;
-                            msg_eliminando.setContent('Eliminando plan: ' + nombre_plan + ".".repeat(n_puntos));
+                            msg_eliminando.setContent('Eliminando plan' + ".".repeat(n_puntos));
                          },500);
 
                         $.ajax({
                             url:modificar_plan_params.url_api_plan_details,
                             type: 'DELETE',
                             success: function(data,status,request) {
-                                alertify.success('¡Eliminado plan: ' + nombre_plan + "!");
+                                alertify.success('¡Plan eliminado!');
                                 msg_eliminando.dismiss();
                                 setTimeout("location.reload()", 500);
                             },
                             error:function (request, status, error) {
                                 msg_eliminando.dismiss();
                                 console.log(status,error);
-                                alertify.error('Ocurrió un error eliminando el plan: ' + nombre_plan)
+                                alertify.error('Ocurrió un error eliminando el plan')
                             },
                             contentType:'application/json; indent=4;charset=UTF-8',
                             dataType:'json',

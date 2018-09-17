@@ -35,7 +35,7 @@
                     <a class="btn btn-app" disabled="disabled" id="btn-guardar-cambios">
                         <i class="fa fa-save"></i> Guardar cambios
                     </a>
-                    <a class="btn btn-app" data-accion="eliminar-plan" data-plan-nombre = "{{ plan.nombre }}" data-plan-id = "{{ plan.id }}">
+                    <a class="btn btn-app" data-accion="eliminar-plan" data-plan-id = "{{ plan.id }}">
                         <i class="fa fa-trash"></i> Eliminar plan
                     </a>
 
@@ -44,7 +44,7 @@
                         {% for trimestre in plan.trimestres %}
                         {% gen_indice_for 'for_trimestre' as i_trimestre %}
                             {# card para un trimestre particular #}
-                            <div class='card card-success card-outline' data-trimestre-codigo="{{ i_trimestre }}">
+                            <div class='card' data-trimestre-codigo="{{ i_trimestre }}">
                                 <div class="card-header" >
                                     <h3 class="card-title" >
                                         {% if trimestre.periodo == "SD" %}
@@ -180,6 +180,9 @@
                 </fieldset>
             </div>
             </div>
+            <a href="#" id="btn-float-guardar-cambios" class="float">
+                <i class="fa fa-save float-save-button"></i>
+            </a>
         </section>
     </div>
     <!-- /#page-wrapper -->
