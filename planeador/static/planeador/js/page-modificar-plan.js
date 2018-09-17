@@ -449,10 +449,9 @@ $(function () {
                     html_tabla_trimestre += "</td>";
                     html_tabla_trimestre += "</tr>";
 
-                    html_tabla_trimestre += "</table>";
-                    html_tabla_trimestre += "</div>";
+                html_tabla_trimestre += "</table>";
 
-                    html_tabla_trimestre += '<table class="table table-hover datos-trimestre"">';
+                html_tabla_trimestre += '<table class="table table-hover datos-trimestre"">';
 
                     html_tabla_trimestre += "<thead>";
                     html_tabla_trimestre += "<tr>";
@@ -474,7 +473,11 @@ $(function () {
 
                 html_tabla_trimestre += "</table>";
 
-                html_tabla_trimestre += '<div class="card-footer">';
+            html_tabla_trimestre += "</div>";
+
+
+
+            html_tabla_trimestre += '<div class="card-footer">';
                 html_tabla_trimestre += '<button type="button" data-toggle="modal" data-target="#modal-materia" class="btn btn-link">';
                 html_tabla_trimestre += '<span class="fa fa-plus"  style="margin-left: 4px"></span>';
                 html_tabla_trimestre += '</button> ';
