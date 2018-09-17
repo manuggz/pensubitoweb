@@ -1,5 +1,6 @@
 # coding=utf-8
 import codecs
+import datetime
 import ssl
 from urllib.error import HTTPError
 from urllib.parse import quote
@@ -7,23 +8,74 @@ from urllib.request import Request, urlopen
 
 from django.contrib import auth, messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404, HttpResponse
 from django.shortcuts import render, HttpResponseRedirect, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import views as auth_views
 from django.urls import reverse
 
-from api_misvoti.models import MiVotiUser, CarreraUsb
+from accounts.forms import ProfileSettingsForm
+from api_misvoti.models import MiVotiUser, CarreraUsb, Pensum
 from misvoti import settings
 from planeador.decorators import only_allow_https
 from planeador.forms import LoginForm, RegisterForm
 from planeador.usbldap import random_password, obtener_datos_desde_ldap
 from planeador.util import asciify
 
-
+@login_required
 def mi_perfil(request):
-    return render(request, 'accounts/signup.htm')
+    return HttpResponseRedirect(reverse('user-profile', kwargs={'username': request.user.username}))
+
+@login_required
+def user_perfil(request,username):
+
+    if username == request.user.username:
+        user_profile = request.user
+    else:
+        return HttpResponse("No se permite visitar perfiles de otros usuarios todavía :(  !")
+        try:
+            user_profile = MiVotiUser.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return HttpResponse("Usuario no existe!")
+
+    context = {}
+    context['pagename'] = "my_profile"
+    context['user_profile'] = user_profile
+
+    if request.method == 'POST':
+        form = ProfileSettingsForm(request.POST)
+        if form.is_valid():
+            user_profile.first_name = form.cleaned_data['name']
+            user_profile.last_name = form.cleaned_data['last_name']
+            user_profile.email = form.cleaned_data['email']
+            user_profile.usbid = form.cleaned_data['usbid']
+            user_profile.starting_year = form.cleaned_data['starting_year']
+
+            pensum = form.cleaned_data['pensum']
+            try:
+                pensum_bd = Pensum.objects.get(pk = pensum)
+            except ObjectDoesNotExist:
+                pensum_bd = None
+
+            if pensum_bd:
+                user_profile.codigo_carrera = pensum_bd.carrera.codigo
+                user_profile.tipo_pensum = pensum_bd.tipo
+
+            messages.success(request, "Perfil actualizado!")
+
+            user_profile.save()
+        else:
+            messages.error(request, "Datos erroneos!")
+
+    else:
+        form = ProfileSettingsForm(user=user_profile)
+
+    context['form'] = form
+
+    return render(request, 'accounts/profile.html',context)
 
 
 def crear_cuenta(request):

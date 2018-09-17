@@ -4,3 +4,4 @@ db.sqlite3
 .idea/
 staticfiles
 planes_json_cache
+misvoti/yarn-error.log

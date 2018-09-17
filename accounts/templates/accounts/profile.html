@@ -1,0 +1,139 @@
+{% extends 'misvoti/base.html' %}
+{% load static %}
+{% block title  %}
+    <title>Pensubito | Perfil de {{ user_profile.username }}</title>
+{% endblock title %}
+{% block content %}
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Profile</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">User Profile</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-3">
+
+            <!-- Profile Image -->
+            <div class="card card-primary card-outline">
+              <div class="card-body box-profile">
+                <div class="text-center">
+                  <img class="profile-user-img img-fluid img-circle"
+                       src="https://api.adorable.io/avatars/198/{{ user_profile.username }}@adorable.png"
+                       alt="User profile picture">
+                </div>
+
+                <h3 class="profile-username text-center">{{ user_profile.first_name }} {{ user_profile.last_name }} </h3>
+                <h4 class="profile-username text-center">{{ user_profile.username }}</h4>
+
+                <p class="text-muted text-center">{{ user_profile.get_nombre_carrera }} </p>
+
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+
+            <!-- /.card -->
+          </div>
+          <!-- /.col -->
+          <div class="col-md-9">
+            <div class="card">
+              <div class="card-header p-2">
+                <ul class="nav nav-pills">
+                  <li class="nav-item"><a class="nav-link" href="#settings" data-toggle="tab">Configuración</a></li>
+                </ul>
+              </div><!-- /.card-header -->
+              <div class="card-body">
+                <div class="tab-content">
+                  <div class="active tab-pane" id="settings">
+                      {{ form.errors }}
+                    <form class="form-horizontal" method="POST">
+                        {% csrf_token %}
+                      <div class="form-group">
+                        <label for="id_name" class="col-sm-2 control-label">Nombre</label>
+
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="id_name" name="name" placeholder="Nombre" value="{{ form.name.value }}">
+                        </div>
+                      {{ form.name.errors }}
+                      </div>
+                      <div class="form-group">
+                        <label for="id_last_name" class="col-sm-2 control-label">Apellido</label>
+
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="id_last_name" name="last_name" placeholder="Apellido" value="{{ form.last_name.value }}">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="id_email" class="col-sm-2 control-label">Correo</label>
+
+                        <div class="col-sm-10">
+                          <input type="email" class="form-control" id="id_email" name="email" placeholder="Correo" value="{{ form.email.value }}">
+                        </div>
+                      {{ form.email.errors }}
+                      </div>
+                      <div class="form-group">
+                        <label for="id_usbid" class="col-sm-2 control-label">USB-ID</label>
+
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="id_usbid" name="usbid" placeholder="USBID" value="{{ form.usbid.value }}">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="id_cedula" class="col-sm-2 control-label">Cedula</label>
+
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="id_cedula" name="cedula" placeholder="Cedula" value="{{ form.cedula.value }}">
+                        </div>
+                      </div>
+                        <div class="form-group">
+                            <label class="control-label" for="id_pensum">Pensum</label>
+
+                            <div class="col-sm-10">
+                                 {{ form.pensum }}
+                            </div>
+                        </div>
+                    {# TODO: Falta tipos de usuario #}
+                       <div class="form-group">
+                         <label class="control-label" for="id_starting_year">Año de inicio plan</label>
+                        <div class="col-sm-10">
+                          <input type="number" class="form-control" id="id_starting_year" name="starting_year" placeholder="Año inicio" value="{{ form.starting_year.value }}">
+                        </div>
+                       </div>
+                      <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                          <button type="submit" class="btn btn-danger">Guardar</button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                  <!-- /.tab-pane -->
+                </div>
+                <!-- /.tab-content -->
+              </div><!-- /.card-body -->
+            </div>
+            <!-- /.nav-tabs-custom -->
+          </div>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+{% endblock %}

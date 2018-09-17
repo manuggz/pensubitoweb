@@ -108,7 +108,9 @@
             <img src="https://api.adorable.io/avatars/198/{{ request.user.username }}@adorable.png" class="img-circle" alt="User Image">
         </div>
         <div class="info">
-          <a href="#" class="d-block">{{ request.user.first_name }}{{ request.user.last_name }} {{ request.user.username }}</a>
+          <a href="#" class="d-block">
+              {{request.user.username }}
+          </a>
         </div>
       </div>
       <!-- /.search form -->
@@ -123,6 +125,14 @@
                 <i class="nav-icon fa fa-dashboard"></i>
                 <p>Home</p>
             </a>
+          </li>
+          <li class="nav-item">
+            <a href="{%  url 'user-my-profile' %}" class="nav-link {% if pagename == 'my_profile' %}active{% endif %}">
+                <i class="nav-icon fa fa-user"></i>
+                <p>Mi perfil</p>
+            </a>
+          </li>
+          <li class="nav-item">
             <a href="{%  url 'ver_plan' %}" class="nav-link {% if pagename == 'ver_plan' %}active{% endif %}">
                 <i class="fa fa-graduation-cap"></i>
                 <p>Mi plan</p>

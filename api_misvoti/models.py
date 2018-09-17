@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 
@@ -61,6 +62,11 @@ class MiVotiUser(AbstractUser):
         verbose_name = "usuario"
         verbose_name_plural = "usuarios"
 
+    def get_nombre_carrera(self):
+        try:
+            return CarreraUsb.objects.get(codigo=self.codigo_carrera).nombre
+        except ObjectDoesNotExist:
+            return "Carrera Inválida"
 
 ## Representa una carrera de la USB
 class CarreraUsb(models.Model):
@@ -99,7 +105,7 @@ class Pensum(models.Model):
         return "{0} {1}".format(self.carrera.nombre, self.get_nombre_tipo_plan())
 
     def get_nombre_tipo_plan(self):
-        for n, v in Pensum.TIPO_PLAN:
+        for n, v in TIPO_PLAN:
             if n == self.tipo:
                 return v
 
