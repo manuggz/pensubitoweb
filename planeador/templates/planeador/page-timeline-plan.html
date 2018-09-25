@@ -1,0 +1,165 @@
+{% extends 'misvoti/base.html' %}
+{% load as_json %}
+{% load gen_indice_for %}
+{% load static %}
+{% block antes_fin_head %}
+    <link href="{% static 'planeador/css/ver_plan.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <!-- Content Header (Page header) -->
+      <section class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-6">
+                <h1>Timeline Plan</h1>
+              </div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                  <li class="breadcrumb-item active">Mi plan</li>
+                </ol>
+              </div>
+            </div>
+          </div><!-- /.container-fluid -->
+      </section>
+        <!-- Main content -->
+        <section class="content">
+        <div class="row">
+            <div class="col-12">
+                <ul class="timeline timeline-inverse">
+                      <!-- timeline time label -->
+                      <li class="time-label">
+                        <span class="bg-danger">
+                          Septiembre - Diciembre 2011
+                        </span>
+                      </li>
+                      <!-- /.timeline-label -->
+                      <!-- timeline item -->
+                      <li>
+                        <i class="fa fa-envelope bg-primary"></i>
+
+                        <div class="timeline-item">
+                          <span class="time"><i class="fa fa-clock-o"></i> 12:05</span>
+
+                          <h3 class="timeline-header"><a href="#">CI2525</a> Lógica simbólica</h3>
+
+                          <div class="timeline-body">
+                          </div>
+                          <div class="timeline-footer">
+                            <a href="#" class="btn btn-primary btn-sm">Aprobar</a>
+                          </div>
+                        </div>
+                      </li>
+                      <!-- END timeline item -->
+                      <!-- timeline item -->
+                      <li>
+                        <i class="fa fa-user bg-info"></i>
+
+                        <div class="timeline-item">
+                          <span class="time"><i class="fa fa-clock-o"></i> 5 mins ago</span>
+
+                          <h3 class="timeline-header no-border"><a href="#">Sarah Young</a> accepted your friend request
+                          </h3>
+                        </div>
+                      </li>
+                      <!-- END timeline item -->
+                      <!-- timeline item -->
+                      <li>
+                        <i class="fa fa-comments bg-warning"></i>
+
+                        <div class="timeline-item">
+                          <span class="time"><i class="fa fa-clock-o"></i> 27 mins ago</span>
+
+                          <h3 class="timeline-header"><a href="#">Jay White</a> commented on your post</h3>
+
+                          <div class="timeline-body">
+                            Take me to your leader!
+                            Switzerland is small and neutral!
+                            We are more like Germany, ambitious and misunderstood!
+                          </div>
+                          <div class="timeline-footer">
+                            <a href="#" class="btn btn-warning btn-flat btn-sm">View comment</a>
+                          </div>
+                        </div>
+                      </li>
+                      <!-- END timeline item -->
+                      <!-- timeline time label -->
+                      <li class="time-label">
+                        <span class="bg-success">
+                          3 Jan. 2014
+                        </span>
+                      </li>
+                      <!-- /.timeline-label -->
+                      <!-- timeline item -->
+                      <li>
+                        <i class="fa fa-camera bg-purple"></i>
+
+                        <div class="timeline-item">
+                          <span class="time"><i class="fa fa-clock-o"></i> 2 days ago</span>
+
+                          <h3 class="timeline-header"><a href="#">Mina Lee</a> uploaded new photos</h3>
+
+                          <div class="timeline-body">
+                            <img src="http://placehold.it/150x100" alt="..." class="margin">
+                            <img src="http://placehold.it/150x100" alt="..." class="margin">
+                            <img src="http://placehold.it/150x100" alt="..." class="margin">
+                            <img src="http://placehold.it/150x100" alt="..." class="margin">
+                          </div>
+                        </div>
+                      </li>
+                      <!-- END timeline item -->
+                      <li>
+                        <i class="fa fa-clock-o bg-gray"></i>
+                      </li>
+                    </ul>
+            </div>
+            </div>
+            <a href="#" id="btn-float-guardar-cambios" class="float">
+                <i class="fa fa-save float-save-button"></i>
+            </a>
+        </section>
+    </div>
+    <!-- /#page-wrapper -->
+    <!-- /.row -->
+
+    {% include 'planeador/modals/modal-materia.html' %}
+    {% include 'planeador/modals/modal-agregar-trimestre.html' %}
+
+{% endblock %}
+
+{% block final_pagina_scripts %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.9/validator.min.js"></script>
+
+    <script>
+        {# Parametros globales #}
+        window.modificar_plan_params = {
+            path_image_gear:"{% static 'misvoti/images/gears.svg' %}",
+            path_image_flecha_up:"{% static 'misvoti/images/ic_trending_up_black_24px.svg' %}",
+            path_image_flecha_same:"{% static 'misvoti/images/ic_trending_flat_black_24px.svg' %}",
+            path_image_flecha_down:"{% static 'misvoti/images/ic_trending_down_black_24px.svg' %}",
+
+            tipos_materia:[['GE','General'],['EL','Electiva libre'],['EA','Electiva de Area'],['RG','Regular'],['EX','Extraplan']],
+            plan_creado_json:{{ plan | as_json}},
+            plan_restricciones:{{ plan_restricciones | as_json}},
+            url_api_plan_details : "{% url 'api:userplan-detail' request.user.username %}",
+        }
+    </script>
+    <script src="{% static 'planeador/js/page-modificar-plan.js' %}"></script>
+
+    <script>
+        {# Parametros para el script  modal-materia-js.js #}
+        window.modal_materia_js_params = {
+            url_ajax_get_materias:'{%  url 'materias' %}' {#  url donde obtener datos de materias del sistema #}
+        }
+    </script>
+    <script src="{% static 'planeador/js/modal-materia-js.js' %}"></script>
+
+    <script src="{% static 'planeador/js/modal-trimestre-js.js' %}"></script>
+
+
+{% endblock %}

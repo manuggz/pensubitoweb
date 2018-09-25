@@ -58,6 +58,7 @@ def get_expediente_page_content(usbid, password_cas):
     # Se logea en expediente
     response = s.get('https://expediente.dii.usb.ve/login.do')
 
+    # TODO: Parsear carrera de aquí
     #if not user.codigo_carrera:
         #response = s.get('http://expediente.dii.usb.ve/datosPersonales.do')
         #parsed_html = BeautifulSoup(response.content, "html.parser")

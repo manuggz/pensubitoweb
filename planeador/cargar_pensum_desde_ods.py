@@ -7,7 +7,7 @@ from odf.table import TableRow, Table
 from api_misvoti.models import MateriaBase, RelacionMateriasCorrequisito, CarreraUsb, Pensum, \
     RelacionMateriaOpcional, TrimestrePensum, RelacionMateriaPensumBase
 from api_misvoti.models import RelacionMateriaPrerrequisito
-from planeador.constants import PASANTIA_LARGA
+from planeador.constants import *
 
 
 def getSheet(opendoc,sheet_name):
@@ -77,11 +77,11 @@ def cargarOrdenMaterias(sheet,pensum_bd):
                 columna_actual += 1
 
         if leido_nombres_columnas:
-            tipo_relacion =  relacion_materia_trimestre.get('tipo', RelacionMateriaPensumBase.REGULAR)
+            tipo_relacion =  relacion_materia_trimestre.get('tipo', REGULAR)
 
             materia_bd = None
 
-            if tipo_relacion == RelacionMateriaPensumBase.REGULAR:
+            if tipo_relacion == REGULAR:
                 ## Lanza error a proposito si la materia no existe en la BD, se supone la materia debe existir
                 materia_bd = MateriaBase.objects.get(codigo=relacion_materia_trimestre['codigo'])
 
@@ -100,6 +100,7 @@ def cargarOrdenMaterias(sheet,pensum_bd):
 
             RelacionMateriaPensumBase(
                 pensum=pensum_bd,
+                carrera= pensum_bd.carrera,
                 trimestre_pensum=trimestre_actual_bd_ref if periodo_fila else None ,
                 tipo_materia=tipo_relacion,
                 materia_base=materia_bd,
@@ -139,6 +140,30 @@ def cargarCorrequisitos(sheet,plan_base_bd):
             materia_cursar_junta_b = MateriaBase.objects.get(codigo=codigo_materia_b),
             pensum=plan_base_bd
         ).save()
+
+def cargarLogica(sheet,plan_base_bd):
+    for row_element in sheet.getElementsByType(TableRow):
+
+        codigo_materia = row_element.childNodes[0].childNodes[0].childNodes[0].data
+        tipo_materia = row_element.childNodes[1].childNodes[0].childNodes[0].data
+
+        try:
+            materia_bd_ref = MateriaBase.objects.get(codigo=codigo_materia)
+        except ObjectDoesNotExist:
+            materia_bd_ref = MateriaBase(
+                codigo=codigo_materia,
+            )
+            materia_bd_ref.save()
+
+        if tipo_materia not in (GENERAL,ELECTIVA_LIBRE,ELECTIVA_DE_AREA,REGULAR,EXTRAPLAN):
+            raise ReferenceError("Tipo incorrecto:" + tipo_materia)
+
+        RelacionMateriaPensumBase(
+            materia_base=materia_bd_ref,
+            tipo_materia=tipo_materia,
+            carrera=plan_base_bd.carrera,
+        ).save()
+
 
 def cargarOpcionales(sheet,plan_base_bd):
     for row_element in sheet.getElementsByType(TableRow):
@@ -200,3 +225,8 @@ def cargar_pensum_ods(nombre_carrera,codigo_carrera,ruta_pensum_ods):
     print ("Cargados Correquisitos!")
     cargarOpcionales(getSheet(doc, 'opcionales'), pensum_bd)
     print ("Cargados Opcionales!")
+    
+    # Dice que relacion hay entre una materia y una carrera
+    # Ejemplo : Ing de software II es una electiva de area para la carrera Ing. Computación
+    cargarLogica(getSheet(doc, 'relacion_materia_carrera'), pensum_bd)
+    print ("Cargados logicas!")

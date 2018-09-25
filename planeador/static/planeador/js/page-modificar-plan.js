@@ -51,6 +51,9 @@ $(function () {
         var n_materias_generales_total = 0;
         var n_materias_generales_trim_actual = 0;
 
+        var n_materias_elec_area_total = 0;
+        var n_materias_elec_libres_total = 0;
+
         // Total de creditos reprobados
         // Creditos que el estudiante inscribió y reprobó con una nota menor o igual a 2
         var creds_repro = 0;
@@ -132,6 +135,13 @@ $(function () {
 
                         if(materia_planeada.tipo == "GE"){
                             n_materias_generales_trim_actual += 1;
+                        }
+
+                        if(materia_planeada.tipo == "EL"){
+                            n_materias_elec_libres_total += 1;
+                        }
+                        if(materia_planeada.tipo == "EA"){
+                            n_materias_elec_area_total += 1;
                         }
                     }
 
@@ -216,6 +226,8 @@ $(function () {
 
         $('#info-box-n-retiros').html(n_materias_retiradas_total + "/" + modificar_plan_params.plan_restricciones.n_max_retiros );
         $('#info-box-n-generales').html(n_materias_generales_total + "/" + modificar_plan_params.plan_restricciones.n_max_generales);
+        $('#info-box-n-electivas-area').html(n_materias_elec_area_total + "/" + modificar_plan_params.plan_restricciones.n_max_electivas_area);
+        $('#info-box-n-electivas-libre').html(n_materias_elec_libres_total + "/" + modificar_plan_params.plan_restricciones.n_max_electivas_libres);
     }
 
     /**

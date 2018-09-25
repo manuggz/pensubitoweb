@@ -278,13 +278,18 @@ $(function () {
     $txt_input_codigo_mat_en_modal.on('input', function (e) {
         $.get(modal_materia_js_params.url_ajax_get_materias, {
                 codigo: $txt_input_codigo_mat_en_modal.val(),
+                pensum_cod:modificar_plan_params.plan_creado_json.id_pensum,
                 max_length: 5,
             },
             function (data, status) {
                 if (status === "success") {
                     if (data.materias.length === 1 && data.materias[0].codigo === $txt_input_codigo_mat_en_modal.val()) {
+                        console.log(data);
                         $select_creditos_en_modal.selectpicker('val', data.materias[0].creditos);
                         $txt_input_nombre_mat_en_modal.val(data.materias[0].nombre);
+                        if(data.materias[0].tipo) {
+                            $select_tipo_mat_en_modal.selectpicker('val', data.materias[0].tipo);
+                        }
                     } else {
                         let html_dropdown = '';
                         for (let i in data.materias) {
@@ -305,6 +310,7 @@ $(function () {
     $txt_input_nombre_mat_en_modal.on('input', function (e) {
         $.get(modal_materia_js_params.url_ajax_get_materias, {
                 nombre: $txt_input_nombre_mat_en_modal.val(),
+                pensum_cod:modificar_plan_params.plan_creado_json.id_pensum,
                 max_length: 5,
             },
             function (data, status) {
@@ -312,6 +318,9 @@ $(function () {
                     if (data.materias.length === 1 && data.materias[0].nombre === $txt_input_nombre_mat_en_modal.val()) {
                         $select_creditos_en_modal.selectpicker('val', data.materias[0].creditos);
                         $txt_input_codigo_mat_en_modal.val(data.materias[0].codigo);
+                        if(data.materias[0].tipo) {
+                            $select_tipo_mat_en_modal.selectpicker('val', data.materias[0].tipo);
+                        }
                     } else {
                         let html_dropdown = '';
                         for (let i in data.materias) {

@@ -6,8 +6,9 @@
 from html.parser import HTMLParser
 
 from django.core.exceptions import ObjectDoesNotExist
-from api_misvoti.models import MateriaBase,MiVotiUser, RelacionMateriaPensumBase, TrimestrePensum
+from api_misvoti.models import MateriaBase, MiVotiUser, RelacionMateriaPensumBase, TrimestrePensum, Pensum
 from planeador.codigo_departamentos import *
+from planeador.constants import *
 
 
 class MateriaDatosModelo:
@@ -156,7 +157,7 @@ def crear_modelos_desde_resultado_parser(dict_nuevo_plan,resultado_parser):
                 'creditos': int(materia_clase.creditos),
                 'nota_final' : int(materia_clase.nota),
                 'esta_retirada':int(materia_clase.esta_retirada),
-                'tipo':RelacionMateriaPensumBase.REGULAR
+                'tipo':REGULAR
             }
 
             try:
@@ -167,21 +168,50 @@ def crear_modelos_desde_resultado_parser(dict_nuevo_plan,resultado_parser):
             relacion_con_pensum = None
 
             if materia_base:
+
+                # Se obtiene la instancia del PEnsum para obtener la carrera
                 try:
-                    relacion_con_pensum = RelacionMateriaPensumBase(
-                        pensum_id = dict_nuevo_plan['id_pensum'],
+                    pensum_bd = Pensum.objects.get(pk = dict_nuevo_plan['id_pensum'])
+                except Pensum.DoesNotExist:
+                    pensum_bd = None
+
+                # Intentamos obtener la relacion de la materia con el pensum directamente
+                # Ejemplo : CI2525, una materia regular RG para el pensum de computación
+                try:
+                    relacion_con_pensum = RelacionMateriaPensumBase.objects.get(
+                        pensum = pensum_bd,
                         materia_base = materia_base
                     )
                 except ObjectDoesNotExist:
-                    pass
+                    relacion_con_pensum = None
+
+                if not relacion_con_pensum:
+                    # Sino intentamos obtener la relacion de la materia con la carrera
+                    # Ejemplo : CE3114, una materia electiva libre para la carrera de computación
+                    relacion_con_pensum = RelacionMateriaPensumBase.objects.filter(
+                        carrera= pensum_bd.carrera,
+                        materia_base = materia_base,
+                    )
+                    if relacion_con_pensum.exists():
+                        relacion_con_pensum = relacion_con_pensum.first()
+                    else:
+                        # Sino intentamos obtener la relacion de la materia en general
+                        # Ejemplo : un general
+                        relacion_con_pensum = RelacionMateriaPensumBase.objects.filter(
+                            materia_base=materia_base,
+                        )
+                        if relacion_con_pensum.exists():
+                            relacion_con_pensum = relacion_con_pensum.first()
+                        else:
+                            relacion_con_pensum = None
 
             if relacion_con_pensum:
                 dict_mat['tipo'] = relacion_con_pensum.tipo_materia
             else:
                 if es_general_codigo(materia_clase.codigo):
-                    dict_mat['tipo'] = RelacionMateriaPensumBase.GENERAL
+                    dict_mat['tipo'] = GENERAL
                 else:
-                    dict_mat['tipo'] = RelacionMateriaPensumBase.ELECTIVA_LIBRE
+                    dict_mat['tipo'] = EXTRAPLAN
 
             if materia_base:
                 dict_mat.update({

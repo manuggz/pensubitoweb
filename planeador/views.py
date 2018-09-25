@@ -81,6 +81,8 @@ def crear_plan_vacio_vista(request):
     """
     user = request.user
 
+    # TODO : CUANDO EL USUARIO YA TIENE UN PLAN CREADO DEBERÍA BORRAR EL ANTERIOR O NO PERMITIR CREAR OTRO
+
     try:
         carrera_plan_bd = CarreraUsb.objects.get(codigo=user.codigo_carrera)
     except ObjectDoesNotExist:
@@ -196,6 +198,7 @@ def crear_plan_desde_expe_url(request):
             if content_page_expediente != '':
                 # Parseamos el html
                 crear_modelos_desde_resultado_parser(
+
                     dict_nuevo_plan,
                     parser_html(content_page_expediente),
                 )
@@ -281,6 +284,21 @@ def crear_plan_desde_expe_descar(request):
 
 @login_required
 @only_allow_https
+def plan_timeline(request):
+    """
+    Vista donde el usuario puede editar su plan de estudios
+    :param request:
+    :return:
+    """
+    context = {"pagename": "timeline_plan"}
+
+    if not request.user.gdrive_id_json_plan:
+        return redirect('home')
+    else:
+        return render(request, "planeador/page-timeline-plan.html", context)
+
+@login_required
+@only_allow_https
 def plan_modificar_trim(request):
     """
     Vista donde el usuario puede editar su plan de estudios
@@ -294,8 +312,11 @@ def plan_modificar_trim(request):
     else:
 
         # Plan del usuario
-        context["plan"] = gdrive_obtener_contenido_plan(request.user.gdrive_id_json_plan)
-
+        plan_datos = gdrive_obtener_contenido_plan(request.user.gdrive_id_json_plan)
+        if plan_datos != -1:
+            context["plan"] = plan_datos
+        else:
+            context["plan"] = None
         # Variable usada para estandarizar el nombre/clave usado para los periodos en el back y front
         context['periodos'] = [(p[0], p[1]) for p in TrimestrePensum.PERIODOS_USB]
 
@@ -312,18 +333,35 @@ def plan_modificar_trim(request):
         if pensum_escogido:
             n_max_generales = RelacionMateriaPensumBase.objects.filter(
                 pensum = pensum_escogido,
-                tipo_materia = RelacionMateriaPensumBase.GENERAL
+                tipo_materia = GENERAL,
+                trimestre_pensum__isnull = False,
+            ).count()
+
+            n_max_electivas_area = RelacionMateriaPensumBase.objects.filter(
+                pensum = pensum_escogido,
+                tipo_materia = ELECTIVA_DE_AREA,
+                trimestre_pensum__isnull = False,
+            ).count()
+
+            n_max_electivas_libres = RelacionMateriaPensumBase.objects.filter(
+                pensum = pensum_escogido,
+                tipo_materia = ELECTIVA_LIBRE,
+                trimestre_pensum__isnull=False,
             ).count()
 
             n_max_retiros = pensum_escogido.carrera.max_retiros
         else:
             n_max_generales = None
-            n_max_retiros = 10
+            n_max_retiros = -1
+            n_max_electivas_libres = -1
+            n_max_electivas_area = -1
 
 
         context['plan_restricciones'] = {
             'n_max_retiros':n_max_retiros,
-            'n_max_generales':n_max_generales
+            'n_max_generales':n_max_generales,
+            'n_max_electivas_area':n_max_electivas_area,
+            'n_max_electivas_libres':n_max_electivas_libres
         }
 
         return render(request, 'planeador/page-modificar-plan.html', context)
@@ -340,6 +378,8 @@ def materias_vista(request):
         nombre_materia = request.GET.get("nombre", "").lower()
         codigo_materia = request.GET.get("codigo", "").lower()
 
+        pensum_cod = request.GET.get("pensum_cod", "").lower()
+
         max_length = int(request.GET.get("max_length", -1))
         res_exacto = bool(request.GET.get("obte_resultado_exacto", False))
 
@@ -349,6 +389,7 @@ def materias_vista(request):
         refinarBusqueda(
             nombre_materia,
             codigo_materia,
+            pensum_cod,
             res_exacto,
             max_length,
             (lambda mat_bd: lista_excluidos.count(mat_bd.codigo)),

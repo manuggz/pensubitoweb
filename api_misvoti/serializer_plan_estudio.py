@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from api_misvoti.models import RelacionMateriaPensumBase, TrimestrePensum, Pensum
+from planeador.constants import *
 from planeador.gdrive_namespaces import ID_DRIVE_CARPETA_MIS_VOTI
 
 ## Pattern para validar los códigos de las materias
@@ -53,7 +54,7 @@ class MateriaUsuarioSerializer(serializers.Serializer):
     horas_laboratorio = serializers.IntegerField(required=False, min_value=0)
     nombre = serializers.CharField(required=False,allow_blank=True)
     codigo = serializers.CharField(required=False,allow_blank=True)
-    tipo = serializers.ChoiceField(RelacionMateriaPensumBase.POSIBLES_TIPOS)
+    tipo = serializers.ChoiceField(POSIBLES_TIPOS)
     nota_final = serializers.IntegerField(required=False, min_value=1, max_value=5,allow_null=True)
     esta_retirada = serializers.BooleanField(default=False)
 
@@ -75,7 +76,7 @@ class TrimestreUsuarioSerializer(serializers.Serializer):
 
 
 class PlanEstudioUsuarioSerializer(serializers.Serializer):
-    nombre = serializers.CharField()
+    #nombre = serializers.CharField()
     trimestres = TrimestreUsuarioSerializer(many=True)
     id_pensum = serializers.IntegerField()
 

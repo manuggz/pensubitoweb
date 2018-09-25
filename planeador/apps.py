@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
+import logging
+
 from django.apps import AppConfig
 
+logger = logging.getLogger(__name__)
 
 class PlaneadorConfig(AppConfig):
     name = 'planeador'
@@ -13,6 +16,11 @@ class PlaneadorConfig(AppConfig):
         from pydrive.drive import GoogleDrive
 
         gauth = GoogleAuth()
-        gauth.LocalWebserverAuth()
 
-        self.g_drive = GoogleDrive(gauth)
+        try:
+            gauth.LocalWebserverAuth()
+            self.g_drive = GoogleDrive(gauth)
+            logger.debug('GDrive conectado!')
+        except:
+            logger.error('Error connecting to Google Drive!')
+            self.g_drive = None

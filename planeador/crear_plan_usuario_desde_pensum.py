@@ -40,7 +40,7 @@ def llenar_plan_con_pensum_escogido(dict_nuevo_plan, anyo_inicio):
 
         for relacion_mat_bd in RelacionMateriaPensumBase.objects.filter(pensum_id = dict_nuevo_plan['id_pensum'], trimestre_pensum = trimestre_base_bd):
 
-            if relacion_mat_bd.tipo_materia == RelacionMateriaPensumBase.REGULAR:
+            if relacion_mat_bd.tipo_materia == REGULAR:
                 if mat_no_incluir.count(relacion_mat_bd.materia_base.id) == 0:
                     dict_mat = {
                         'nombre': relacion_mat_bd.materia_base.nombre,

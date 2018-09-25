@@ -9,7 +9,7 @@ from django.db import models
 ## Modelo para manejar el usuario del sistema
 from django.utils.timezone import now
 
-from planeador.constants import TIPO_PLAN, NO_DEFINIDO, PROYECTO_GRADO, PASANTIA_LARGA
+from planeador.constants import *
 
 
 class MiVotiUser(AbstractUser):
@@ -142,11 +142,11 @@ class TrimestrePensum(models.Model):
 
     def __str__(self):
         # return self.periodo + " " + self.anyo + str(self.planestudio_pert_fk) + ")"
-        return "{0} {1} | {2}".format(self.periodo, self.indice_orden, self.planestudio_pert_fk)
+        return "{0} {1} | {2}".format(self.periodo, self.indice_orden, self.pensum.get_nombre_tipo_plan())
 
     def __unicode__(self):
         # return self.periodo + " " + self.anyo + str(self.planestudio_pert_fk) + ")"
-        return "{0} {1} | {2}".format(self.periodo, self.indice_orden, self.planestudio_pert_fk)
+        return "{0} {1} | {2}".format(self.periodo, self.indice_orden, self.pensum.get_nombre_tipo_plan())
 
     class Meta:
         verbose_name = "trimestre pensum"
@@ -154,27 +154,29 @@ class TrimestrePensum(models.Model):
 
 
 class RelacionMateriaPensumBase(models.Model):
-    GENERAL = 'GE'
-    ELECTIVA_LIBRE = 'EL'
-    ELECTIVA_DE_AREA = 'EA'
-    REGULAR = 'RG'
-    EXTRAPLAN = 'EX'
-    POSIBLES_TIPOS = (
-        (REGULAR, 'Regular'),
-        (GENERAL, 'General'),
-        (ELECTIVA_LIBRE, 'Electiva libre'),
-        (ELECTIVA_DE_AREA, 'Electiva de Area'),
-        (EXTRAPLAN, 'Extraplan'),
-    )
 
     tipo_materia = models.CharField(
         max_length=2,
         choices=POSIBLES_TIPOS,
-        default=REGULAR,
     )
     trimestre_pensum = models.ForeignKey(TrimestrePensum, on_delete=models.CASCADE, null=True)
-    pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE)
+    pensum = models.ForeignKey(Pensum, on_delete=models.CASCADE,null=True)
     materia_base = models.ForeignKey('MateriaBase', on_delete=models.CASCADE, null=True)
+    carrera = models.ForeignKey('CarreraUsb', on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return "Materia:{0} - Pensum:{1} - Carrera:{2}".format(
+            self.materia_base.codigo if self.materia_base else None,
+            self.pensum.get_nombre_tipo_plan() if self.pensum else None,
+            self.carrera.nombre if self.carrera else None
+        )
+
+    def __unicode__(self):
+        return "Materia:{0} - Pensum:{1} - Carrera:{2}".format(
+            self.materia_base.codigo if self.materia_base else None,
+            self.pensum.get_nombre_tipo_plan() if self.pensum else None,
+            self.carrera.nombre if self.carrera else None
+        )
 
 
 ## Representa una materia dictada en la USB
@@ -185,7 +187,7 @@ class MateriaBase(models.Model):
     nombre = models.CharField(max_length=200, blank=True)
     codigo = models.CharField(max_length=10, blank=True,
                               help_text="Por favor use el siguiente formato: <em>XXX-YYYY</em>.")
-    creditos = models.IntegerField(default=3)
+    creditos = models.IntegerField(null=True)
     horas_teoria = models.IntegerField(default=0)
     horas_practica = models.IntegerField(default=0)
     horas_laboratorio = models.IntegerField(default=0)
@@ -280,3 +282,26 @@ class RelacionMateriaOpcional(models.Model):
         verbose_name = "relacion materia opcional"
         verbose_name_plural = "relaciones de materias opcionales"
         unique_together = ('materia_primera_opcion', 'materia_segunda_opcion')
+
+## Indica que entre las materias A y B una de las dos se debe/puede inscribir en un trimestre
+## La primera opción es la escogida cuando se crea un pensum por default
+# class RelacionMateriaCarrera(models.Model):
+#     materia = models.ForeignKey(MateriaBase, on_delete=models.CASCADE)
+#     carrera = models.ForeignKey(CarreraUsb, on_delete=models.CASCADE)
+#
+#     tipo_relacion = models.CharField(
+#         max_length=2,
+#         choices=POSIBLES_TIPOS,
+#         default=REGULAR,
+#     )
+#
+#     def __str__(self):
+#         return "({0}) o ({1})".format(self.materia, self.carrera)
+#
+#     def __unicode__(self):
+#         return "({0}) o ({1})".format(self.materia, self.carrera)
+#
+#     class Meta:
+#         verbose_name = "relacion materia carrera"
+#         verbose_name_plural = "relaciones de materias carrera"
+#         unique_together = ('materia', 'carrera')

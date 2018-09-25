@@ -72,6 +72,7 @@ def user_plan(request, username):
 
         archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile(
             {'id': user.gdrive_id_json_plan})
+
         archivo_plan_json.Delete()
 
         user.gdrive_id_json_plan = None

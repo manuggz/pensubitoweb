@@ -12,7 +12,8 @@ def debe_ir_db_datos_pensum(nombre_model):
            nombre_model == 'trimestrepensum' or \
            nombre_model == 'relacionmateriascorrequisito' or \
            nombre_model == 'relacionmateriaopcional' or \
-           nombre_model == 'relacionmateriaprerrequisito'
+           nombre_model == 'relacionmateriaprerrequisito' or \
+           nombre_model == 'relacionmateriacarrera'
 
 ## Django Router https://docs.djangoproject.com/en/2.1/topics/db/multi-db/
 class ApiModelRouter(object):

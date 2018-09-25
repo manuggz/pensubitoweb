@@ -25,10 +25,17 @@ def gdrive_obtener_contenido_plan(gdrive_id):
         archivo.close()
 
     else:
-        archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile({'id': gdrive_id})
 
-        archivo_plan_json.GetContentFile(ruta_local)
+        try:
+            archivo_plan_json = apps.get_app_config('planeador').g_drive.CreateFile({'id': gdrive_id})
+        except AttributeError:
+            # g_drive no está iniciado
+            return -1
 
+        try:
+            archivo_plan_json.GetContentFile(ruta_local)
+        except:
+            return -1
         dict_plan = json.loads(archivo_plan_json.GetContentString())
 
     return dict_plan
@@ -41,13 +48,19 @@ def gdrive_crear_nuevo_plan(prefijo_archivo,dict_nuevo_plan):
     :param dict_nuevo_plan: diccionario con los datos del plan a guardar en formato JSON
     :return: GoogleDriveFile que referencia al archivo creado
     """
-    gdrive_file = apps.get_app_config('planeador').g_drive.CreateFile(
-        {'title': prefijo_archivo + '_plan', 'parents': [
-            {
-                "kind": "drive#parentReference",
-                'id': ID_DRIVE_CARPETA_MIS_VOTI
-            }
-        ]})
+
+    try:
+        gdrive_file = apps.get_app_config('planeador').g_drive.CreateFile(
+            {'title': prefijo_archivo + '_plan', 'parents': [
+                {
+                    "kind": "drive#parentReference",
+                    'id': ID_DRIVE_CARPETA_MIS_VOTI
+                }
+            ]})
+    except AttributeError:
+        # g_drive no está iniciado
+        return None
+
     gdrive_file.SetContentString(json.dumps(dict_nuevo_plan))
     try:
         gdrive_file.Upload()  # Upload the file.

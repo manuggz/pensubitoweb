@@ -35,6 +35,9 @@ urlpatterns = [
     # Pagina para ver un plan en especifico
     url(r'^modificar_plan/$', views.plan_modificar_trim, name='modificar_plan'),
 
+    # Pagina para ver un plan en especifico
+    url(r'^timeline_plan/$', views.plan_timeline, name='timeline_plan'),
+
     # Pagina para crear un nuevo plan sin trimestres
     url(r'^crear_plan_vacio/$', views.crear_plan_vacio_vista, name='crear_plan_vacio'),
     # Pagina para crear un nuevo plan base
