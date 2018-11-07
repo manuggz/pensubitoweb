@@ -23,6 +23,17 @@ $(function () {
         return Math.round((numero + 0.00001) * 10000) / 10000;
     }
 
+    $(".table.datos-materias-trimestre").DataTable( {
+        "searching":   false,
+        "paging":   false,
+        "ordering": false,
+        "info":     false,
+        responsive: true,
+        columnDefs: [
+            { responsivePriority: 1, targets: 0 },
+            { responsivePriority: 2, targets: -1 }
+        ]
+    } );
 
 // Actualiza los indices(indice periodo e Indice acumulado) que se le muestra al usuario
 // Básicamente recorre el JSON(modificar_plan_params.plan_creado_json) donde se guardan los datos de los trimestres
@@ -483,7 +494,7 @@ $(function () {
             // Panel Body
 
             html_tabla_trimestre += '<div class="card-body p-0" >';
-                html_tabla_trimestre += '<table class="table table-hover datos-trimestre">';
+                html_tabla_trimestre += '<table class="table table-hover">';
                     html_tabla_trimestre += "<tr>";
                     html_tabla_trimestre += "<th>Indice del Trimestre</th>";
                     html_tabla_trimestre += "<td align='center' id='td-indice-periodo-" + indice_trimestre + "' >";
@@ -499,7 +510,7 @@ $(function () {
 
                 html_tabla_trimestre += "</table>";
 
-                html_tabla_trimestre += '<table class="table table-hover datos-trimestre"">';
+                html_tabla_trimestre += '<table class="table table-hover datos-materias-trimestre"">';
 
                     html_tabla_trimestre += "<thead>";
                     html_tabla_trimestre += "<tr>";
