@@ -18,30 +18,62 @@
     <p class="login-box-msg">Registrate y comienza a planear tus trimestres</p>
     <p class="text-info">Dime un poco sobre ti para poder ayudarte.</p>
 
-    <form action="{% url 'crear_cuenta' %}" method="post" _lpchecked="1">
-        {% csrf_token %}
+    <form action="{% url 'crear_cuenta' %}" method="post">
+      {% csrf_token %}
       <div class="form-group has-feedback">
         <label class="control-label" for="id_name">Nombre</label>
-        <input type="text" class="form-control" placeholder="Nombre" name="name" id="id_name">
+        <input type="text" class="form-control{% if  form.is_bound %}{% if form.name.errors  %} is-invalid{% else %} is-valid{% endif %}{% endif %}" placeholder="Nombre" name="name" id="id_name" value="{{ form.name.value }}">
         <span class="glyphicon glyphicon-user form-control-feedback"></span>
-          {{ form.name.errors }}
+        {% if  form.is_bound and form.name.errors  %}
+        <div class="invalid-feedback">
+            <ul>
+            {% for error in form.name.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
       </div>
       <div class="form-group has-feedback">
         <label class="control-label" for="id_carnet">USBID</label>
-        <input type="text" class="form-control" placeholder="Carnet" name="carnet" id="id_carnet">
+        <input type="text" class="form-control{% if  form.is_bound %}{% if form.carnet.errors  %} is-invalid{% else %} is-valid{% endif %}{% endif %}" placeholder="Carnet" name="carnet" id="id_carnet"  value="{{ form.carnet.value }}">
         <span class="glyphicon glyphicon-user form-control-feedback"></span>
-          {{ form.carnet.errors }}
+        {% if  form.is_bound and form.carnet.errors  %}
+        <div class="invalid-feedback">
+            <ul>
+            {% for error in form.carnet.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
       </div>
         <div class="form-group has-feedback">
             <label class="control-label" for="id_career">Pensum</label>
             {{ form.pensum }}
-          {{ form.pensum.errors }}
+            {% if  form.is_bound and form.pensum.errors  %}
+            <div class="invalid-feedback">
+                <ul>
+                {% for error in form.pensum.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
         </div>
     <div class="form-group has-feedback">
         <label class="control-label" for="id_username">Nombre de usuario *</label>
-        <input type="text" class="form-control" placeholder="Nombre de usuario" name="username" id="id_username" required>
+        <input type="text" class="form-control{% if  form.is_bound %}{% if form.username.errors  %} is-invalid{% else %} is-valid{% endif %}{% endif %} " placeholder="Nombre de usuario" name="username" id="id_username"  value="{{ form.username.value }}" required>
         <span class="glyphicon glyphicon-user form-control-feedback"></span>
-          {{ form.username.errors }}
+        {% if  form.is_bound and form.username.errors  %}
+        <div class="invalid-feedback">
+            <ul>
+            {% for error in form.username.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
       </div>
       <div class="form-group has-feedback">
         <label class="control-label" for="id_password">Contraseña *</label>
@@ -63,7 +95,7 @@
       <div class="row">
         <div class="col-8">
             <label>
-                Al crear una cuenta aceptas nuestros <a href="" onclick="alert('u sure wanna read it buddy?')">terminos</a>
+                Al crear una cuenta aceptas nuestros <a href="" onclick="alert('Not done yet!')">terminos y condiciones</a>
             </label>
         </div>
         <!-- /.col -->
